@@ -21,6 +21,7 @@ data/*.db-journal
 
 # Smoke test artifacts
 backend/out.mp3
+backend/tests/live_output/
 
 # Editors/OS
 .vscode/

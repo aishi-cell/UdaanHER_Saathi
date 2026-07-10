@@ -25,6 +25,7 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["live: exercises real external APIs; needs real keys/fixtures in backend/.env"]
+addopts = '-m "not live"'
 
 [tool.ruff]
 line-length = 100

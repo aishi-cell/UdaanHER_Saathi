@@ -35,6 +35,12 @@ cd backend
 uv run pytest
 ```
 
+This excludes tests marked `live` (they call real Sarvam/OpenAI APIs and need `backend/.env` filled with real keys). Run those explicitly:
+
+```
+uv run pytest -m live
+```
+
 ## Environment variables
 
 Copy `.env.example` to `backend/.env` and fill in real values (see `docs/spec.pdf` Section 5). Never commit `backend/.env`.
