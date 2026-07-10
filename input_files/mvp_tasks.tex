@@ -1,0 +1,513 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
+\usepackage{xurl}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+
+\definecolor{brand}{HTML}{1F4E79}
+\titleformat{\section}{\large\bfseries\color{brand}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries\color{brand}}{}{0em}{}
+\setlist[itemize]{leftmargin=1.4em, topsep=2pt}
+\setlist[enumerate]{leftmargin=1.6em, topsep=2pt}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\taskmeta}[3]{\noindent\textbf{Depends on:} #1 \quad\textbullet\quad \textbf{Estimate:} #2 \quad\textbullet\quad \textbf{Good for:} #3\par\vspace{2pt}}
+\newcommand{\ctx}[1]{\paragraph{Context (read even if you skip everything else).} #1}
+\newcommand{\dod}{\paragraph{Definition of done (all boxes, verifiable by someone else).}}
+
+\title{\textbf{UdaanHer Saathi MVP: Task Book}\\
+\large Version 1.0 --- 26 tasks, in order, each assignable to one person with no other context}
+\author{Team: Aishi + mentor \quad\textbullet\quad 9 July 2026}
+\date{}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{How to use this book}
+
+Every task below follows the same anatomy: \textbf{metadata} (what it depends on, how long it should take a careful beginner, what kind of person can own it), \textbf{context} (enough background that you need no meeting), \textbf{what to do} (concrete steps), and a \textbf{definition of done} --- a checklist another team member can verify without trusting you. ``Spec \S$n$'' always means the companion document \emph{UdaanHer Saathi MVP: Technical Specification} (\code{docs/spec.pdf} in the repo); the referenced section contains the exact schema, endpoint, or rule the task implements. Read your task's spec sections \emph{before} writing code.
+
+Rules of the road:
+
+\begin{itemize}
+  \item Work on a branch named \code{task/T\#\#-short-slug}; open a PR into \code{main}; someone else reads it before merge. \code{main} must always start and pass tests.
+  \item A task is not done until its definition-of-done boxes are all checked \emph{by a person other than the author}.
+  \item If a task turns out to conflict with the spec, stop and fix the spec first (one line in \code{docs/decisions.md} saying what changed and why), then continue.
+  \item Estimates assume a focused beginner-to-intermediate developer with AI coding assistance. If you are 2$\times$ over the estimate, ask for help instead of pushing on alone --- that is a process feature, not a failure.
+\end{itemize}
+
+\textbf{Sequencing at a glance.} Phases run in order; inside a phase, tasks marked with the same dagger (\dag) can run in parallel on two machines. Content tasks (Phase 4) need no programming and can start any time after T01 --- they are the student-friendly parallel track.
+
+\begin{center}
+\begin{tabular}{p{2.6cm} p{7.6cm} p{2.8cm}}
+\toprule
+\textbf{Phase} & \textbf{Outcome} & \textbf{Tasks} \\
+\midrule
+0 Foundation & Repo runs on both machines; keys proven & T01--T04 \\
+1 Voice loop & Speak to it, it speaks back (no brain yet) & T05--T08 \\
+2 Data \& protocol & Database and UI-command contract exist & T09--T10 \\
+3 Feature 1 & Full voice onboarding, profile saved & T11--T14 \\
+4 Content & Curriculum, rubrics, visual aids (parallel) & T15--T17 \\
+5 Feature 2 & Teach $\rightarrow$ viva $\rightarrow$ re-teach $\rightarrow$ progress & T18--T21 \\
+6 Demo hardening & Returning users, languages, deploy, rehearsal & T22--T26 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Phase 0 --- Foundation}
+
+\subsection{T01 --- Repository scaffold and tooling}
+\taskmeta{nothing}{3 h}{anyone on the team}
+\ctx{We have an empty GitHub repository and two laptops with VS Code. This task turns that into a monorepo where backend and frontend both start with one command each, so every later task begins from a working checkout instead of a setup fight. The exact directory tree is prescribed --- later tasks name their files against it.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Clone the empty repo. Create the directory tree from Spec \S4 exactly, with empty placeholder files where content comes later.
+  \item Backend: \code{pyproject.toml} with pinned deps (\code{fastapi, uvicorn, pydantic, pydantic-settings, sqlmodel, httpx, langgraph, langchain-openai, openai, pytest, ruff}); create a venv; \code{uvicorn app.main:app --reload} must start (an empty FastAPI app for now).
+  \item Frontend: \code{npm create vite@latest} (React + TypeScript) into \code{frontend/}; \code{npm run dev} must serve the default page; add \code{prettier}.
+  \item Write \code{.gitignore} (Python, Node, \code{.env}, \code{data/*.db}, \code{dist/}) and \code{.env.example} listing every variable in Spec \S5 with dummy values.
+  \item Write \code{README.md}: what the project is (3 sentences), then the exact commands to run backend, frontend, and tests on a fresh machine.
+  \item Create \code{docs/decisions.md} with its first entry: date, ``stack pinned per spec v1.0''.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item A teammate clones the repo on the \emph{other} laptop and gets backend + frontend running using only \code{README.md}, no verbal help.
+  \item \code{git log} shows work on \code{task/T01-scaffold} merged via PR.
+  \item No real secret appears anywhere in the repo history.
+\end{itemize}
+
+\subsection{T02 --- Keys, config loading, and API smoke tests}
+\taskmeta{T01}{3 h}{anyone; good first task with APIs}
+\ctx{We hold paid credits for Sarvam (speech) and OpenAI (reasoning). Before building anything on top, we prove both keys work from our code, and we build the one config module every later module imports. The exact request formats are in Spec \S6 --- do not improvise field names.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{backend/app/config.py} using \code{pydantic-settings}: loads every Spec \S5 variable from \code{.env}, fails at startup with a clear message if one is missing.
+  \item Write \code{backend/scripts/smoke\_sarvam.py}: (a) sends a bundled 5-second WAV of someone saying a Gujarati or Hindi sentence to the STT endpoint (Spec \S6.1) and prints the transcript; (b) sends the sentence ``Namaste, main aapki saathi hoon'' to the TTS endpoint (Spec \S6.2) with \code{target\_language\_code=hi-IN} and writes \code{out.mp3}. Record the fixture WAV yourselves on a phone.
+  \item Write \code{backend/scripts/smoke\_openai.py}: one structured-output call --- ask the model to return \code{\{"ok": true\}} bound to a Pydantic model --- and print the parsed object and the model name used.
+  \item Save the fixture WAV to \code{backend/tests/fixtures/} for reuse by T05.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Both smoke scripts run successfully on both laptops with real keys in local \code{.env}.
+  \item \code{out.mp3} plays and sounds like natural Hindi.
+  \item Deleting a variable from \code{.env} makes the backend refuse to start with a message naming that variable.
+\end{itemize}
+
+\subsection{T03 --- Backend skeleton: health, CORS, error shape, latency log \dag}
+\taskmeta{T02}{2 h}{backend-leaning}
+\ctx{Every endpoint we build later shares three cross-cutting behaviours: a health check for deploys, CORS so the browser may call us, and one uniform error JSON shape (Spec \S7 intro). Building them now means no later task reinvents them.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{GET /health} exactly as Spec \S7.1.
+  \item Add CORS middleware reading \code{CORS\_ORIGINS} from config.
+  \item Add an exception handler so every unhandled error returns \code{\{"error": \{"code", "message"\}\}} with a 500, and a helper for raising typed 4xx errors in the same shape.
+  \item Add middleware that logs method, path, status, and elapsed ms for every request.
+  \item First pytest: \code{test\_health.py} using FastAPI's \code{TestClient}.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item \code{curl localhost:8000/health} returns the spec shape; \code{pytest} passes.
+  \item A deliberately-raised test exception comes back in the uniform error shape, and the log line shows the request.
+\end{itemize}
+
+\subsection{T04 --- Frontend skeleton: kiosk shell \dag}
+\taskmeta{T01}{3 h}{frontend-leaning}
+\ctx{The learner-facing screen is not a website; it is a kiosk face: one big friendly screen, one large talk button, a content area the agent will fill. This task builds that empty shell and proves the frontend can reach the backend. Design constraints come from the plan's persona: our user reads very little, so everything is large, high-contrast, and image-first.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Replace the Vite default page with \code{App.tsx}: full-viewport layout, top 70\% content area (empty for now, warm placeholder illustration), bottom 30\% a single huge circular ``talk'' button with a microphone icon, and a small status line (``ready'').
+  \item Plain CSS: minimum 24px body text, large tap targets ($\geq$ 64px), warm palette; must look right on a laptop and a phone (portrait).
+  \item Implement \code{src/api.ts} with a typed \code{getHealth()} calling the backend; show a tiny green/red dot in a corner bound to it.
+  \item Add \code{src/types.ts} as an empty placeholder with a comment pointing at Spec \S8 (T10 fills it).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item With backend running, the page shows the green dot; with backend stopped, red --- no console errors either way.
+  \item On a real Android phone via LAN IP, the layout is usable one-handed and text is legible from arm's length.
+\end{itemize}
+
+\section{Phase 1 --- The voice loop (walking skeleton)}
+
+\subsection{T05 --- STT service module \dag}
+\taskmeta{T02}{3 h}{backend}
+\ctx{Everything the learner says reaches us as browser audio; this module turns audio bytes into text via Sarvam Saaras~v3. It is the only file in the codebase allowed to know Sarvam's STT wire format (Spec \S6.1) --- callers just see \code{transcribe(audio\_bytes, language) -> TranscriptResult}.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{app/services/stt.py}: async \code{transcribe()} using httpx multipart per Spec \S6.1, model \code{saaras:v3}, mode \code{transcribe}; return a small dataclass (transcript, language\_code, request\_id, elapsed\_ms).
+  \item Handle failure modes explicitly: non-200 (raise a typed \code{SttError} carrying Sarvam's message), timeout at 15s, and \emph{empty transcript} (return it as-is; the agent decides what to say --- do not raise).
+  \item Tests: one live test marked \code{@pytest.mark.live} using the T02 fixture WAV; unit tests with a mocked httpx for the 3 failure modes.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live test prints a plausible transcript of the fixture audio in the right script (Gujarati/Devanagari).
+  \item Mocked tests pass; no other module imports httpx for STT purposes.
+  \item \code{elapsed\_ms} is populated (we start watching latency now, per Spec \S13).
+\end{itemize}
+
+\subsection{T06 --- TTS service module \dag}
+\taskmeta{T02}{3 h}{backend}
+\ctx{The mentor's voice. Mirror of T05 for Sarvam Bulbul~v3 (Spec \S6.2): \code{synthesize(text, language) -> Mp3Result}. The speaker voice is a config value because choosing the right warm female voice is a product decision we will revisit by ear.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{app/services/tts.py} per Spec \S6.2: JSON body, \code{model=bulbul:v3}, \code{speaker} from config, \code{output\_audio\_codec=mp3}, sample rate 24000; decode \code{audios[0]} from base64; return (mp3\_bytes, elapsed\_ms).
+  \item Guard the 2500-char limit: if the text is longer, split on sentence boundaries, synthesise sequentially, concatenate --- but also log a warning, because per Spec \S9.3 mentor replies should be 2--3 sentences and hitting this guard means a prompt is misbehaving.
+  \item Same failure handling and test pattern as T05. Listen to at least 3 candidate speakers with a Gujarati sentence and record the chosen one in \code{docs/decisions.md}.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live test writes an mp3 that plays natural Gujarati and natural Hindi.
+  \item Mocked failure tests pass; speaker choice + reasoning noted in \code{docs/decisions.md}.
+\end{itemize}
+
+\subsection{T07 --- \code{/api/turn} walking skeleton (echo brain)}
+\taskmeta{T03, T05, T06}{4 h}{backend}
+\ctx{Before any AI cleverness, we prove the full pipe: audio in, audio out, under our latency budget. The ``brain'' in this task is a stub that replies ``Aapne kaha: \{transcript\}'' --- deliberately trivial, so that when T11 swaps in the real agent, everything around it is already known-good. This task also implements the endpoint's contract (Spec \S7.3) which will not change afterwards.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{POST /api/turn} accepting multipart per Spec \S7.3 (accept the \code{audio} field now; \code{tapped\_option\_id} arrives in T10). Session validation is a stub until T09 --- accept any \code{session\_id}.
+  \item Pipeline: STT \(\rightarrow\) echo-stub reply \(\rightarrow\) TTS \(\rightarrow\) response JSON with \code{transcript}, \code{reply\_text}, \code{reply\_audio\_b64}, \code{ui: \{"type": "idle"\}}, \code{stage: "greet"}, and the real \code{latency\_ms} breakdown.
+  \item Run STT/agent/TTS timings through one small helper so every future node is timed the same way.
+  \item Test: TestClient posts the fixture WAV (mock Sarvam in unit tests; one live test end to end).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live: posting the fixture WAV returns playable mp3 audio of the echo sentence.
+  \item \code{latency\_ms} fields are non-zero and their sum roughly matches wall time.
+  \item Unit tests pass with both Sarvam calls mocked.
+\end{itemize}
+
+\subsection{T08 --- Frontend push-to-talk and playback}
+\taskmeta{T04, T07}{5 h}{frontend}
+\ctx{This is the highest-stakes frontend task: the microphone interaction \emph{is} the product's front door. Push-to-talk (hold to speak, release to send) is chosen over open-mic because it is robust in noisy rooms and unambiguous for a first-time user. After this task, anyone can hold the button, speak, and hear the machine answer --- our first demo-able moment.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{src/audio/recorder.ts}: request mic permission on first press; record \code{audio/webm;codecs=opus} via \code{MediaRecorder} while the button is held (pointer events, so touch works); on release, hand back a Blob. Handle permission-denied with a friendly full-screen message.
+  \item Implement \code{src/audio/player.ts}: base64 mp3 \(\rightarrow\) \code{Audio} playback; expose \code{playing} state; pre-load and play a soft earcon (\code{content/assets/earcon.mp3} --- any gentle chime, checked into the repo) when a turn is in flight.
+  \item Wire into \code{App.tsx} with a visible state machine: \code{ready} (button breathes) \(\rightarrow\) \code{listening} (button enlarges, red ring) \(\rightarrow\) \code{thinking} (earcon + spinner) \(\rightarrow\) \code{speaking} (waveform-ish animation) \(\rightarrow\) \code{ready}. Block re-recording while \code{thinking/speaking}.
+  \item Show the returned \code{transcript} small and the \code{latency\_ms} sum in a corner (dev aid; hidden behind a \code{?debug=1} query flag).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item On laptop and Android phone: hold, say a Gujarati sentence, release, hear the echo reply; all four visual states clearly distinguishable.
+  \item Mic permission denial shows the friendly message, not a broken button.
+  \item 10 consecutive turns work without reload; median round trip logged and reported in the PR description.
+\end{itemize}
+
+\section{Phase 2 --- Data and protocol}
+
+\subsection{T09 --- Database and persistence layer \dag}
+\taskmeta{T03}{4 h}{backend}
+\ctx{Everything the mentor remembers about a learner lives in five SQLite tables (Spec \S10). This task creates them plus a thin repository layer, so agent code never writes SQL. It also implements \code{delete\_learner} --- per Spec \S12 the delete function must exist from the moment the tables do, because our users' trust is a launch requirement, not a polish item.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Define the five SQLModel tables exactly per Spec \S10; create \code{data/app.db} on startup if absent.
+  \item Repository functions: \code{create\_learner, get\_learner\_by\_name\_pin} (PIN stored as a salted hash), \code{save\_profile, log\_turn, upsert\_lesson\_progress, upsert\_concept\_mastery, get\_progress(learner\_id)} (returns the \code{ProgressPayload} shape of Spec \S8), and \code{delete\_learner} (cascades everywhere).
+  \item Implement \code{POST /api/session} (Spec \S7.2) minus the greeting audio: create a \code{sessions} row, resolve returning learners by name+PIN, return ids and stage. (T11 adds the spoken greeting.)
+  \item Implement \code{GET /api/learner/\{id\}/progress} (Spec \S7.4) over \code{get\_progress}.
+  \item Tests: full pytest coverage of the repository against a temp database, including delete-cascade and wrong-PIN.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item All repository tests pass; wrong PIN never returns a learner; \code{delete\_learner} leaves zero rows for that learner in every table (asserted).
+  \item \code{/api/session} round-trips for both new and returning learners via TestClient.
+\end{itemize}
+
+\subsection{T10 --- UI command protocol, both sides \dag}
+\taskmeta{T04}{4 h}{full-stack; precision matters}
+\ctx{The agent drives the screen by returning one \code{UICommand} per turn; the frontend is a dumb renderer. This task creates both halves of that contract --- Pydantic on the backend, TypeScript on the frontend --- from Spec \S8, plus the renderer components with placeholder data, so Feature-1 and Feature-2 tasks can emit commands into an already-working screen.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Backend: \code{app/models/ui.py} --- discriminated-union Pydantic models for all six command types and \code{ProgressPayload}, exactly per Spec \S8.
+  \item Frontend: \code{src/types.ts} mirroring them, and a \code{<Renderer ui=\{...\}/>} switch component.
+  \item Components with static demo props: \code{OptionCards} (image cards, huge, tap raises \code{onTap(id)}), \code{LessonStep} (image + one-line caption + ``step $n$ of $m$'' dots), \code{VideoEmbed} (YouTube iframe), \code{ProfileCard}, \code{ProgressView} (lesson list + concept chips coloured by mastery).
+  \item Extend \code{/api/turn} to accept \code{tapped\_option\_id} as the alternative to audio (Spec \S7.3); a tap skips STT and flows into the same pipeline. Wire \code{OptionCards} taps to it.
+  \item Add a hidden dev route/flag that cycles the renderer through one hard-coded example of each command type for visual QA.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Dev flag shows all six command renders correctly on laptop + phone; captions legible at arm's length.
+  \item Tapping a card sends \code{tapped\_option\_id} and the echo brain answers (audio plays) --- proving tap-as-a-turn.
+  \item Field-by-field diff of \code{ui.py} vs \code{types.ts} vs Spec \S8 done by the reviewer.
+\end{itemize}
+
+\section{Phase 3 --- Feature 1: the mentor gets to know her}
+
+\subsection{T11 --- LangGraph mentor skeleton}
+\taskmeta{T07, T09}{6 h}{backend; the most conceptual task}
+\ctx{Now the brain. The mentor is a LangGraph state machine whose stages mirror the pedagogy (Spec \S9.1): greet, discover, assess, confirm\_profile, teach, viva, reteach, wrapup, close, resume. This task builds the graph's skeleton --- state model, router, checkpointing, node scaffolds that produce placeholder replies --- and swaps it in for the echo brain. The hard rules in Spec \S9.1 (teach unreachable without a profile, etc.) are enforced here in code, not left to prompts.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{agent/state.py}: the \code{AgentState} model from Spec \S9.2.
+  \item Implement \code{agent/graph.py}: one node per stage under \code{agent/nodes/}, each returning a canned in-character line and a valid \code{UICommand}; conditional edges per the Spec \S9.1 transition table; guard functions for the hard rules; LangGraph SQLite checkpointer keyed by \code{session\_id}.
+  \item Create \code{services/llm.py} (ChatOpenAI factory with model + temperature from config) --- used by nodes from T12 on.
+  \item Replace the echo stub in \code{/api/turn}: load checkpoint, run one graph step with the transcript (or tapped option), persist, return reply/ui/stage. \code{/api/session} now runs the \code{greet} (or \code{resume}) node to produce the real spoken greeting.
+  \item Tests: drive the graph transcript-by-transcript (no LLM yet) and assert stage sequences, including the guards (e.g.\ forcing stage to \code{teach} without a profile must be impossible).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item From the browser: the mentor speaks first, and successive turns visibly advance stages (stage shown under \code{?debug=1}).
+  \item Killing and restarting the backend mid-session preserves the conversation (checkpoint proof).
+  \item Transition tests pass, including both guard rules.
+\end{itemize}
+
+\subsection{T12 --- Onboarding conversation: greet, discover, assess, confirm}
+\taskmeta{T11}{8 h}{backend + prompt writing; the heart of Feature 1}
+\ctx{This task replaces four placeholder nodes with the real thing: a warm 5--7 minute voice conversation, in the session language, that ends with a saved learner profile. Persona and prompting rules are Spec \S9.3 --- the mentor is a patient didi, one question at a time, never test-like. Consent (Spec \S12) happens in \code{greet}: she must agree aloud before anything about her is stored. Assessment infers a starting level from stories, not quiz answers.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Write the four stage prompts in \code{agent/prompts/} per Spec \S9.3, each stating: role, session language, what this stage must learn, the 2--3-sentence reply cap, and the structured output expected.
+  \item \code{greet}: welcome, ask name, ask consent plainly (``Shall I remember you, so next time we continue where we left?''); on refusal set a no-persist flag honoured everywhere downstream.
+  \item \code{discover}: village and current work by voice; interests via a \code{show\_options} command with 4 skill cards (from curriculum titles); accept tap or voice.
+  \item \code{assess}: 3--4 story-questions about the chosen skill, adapted to her answers; then a structured-output call producing \code{ProfileDraft} (name, village, interest, starting\_level, notes) --- bind to Pydantic, never parse prose.
+  \item \code{confirm\_profile}: emit \code{show\_profile\_card} \emph{and} read the profile aloud; on yes, save via T09 repository (with \code{consent\_given\_at}); on correction, apply the fix and re-confirm.
+  \item Tests: mocked-LLM tests asserting each prompt receives the right context and each structured output lands in state; plus a scripted live run in Hindi and one in Gujarati, transcripts saved to \code{docs/transcripts/} for prompt review.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live in the browser, in Gujarati: a brand-new visitor is greeted, consents, chats, taps or says an interest, answers stories, hears her profile read back, confirms --- and a correct \code{learners} row exists.
+  \item Saying ``no'' to consent still allows the conversation, and the database stays empty afterwards (asserted).
+  \item Every mentor reply in the two recorded transcripts is $\leq$ 3 sentences and contains no forbidden words (test/exam/score/wrong); reviewer reads both transcripts and signs off on tone.
+\end{itemize}
+
+\subsection{T13 --- Feature-1 frontend integration and voice-first polish}
+\taskmeta{T10, T12}{4 h}{frontend}
+\ctx{Onboarding now works; this task makes it feel right on screen: commands rendering mid-conversation, option cards answerable by tap or voice interchangeably, and the visual state machine from T08 staying truthful during multi-second agent turns. This is where ``the agent controls the software'' becomes visible to a judge.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Wire real \code{UICommand}s from \code{/api/turn} through the T10 renderer during a live onboarding; fix layout/timing issues (command should render when the mentor \emph{starts} speaking, not after).
+  \item Language picker on the very first screen only: three big flag-free buttons, each labelled in its own script (Gujarati, Hindi, English) feeding \code{/api/session}.
+  \item Add gentle auto-hints: if \code{ready} persists 15s after a question, replay the mentor's last audio.
+  \item Record a full onboarding as a screen capture; file issues for anything janky and fix the top three.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item A non-team-member (friend/family) completes onboarding in Hindi or Gujarati with zero verbal coaching from you --- observed, notes taken, filed.
+  \item Cards can be answered by voice (``beauty ka kaam'') \emph{or} tap with identical downstream behaviour.
+  \item Screen capture of a clean run checked into \code{docs/} (or linked) for the demo archive.
+\end{itemize}
+
+\subsection{T14 --- Feature-1 milestone gate and seeded returning learner}
+\taskmeta{T13}{2 h}{whole team, together}
+\ctx{A deliberate stop-and-verify point: Feature 1 is declared done here against the acceptance criteria, and we create the demo fixture everybody downstream relies on --- the pre-seeded learner ``Sunita'' with a completed profile, ready to start lesson one.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Run acceptance items 1 and 2 of Spec \S15 end to end on both laptops and one phone; log outcomes in \code{docs/decisions.md}.
+  \item Write \code{scripts/seed\_demo.py}: idempotently creates learner Sunita (Gujarati, tailoring, \code{starting\_level=some}, PIN 1234) with no lesson progress.
+  \item Fix whatever the gate run surfaces before starting Phase 5 coding.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Spec \S15 items 1--2 pass, witnessed by both team members.
+  \item \code{seed\_demo.py} runs twice without duplicating Sunita; name+PIN login greets her by name.
+\end{itemize}
+
+\section{Phase 4 --- Content (parallel track, no coding)}
+
+\subsection{T15 --- Tailoring curriculum: three lessons \dag}
+\taskmeta{T01 (repo only)}{8 h spread over days}{Aishi / non-programmer; domain care over code}
+\ctx{The agent never invents curriculum; it personalises from a hand-built JSON file (Spec \S11.1). This task writes that file for tailoring: three lessons, each with 3--5 concepts and 4--6 teachable steps with images. Ground truth is the NSDC Qualification Pack for assistant tailor / sewing machine operator (\url{https://nqr.gov.in}) --- free, government-standard. Quality bar: a human tailor reading a lesson's teaching notes would nod.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Read the relevant NSDC QP; choose three first lessons a beginner-to-intermediate learner needs (suggested: taking body measurements; fabric grain and cutting basics; straight-stitch seams and finishing). Record the choice + QP reference in \code{docs/decisions.md}.
+  \item For each lesson fill the Spec \S11.1 schema: concepts (with \code{must\_land} flags), steps with \code{teaching\_notes} written \emph{for the LLM} in plain English (what to convey, what to emphasise, what mistakes to warn about), captions in en/hi/gu.
+  \item Source or draw one clear image per step (simple line diagrams beat photos; note licences) into \code{content/assets/}.
+  \item Ask a real tailor (local, family, or a detailed tutorial cross-check) to review lesson 1's notes for correctness.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item \code{tailoring.json} validates against the loader (T18 wires it; until then, against the schema by inspection with a teammate).
+  \item Every step has an existing image file; every caption exists in all three languages.
+  \item Tailor-review of lesson 1 happened; corrections applied and noted.
+\end{itemize}
+
+\subsection{T16 --- Viva rubrics for the three lessons \dag}
+\taskmeta{T15 (lesson concepts fixed)}{5 h}{Aishi / non-programmer}
+\ctx{The viva is only as fair as its rubric (Spec \S11.2). For each concept: 2--3 conversational questions, plus examples of what a \emph{correct} answer sounds like from a non-literate learner --- spoken, informal, code-mixed (``pehle naap lena, phir kapda katna'') --- and what common confusion sounds like. These exemplars are the LLM's grading context; without them it grades like a schoolteacher, which is exactly what we must not be.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item For every concept in T15's three lessons, write 2--3 questions phrased as friendly conversation (``Suppose the blouse comes out tight at the shoulder --- what would you check?'').
+  \item For each question: 2--3 \code{sounds\_right} spoken-style exemplars and 1--2 \code{sounds\_confused} ones, in Hindi/Gujarati-flavoured informal phrasing.
+  \item Fill \code{tailoring\_rubrics.json} per Spec \S11.2; have the other team member try to answer each question aloud and check the exemplars cover natural answers.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Every T15 concept has $\geq$ 2 questions with both exemplar kinds; JSON is valid.
+  \item Read-aloud trial done; at least three exemplars were revised because of it (if none were, the trial was not honest).
+\end{itemize}
+
+\subsection{T17 --- Visual-aid index \dag}
+\taskmeta{T15 (concept ids fixed)}{4 h}{Aishi / non-programmer}
+\ctx{When re-teaching, the agent may only pick from a hand-vetted list of videos and diagrams (Spec \S11.3) --- curated beats searched, because a live YouTube search in a demo is a coin flip. Your judgement here \emph{is} the feature.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item For each T15 concept, find $\geq$ 2 aids: a good Hindi (or Gujarati, rarer) YouTube tutorial segment and/or a clear diagram. Watch every video fully; check it is correct, respectful, and beginner-paced.
+  \item Fill \code{index.json} per Spec \S11.3 with a one-line \code{note} on why each was chosen; convert YouTube links to embed form (\code{youtube.com/embed/<id>}).
+  \item Verify each embed URL actually plays inside an iframe (some videos disable embedding --- replace those).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Every concept has $\geq$ 2 entries; every video watched end to end by a human; every embed URL tested in an iframe.
+  \item No entry relies on live search; language tags correct.
+\end{itemize}
+
+\section{Phase 5 --- Feature 2: the mentor teaches and checks}
+
+\subsection{T18 --- Content loader and the teach stage}
+\taskmeta{T11, T15}{6 h}{backend}
+\ctx{The teach node walks Sunita through a lesson one step at a time: each turn shows one \code{show\_lesson\_step} command while the mentor narrates that step from its \code{teaching\_notes}, and she can interrupt with questions at any point. Lesson choice comes from her profile and progress (first incomplete lesson). Content must be validated at startup --- a typo in JSON must fail the boot, not the demo (Spec \S11).}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{content/loader.py}: Pydantic models mirroring Spec \S11.1--11.3, loaded and validated at startup; helpful error naming file + field on failure.
+  \item Implement the \code{teach} node: pick lesson (profile + \code{lesson\_progress}); per turn, narrate the current step (LLM with the step's \code{teaching\_notes} + persona prompt) and emit its \code{show\_lesson\_step}; detect from her utterance whether she asks a question (answer it, stay on step), wants to continue (advance), or wants to stop (go to \code{wrapup}).
+  \item Mark \code{lesson\_progress = in\_progress} on entry; transition to \code{viva} after the last step.
+  \item Tests: loader failure cases (missing image path, missing language key); mocked-LLM step-advance logic; one live run of lesson 1 with transcript saved.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Corrupting \code{tailoring.json} makes the backend refuse to start with a message naming the bad field.
+  \item Live: Sunita (seeded) hears lesson 1 step by step with images changing; an interruption (``video dhime chalao jaisa kuch poocho'' --- ask anything) gets answered without losing the step position.
+  \item Reaching the last step lands in \code{viva} (visible in debug stage).
+\end{itemize}
+
+\subsection{T19 --- The viva stage: conversational check with rubric grading}
+\taskmeta{T18, T16}{6 h}{backend; second-most-delicate prompts}
+\ctx{After the lesson, the mentor ``chats about what we did'': one rubric question at a time, graded \code{strong}/\code{shaky} per concept using the T16 exemplars as grading context (Spec \S11.2). Framing is everything --- Spec \S9.3's forbidden-word list applies doubly here. Grades are written to \code{concept\_mastery}; the routing decision (reteach vs wrapup) is computed in code from the grades, never by asking the LLM ``should we reteach?''.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement the \code{viva} node: select the next unasked question covering a \code{must\_land} concept first; ask it conversationally; on her answer, run a structured-output grading call (question, her transcript, the exemplars) returning \code{\{concept\_id, grade, one\_line\_reason\}} at temperature $\leq$ 0.2.
+  \item After each grade: encouraging micro-feedback in-language (grade never spoken as a grade); write \code{concept\_mastery}; when all lesson concepts are covered, route: any \code{shaky} \(\rightarrow\) \code{reteach}, else \(\rightarrow\) \code{wrapup}.
+  \item Tests: grading calls with fabricated strong/confused answers built from the rubric exemplars --- assert expected grades (mocked and 6-case live); routing unit tests.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live: answering two questions well and one badly yields matching \code{concept\_mastery} rows and routes to \code{reteach}.
+  \item In the recorded transcript the mentor never utters test/exam/score/wrong/fail in any session language; reviewer signs off on warmth.
+  \item The 6-case live grading check gets $\geq$ 5 right; misses analysed in the PR description.
+\end{itemize}
+
+\subsection{T20 --- The re-teach loop}
+\taskmeta{T19, T17}{5 h}{backend}
+\ctx{The product's soul (plan document \S8.2): where she is shaky, the mentor immediately explains \emph{differently} --- new analogy, a diagram, or a curated video --- then gently re-checks with one question. Code-enforced limits from Spec \S9.1: aids come only from the T17 index; max 2 re-teach rounds per concept, then the concept is marked ``revisit next session'' and the mentor moves on warmly.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement the \code{reteach} node: take the first shaky concept; choose an aid from the index (prefer session language, fall back to Hindi --- log when fallback happens); explain differently (prompt gets her original wrong answer so the explanation targets \emph{her} confusion); emit \code{show\_video} or \code{show\_lesson\_step} with the diagram.
+  \item Re-check with one fresh rubric question (not the one she missed); regrade; update mastery and \code{reteach\_counts}; loop or move on per the limits.
+  \item Tests: aid-selection fallback logic; the 2-round cap (third round impossible, concept flagged for next session); one live run with a deliberately-wrong answer.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live: a deliberately-wrong viva answer visibly triggers a different explanation with a video or diagram on screen, then a re-check.
+  \item Forcing two failed rounds ends in a warm move-on (transcript reviewed) and a ``revisit'' flag in the database --- never a third drill.
+  \item Aid selection never returns anything outside \code{index.json} (test asserts this).
+\end{itemize}
+
+\subsection{T21 --- Wrap-up, progress view, and Feature-2 gate}
+\taskmeta{T20}{4 h}{full-stack, then whole team}
+\ctx{The session must end the way a good lesson does: here is what you did, here is what comes next. The \code{wrapup} node emits \code{show\_progress} (data from T09's \code{get\_progress}) while the mentor narrates it; \code{close} persists everything and says goodbye. Then the whole team runs the Feature-2 acceptance gate.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Implement \code{wrapup}: mark lesson completed when all \code{must\_land} concepts are strong (else leave \code{in\_progress} with the revisit flags); emit \code{show\_progress}; narrate it simply (``two things solid, one we will look at again'').
+  \item Implement \code{close}: final save, warm goodbye, session \code{ended\_at}.
+  \item Frontend: make sure \code{ProgressView} renders the real payload well (concept chips coloured by mastery, next-step line).
+  \item Gate: run Spec \S15 items 3 and 6 end to end with Sunita; log in \code{docs/decisions.md}; fix blockers.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Spec \S15 item 3 passes end to end, witnessed by both team members (lesson \(\rightarrow\) viva \(\rightarrow\) forced re-teach \(\rightarrow\) accurate progress screen).
+  \item \code{delete\_learner} on a test learner verified again post-Feature-2 (item 6).
+  \item Progress screen matches database contents exactly for Sunita after the run.
+\end{itemize}
+
+\section{Phase 6 --- Demo hardening}
+
+\subsection{T22 --- Returning-user flow and session resume \dag}
+\taskmeta{T14, T21}{4 h}{full-stack}
+\ctx{The demo's ``it remembers her'' beat: Sunita comes back, gives her name and speaks her 4-digit PIN, and the mentor greets her by name with her history and continues. The \code{resume} stage exists in the graph since T11; this task makes it real and builds the minimal first-screen flow around it.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item First screen after language pick: two big buttons, spoken aloud --- ``I am new'' / ``I have come before''. Returning: mentor asks name by voice, then PIN by voice; STT digits parsed leniently (words or digits, any of the three languages); 3 failed attempts falls back gracefully to starting fresh with an apology.
+  \item Implement \code{resume}: load profile + progress; greeting references the last completed thing (``Last time we finished measuring; today, cutting''); jump into \code{teach} at her next lesson.
+  \item Tests: PIN parsing table-test (``one two three four'', \code{1234}, hindi/gujarati number words); resume greeting content assembled from fixture data.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item Live: full return visit --- name, spoken PIN, personalised greeting naming her actual last lesson, teaching resumes at the right lesson.
+  \item Wrong PIN 3$\times$ degrades politely to the new-visitor flow; no dead end anywhere.
+\end{itemize}
+
+\subsection{T23 --- Language sweep: gu / hi / en \dag}
+\taskmeta{T21}{4 h}{whole team; testing-heavy}
+\ctx{The architecture claims a language is configuration (Spec \S13). This task proves it: every flow, in all three shipped languages, hunting for hard-coded strings, wrong-language TTS, and prompts that drift into English mid-conversation.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Run onboarding + a lesson + viva in each of \code{gu-IN}, \code{hi-IN}, \code{en-IN}; log every string that appears in the wrong language (screen or voice) and every prompt drift; fix them (usually: missing language key in content JSON, or a prompt missing the explicit target-language line).
+  \item Grep the codebase for hard-coded user-facing strings; move any into content maps.
+  \item Confirm the visual-aid Hindi-fallback line is spoken when a Gujarati aid is missing (``This video is in Hindi --- shall we watch it together?'').
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item One full session per language recorded; zero wrong-language utterances in the final recordings.
+  \item Grep shows no user-facing literals outside content/ and prompts/.
+\end{itemize}
+
+\subsection{T24 --- Latency and resilience polish}
+\taskmeta{T21}{5 h}{backend-leaning full-stack}
+\ctx{Spec \S15 demands median turn latency $\leq$ 5s and graceful failure. We have logged \code{latency\_ms} since T07; now we act on the data. The biggest levers, in order: shorter LLM replies (prompt discipline), running the TTS call as soon as reply text exists, model choice for grading calls, and never letting one slow external call hang the UI forever.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Pull the latency log; identify the slowest component per stage; apply the levers above; re-measure 20-turn medians before/after and put the table in the PR.
+  \item Timeouts + one retry (with jitter) on Sarvam and OpenAI calls; on final failure, the mentor \emph{speaks} a graceful line from a small set of pre-synthesised local mp3s (``My ears failed for a moment --- say that again?'') --- never a silent error toast for the learner.
+  \item Verify the earcon covers the whole thinking gap and the button state machine never deadlocks after an error (button returns to \code{ready}).
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item 20-turn median $\leq$ 5s on the dev machine over real APIs; before/after table in the PR.
+  \item Killing Wi-Fi mid-turn produces the spoken apology and a recoverable UI; turning Wi-Fi back on, the next turn works without reload.
+\end{itemize}
+
+\subsection{T25 --- Deployment to a public URL}
+\taskmeta{T22, T23, T24}{5 h}{whoever did T01}
+\ctx{The demo runs from a public URL, not localhost. Recommended: backend on Render (Python web service, persistent disk for SQLite, env vars from Spec \S5) and frontend on Vercel --- or Render alone serving the built frontend as static files from FastAPI, which is one moving part fewer; choose and record in \code{docs/decisions.md}. Note: browsers require HTTPS for microphone access away from localhost --- both platforms give it by default; do not deploy anywhere that does not.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Deploy backend with env vars set in the platform dashboard (never in the repo); persistent disk mounted at \code{data/}; run \code{seed\_demo.py} once via the deploy shell.
+  \item Deploy frontend with the backend URL in its build env; set \code{CORS\_ORIGINS} to the frontend origin.
+  \item Full smoke on the deployed URL from a phone on \emph{mobile data} (not your Wi-Fi): mic permission, onboarding start, one lesson step.
+  \item Write \code{docs/deploy.md}: how to redeploy, where the env vars live, how to re-seed.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item The public URL passes the T08-style 10-turn test from a phone on mobile data.
+  \item A teammate redeploys a trivial change using only \code{docs/deploy.md}.
+  \item No secret in the repo; keys only in platform dashboards.
+\end{itemize}
+
+\subsection{T26 --- Demo rehearsal, backup plan, and final gate}
+\taskmeta{T25}{4 h + rehearsals}{whole team}
+\ctx{Competitions are lost to microphones and venue Wi-Fi, not to missing features. This task runs the full acceptance checklist (Spec \S15), rehearses the 5-minute script from the plan document (open in Gujarati \(\rightarrow\) live onboarding \(\rightarrow\) cut to seeded Sunita \(\rightarrow\) lesson + deliberate wrong answer \(\rightarrow\) visible re-teach \(\rightarrow\) progress + roadmap slide), and prepares the fallback for when the venue betrays us.}
+\paragraph{What to do.}
+\begin{enumerate}
+  \item Run every Spec \S15 item on the deployed URL, laptop + phone; fix or consciously accept (in \code{docs/decisions.md}) every failure.
+  \item Rehearse the script twice with a timer; assign who speaks and who drives; script the deliberate wrong answer word-for-word.
+  \item Backup plan: (a) full screen recording of a perfect run, downloaded locally; (b) phone hotspot tested as network fallback; (c) a wired/known-good microphone; (d) local run instructions if the venue blocks everything.
+  \item Reset demo data: re-run \code{seed\_demo.py}, delete rehearsal learners.
+\end{enumerate}
+\dod
+\begin{itemize}
+  \item All Spec \S15 boxes checked on the deployed URL, dated in \code{docs/decisions.md}.
+  \item Two timed rehearsals done, both $\leq$ 5 minutes; backup video exists on two devices; hotspot fallback tested end to end.
+  \item Database contains exactly the seeded demo state and nothing else.
+\end{itemize}
+
+\section{After the MVP (parking lot, do not start)}
+
+Marathi and Bengali enablement; the marketplace profile view; DSPy optimisation of the viva-grading prompts against logged transcripts; streaming TTS for sub-2s perceived latency; facilitator dashboard; kiosk packaging (fullscreen tablet browser). Each becomes a task book of its own only after the competition.
+
+\end{document}

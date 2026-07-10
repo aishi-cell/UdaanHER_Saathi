@@ -1,0 +1,415 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
+\usepackage{xurl}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{booktabs}
+
+\definecolor{brand}{HTML}{1F4E79}
+\titleformat{\section}{\large\bfseries\color{brand}}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
+\setlist[itemize]{leftmargin=1.4em, topsep=2pt}
+\setlist[enumerate]{leftmargin=1.6em, topsep=2pt}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{\textbf{UdaanHer Saathi MVP: Technical Specification}\\
+\large Version 1.0 --- the contract every task in the Task Book is built against}
+\author{Team: Aishi + mentor \quad\textbullet\quad 9 July 2026}
+\date{}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Purpose and scope}
+
+This document is the single source of truth for \emph{how} the UdaanHer Saathi MVP is built: the stack, the repository layout, every API contract, every data schema, and the agent's state machine. The companion document, \emph{UdaanHer Saathi MVP: Task Book}, breaks the work into sequenced tasks; each task references sections of this spec by number. If a task and this spec ever disagree, this spec wins; if this spec is wrong, change the spec first, then the code.
+
+\textbf{What we are building} (from the plan document \code{udaanher\_mentor\_mvp\_plan.pdf}): a voice-first web application in which an AI mentor converses with a low-literacy woman in her own language and drives the entire screen itself. Two features, end to end:
+
+\begin{enumerate}
+  \item \textbf{Feature 1 --- onboarding:} the mentor gets to know her by voice (name, background, interests, informal skill assessment) and saves a persistent learner profile.
+  \item \textbf{Feature 2 --- teaching loop:} the mentor teaches one tailoring lesson step by step, checks understanding through a conversational viva, re-teaches whatever is shaky, and records progress.
+\end{enumerate}
+
+\textbf{Non-goals for the MVP} (do not build, even if easy): kiosk hardware, facial login, employer marketplace, mock interviews, a numeric readiness score, offline mode, more than three languages at demo time, user-visible typing anywhere in the learner flow.
+
+\section{System overview}
+
+Three deployable parts and two external services:
+
+\begin{center}
+\begin{tabular}{p{3.2cm} p{10.6cm}}
+\toprule
+\textbf{Part} & \textbf{Responsibility} \\
+\midrule
+Frontend (browser) & Records microphone audio, plays mentor audio, renders whatever UI command the agent sends. It has \emph{no} navigation logic of its own. \\
+Backend (FastAPI) & The harness. Exposes the API in \S\ref{sec:api}, calls Sarvam and OpenAI, runs the LangGraph agent, owns the database. \\
+SQLite database & Learner profiles, sessions, turns, per-concept mastery (\S\ref{sec:data}). \\
+Sarvam AI & Ears and mouth: Saaras~v3 speech-to-text, Bulbul~v3 text-to-speech (\S\ref{sec:sarvam}). \\
+OpenAI & The brain: reasoning, conversation, viva grading, via LangGraph (\S\ref{sec:agent}). \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+One conversational turn, end to end: browser records audio \(\rightarrow\) \code{POST /api/turn} \(\rightarrow\) Saaras transcribes \(\rightarrow\) LangGraph agent produces \{reply text, UI command, state updates\} \(\rightarrow\) Bulbul synthesises reply audio \(\rightarrow\) response JSON returns to browser \(\rightarrow\) browser plays audio and renders the UI command. Target: under 5 seconds per turn.
+
+\section{Technology stack (pinned)}
+
+Do not substitute items in this table without a team decision recorded in the repo's \code{docs/decisions.md}.
+
+\begin{center}
+\begin{tabular}{p{3.4cm} p{4.6cm} p{5.6cm}}
+\toprule
+\textbf{Layer} & \textbf{Choice} & \textbf{Notes} \\
+\midrule
+Language (backend) & Python 3.11+ & \\
+Web framework & FastAPI + Uvicorn & Async; multipart uploads. \\
+Agent framework & LangGraph (latest 0.x) & With \code{langchain-openai}. \\
+LLM & OpenAI \code{gpt-5.1} & Or newest flagship at build time; cheaper \code{-mini} tier for transcript cleanup only. Verify names at \url{https://platform.openai.com/docs/models}. \\
+Validation & Pydantic v2 & All request/response and agent output models. \\
+Database & SQLite via SQLModel & Single file \code{data/app.db}; Postgres later if ever needed. \\
+HTTP client & httpx & For Sarvam calls. \\
+Tests & pytest & Fixtures in \code{backend/tests/fixtures/}. \\
+Frontend & Vite + React 18 + TypeScript & Plain CSS; no component library. \\
+Audio capture & \code{MediaRecorder} API & \code{audio/webm;codecs=opus}. \\
+Deployment & Render (backend) + Vercel (frontend), or Render alone serving built frontend & Decided in Task T25. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Repository layout}
+
+The GitHub repository is a monorepo. Create exactly this skeleton in Task T01:
+
+\begin{verbatim}
+udaanher-saathi/
+  README.md               # what this is + how to run both halves in 5 commands
+  .gitignore              # python, node, .env, data/*.db
+  .env.example            # every variable from Section 5, with dummy values
+  docs/
+    decisions.md          # one line per stack/scope decision, dated
+    spec.pdf              # this document
+    tasks.pdf             # the task book
+  backend/
+    pyproject.toml        # deps pinned
+    app/
+      main.py             # FastAPI app, routes only
+      config.py           # env loading (pydantic-settings)
+      services/
+        stt.py            # Sarvam Saaras wrapper
+        tts.py            # Sarvam Bulbul wrapper
+        llm.py            # OpenAI client factory
+      agent/
+        graph.py          # LangGraph state machine
+        state.py          # AgentState model
+        nodes/            # one file per stage (greet.py, discover.py, ...)
+        prompts/          # one .md file per stage prompt
+      models/
+        db.py             # SQLModel tables (Section 10)
+        ui.py             # UI command models (Section 8)
+        api.py            # request/response models (Section 7)
+      content/
+        loader.py         # loads + validates curriculum JSON
+    tests/
+    scripts/
+      smoke_sarvam.py     # proves STT+TTS keys work
+      smoke_openai.py     # proves LLM key works
+      seed_demo.py        # creates the pre-seeded "Sunita" learner
+  frontend/
+    package.json
+    src/
+      App.tsx             # kiosk shell: talk button + render area
+      api.ts              # typed client for Section 7
+      types.ts            # mirrors Section 8 UI commands
+      components/         # OptionCards.tsx, LessonStep.tsx, VideoEmbed.tsx,
+                          # ProfileCard.tsx, ProgressView.tsx
+      audio/
+        recorder.ts       # MediaRecorder push-to-talk
+        player.ts         # base64 -> playback, earcon
+  content/
+    curriculum/tailoring.json      # Section 11.1
+    rubrics/tailoring_rubrics.json # Section 11.2
+    visual_aids/index.json         # Section 11.3
+    assets/                        # diagrams (png/svg), earcon.mp3
+\end{verbatim}
+
+\section{Configuration and secrets}
+\label{sec:config}
+
+All secrets live in \code{backend/.env}, which is git-ignored; \code{.env.example} documents every key. Never commit a real key; never put keys in frontend code (the browser must only ever talk to our backend).
+
+\begin{center}
+\begin{tabular}{p{5.2cm} p{8.6cm}}
+\toprule
+\textbf{Variable} & \textbf{Meaning} \\
+\midrule
+\code{SARVAM\_API\_KEY} & From \url{https://dashboard.sarvam.ai} \\
+\code{OPENAI\_API\_KEY} & From \url{https://platform.openai.com} \\
+\code{OPENAI\_MODEL} & e.g.\ \code{gpt-5.1} \\
+\code{TTS\_SPEAKER} & Bulbul voice id; pick a warm female voice from the dashboard voice list \\
+\code{DEFAULT\_LANGUAGE} & \code{gu-IN} \\
+\code{DATABASE\_URL} & \code{sqlite:///data/app.db} \\
+\code{CORS\_ORIGINS} & \code{http://localhost:5173} in dev; the deployed frontend URL in prod \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{External API contracts (verified 9 July 2026)}
+\label{sec:sarvam}
+
+\subsection{Sarvam speech-to-text (Saaras v3)}
+
+\begin{itemize}
+  \item \code{POST https://api.sarvam.ai/speech-to-text}
+  \item Header: \code{api-subscription-key: <SARVAM\_API\_KEY>}
+  \item Body: \code{multipart/form-data} with fields \code{file} (the audio blob; WebM/Opus from the browser is accepted), \code{model} = \code{saaras:v3}, \code{language\_code} (BCP-47, e.g.\ \code{gu-IN}; omit for auto-detect), \code{mode} = \code{transcribe}.
+  \item Response: JSON with \code{transcript} (string), \code{language\_code}, \code{request\_id}.
+\end{itemize}
+
+\subsection{Sarvam text-to-speech (Bulbul v3)}
+
+\begin{itemize}
+  \item \code{POST https://api.sarvam.ai/text-to-speech}
+  \item Header: \code{api-subscription-key: <SARVAM\_API\_KEY>}
+  \item JSON body: \code{text} (max 2500 chars), \code{target\_language\_code} (one of \code{bn-IN, en-IN, gu-IN, hi-IN, kn-IN, ml-IN, mr-IN, od-IN, pa-IN, ta-IN, te-IN}), \code{model} = \code{bulbul:v3}, \code{speaker} = \code{TTS\_SPEAKER} from config, \code{output\_audio\_codec} = \code{mp3}, \code{speech\_sample\_rate} = \code{24000}.
+  \item Response: JSON \code{\{"request\_id": ..., "audios": ["<base64 mp3>"]\}}. Decode \code{audios[0]}.
+\end{itemize}
+
+\subsection{OpenAI}
+
+Use the official \code{openai} Python SDK through \code{langchain-openai}'s \code{ChatOpenAI} inside LangGraph nodes. Every place the agent must produce data (a profile, a grade, a UI command) uses \emph{structured output} bound to a Pydantic model --- never free-text parsing. Keep \code{temperature} low (0--0.4) for grading nodes, moderate (0.7) for conversational nodes.
+
+\section{Internal API contract (backend \(\leftrightarrow\) frontend)}
+\label{sec:api}
+
+Exactly four endpoints. All responses are JSON. All errors use HTTP status codes plus body \code{\{"error": \{"code": string, "message": string\}\}}; user-facing failure audio is the frontend's job (\S\ref{sec:frontend}).
+
+\subsection{\code{GET /health}}
+
+Returns \code{\{"status": "ok", "version": string\}}. Used by smoke tests and deployment checks.
+
+\subsection{\code{POST /api/session}}
+
+Starts or resumes a session.
+
+\begin{verbatim}
+Request:  { "learner_name": string | null,   // null => brand-new visitor
+            "pin": string | null,            // spoken 4-digit pin for returning users
+            "language": "gu-IN" | "hi-IN" | "en-IN" }
+Response: { "session_id": string,
+            "learner_id": string | null,     // null until profile is saved
+            "greeting_audio_b64": string,    // mentor speaks first
+            "greeting_text": string,
+            "ui": UICommand,                 // Section 8
+            "stage": Stage }                 // Section 9
+\end{verbatim}
+
+\subsection{\code{POST /api/turn}}
+
+One conversational turn. \code{multipart/form-data}:
+
+\begin{verbatim}
+Fields:   session_id: string
+          audio: file (webm/opus)   OR   tapped_option_id: string
+          (exactly one of audio / tapped_option_id must be present:
+           a card tap is a turn too)
+Response: { "transcript": string | null,    // what she said, null on tap
+            "reply_text": string,
+            "reply_audio_b64": string,      // mp3
+            "ui": UICommand,
+            "stage": Stage,
+            "latency_ms": { "stt": int, "agent": int, "tts": int } }
+\end{verbatim}
+
+\subsection{\code{GET /api/learner/\{learner\_id\}/progress}}
+
+Returns the data behind the progress view: lessons completed, per-concept mastery, next lesson. Shape defined by \code{ProgressPayload} in \S\ref{sec:ui}.
+
+\section{UI command protocol (the agent drives the screen)}
+\label{sec:ui}
+
+Every agent turn returns exactly one \code{UICommand}. The frontend is a switch statement over \code{type}; it never decides on its own what screen comes next. Pydantic models live in \code{backend/app/models/ui.py}; mirrored TypeScript types in \code{frontend/src/types.ts}. The two must stay in lockstep --- any change is one commit touching both files.
+
+\begin{verbatim}
+UICommand = { "type": "idle" }                       // just the talk button
+           | { "type": "show_options",
+               "prompt": string,                     // large text, also spoken
+               "options": [ { "id": string,
+                              "label": string,       // in session language
+                              "image": string } ] }  // path under /content/assets
+           | { "type": "show_lesson_step",
+               "lesson_id": string, "step_index": int, "total_steps": int,
+               "image": string, "caption": string }  // one line, large font
+           | { "type": "show_video",
+               "url": string,                        // YouTube embed URL
+               "caption": string }
+           | { "type": "show_profile_card",
+               "profile": { "name": string, "village": string,
+                            "language": string, "interest": string,
+                            "starting_level": "new"|"some"|"experienced",
+                            "notes": string } }
+           | { "type": "show_progress",
+               "payload": ProgressPayload }
+
+ProgressPayload = { "skill": string,
+                    "lessons": [ { "lesson_id": string, "title": string,
+                                   "status": "done"|"current"|"locked" } ],
+                    "concepts": [ { "concept_id": string, "label": string,
+                                    "mastery": "strong"|"shaky"|"unseen" } ],
+                    "next_step_text": string }
+\end{verbatim}
+
+Rendering rules: one command replaces the previous render entirely; text on screen is always \emph{also} spoken (never rely on reading); every option card is answerable by tap \emph{or} voice.
+
+\section{Agent specification (LangGraph)}
+\label{sec:agent}
+
+\subsection{State machine}
+
+The graph's routing field is \code{stage}. Allowed values and transitions:
+
+\begin{center}
+\begin{tabular}{p{2.2cm} p{6.6cm} p{4.6cm}}
+\toprule
+\textbf{Stage} & \textbf{Responsibility} & \textbf{Moves to} \\
+\midrule
+\code{greet} & Welcome; ask name; spoken consent to remember her (\S\ref{sec:consent}) & \code{discover}, or \code{resume} if name+PIN matches \\
+\code{discover} & Village, current work, interests via \code{show\_options} & \code{assess} \\
+\code{assess} & 3--4 story-questions about the chosen skill; infer \code{starting\_level} & \code{confirm\_profile} \\
+\code{confirm\_profile} & Read profile back aloud; save on yes; fix on no & \code{teach} (or \code{close}) \\
+\code{teach} & Deliver current lesson step by step; answer interruptions & \code{viva} when steps done \\
+\code{viva} & Ask the lesson's rubric questions conversationally; grade each & \code{reteach} if any concept shaky, else \code{wrapup} \\
+\code{reteach} & Re-explain one shaky concept differently (analogy / diagram / video); re-check with one question & back to \code{viva} outcome check; max 2 re-teach rounds per concept \\
+\code{wrapup} & \code{show\_progress}; say what comes next time & \code{close} \\
+\code{close} & Save everything; goodbye & terminal \\
+\code{resume} & Greet returning learner by name with history; jump to her next lesson & \code{teach} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Hard rules the graph enforces in code (not in prompts): \code{teach} is unreachable until a profile row exists; \code{viva} questions come only from the rubric file; a concept is \code{shaky} until graded \code{strong}; after 2 failed re-teach rounds the agent marks the concept ``revisit next session'' and moves on warmly (never a third drill).
+
+\subsection{AgentState (the object flowing through the graph)}
+
+\begin{verbatim}
+AgentState = { session_id, learner_id | null, language,
+               stage: Stage,
+               transcript: string,             // this turn's user input
+               history: last 12 turns,         // rolling window
+               profile: ProfileDraft | null,
+               lesson_id | null, step_index: int,
+               viva: { question_ids_asked: [], grades: {concept_id: grade} },
+               reteach_counts: {concept_id: int},
+               reply_text: string,             // outputs, set by nodes
+               ui: UICommand }
+\end{verbatim}
+
+Persistence: LangGraph's SQLite checkpointer keyed by \code{session\_id} carries state across turns; durable facts (profile, mastery, lesson completion) are \emph{additionally} written to the tables in \S\ref{sec:data} --- checkpoints are cache, the database is truth.
+
+\subsection{Prompting rules (apply to every node prompt)}
+
+Prompts live in \code{backend/app/agent/prompts/}, one Markdown file per stage, in English (the model replies in the session language --- state the target language explicitly in every prompt). Every prompt encodes the persona: a warm, patient elder-sister mentor (``didi''); short sentences; one question at a time; no jargon, no English words when speaking Gujarati/Hindi unless they are common loanwords; never says ``test'', ``exam'', ``score'', ``wrong''; on a struggling answer, encourage first, then re-explain. Reply length cap: 2--3 sentences (TTS latency and attention both demand it).
+
+\section{Data model (SQLite)}
+\label{sec:data}
+
+\begin{verbatim}
+learners        id (uuid pk), name, village, language, pin_hash,
+                interest_skill, starting_level, notes,
+                consent_given_at (datetime), created_at
+sessions        id (uuid pk), learner_id (fk, nullable), language,
+                started_at, ended_at
+turns           id (pk), session_id (fk), role ('user'|'mentor'),
+                transcript, ui_type, stage, latency_ms_total, created_at
+lesson_progress learner_id (fk), lesson_id, status
+                ('in_progress'|'completed'), completed_at
+concept_mastery learner_id (fk), concept_id, mastery
+                ('strong'|'shaky'|'unseen'), last_checked_at,
+                reteach_count
+\end{verbatim}
+
+Deletion: a single function \code{delete\_learner(learner\_id)} removes the learner row and cascades to all four other tables. It must exist from the moment \code{learners} exists (\S\ref{sec:consent}).
+
+\section{Content schemas}
+\label{sec:content}
+
+Content is data, not code: a non-programmer must be able to edit these JSON files. \code{content/loader.py} validates them against Pydantic models at backend startup and refuses to boot on invalid content (fail loud, not in front of Sunita).
+
+\subsection{Curriculum (\code{content/curriculum/tailoring.json})}
+
+\begin{verbatim}
+{ "skill_id": "tailoring",
+  "title": {"en-IN": "Tailoring", "hi-IN": "...", "gu-IN": "..."},
+  "lessons": [
+    { "lesson_id": "tail-01-measure",
+      "title": {...per language...},
+      "concepts": [ {"concept_id": "c-body-measure",
+                     "label": {...}, "must_land": true}, ...3-5 total ],
+      "steps": [ { "step_index": 0,
+                   "image": "assets/tail01_step0.png",
+                   "teaching_notes": "what the agent should convey,
+                                      written for the LLM in English",
+                   "caption": {...per language...} }, ... ],
+      "common_mistakes": ["...", "..."] }, ... ] }
+\end{verbatim}
+
+Source material: the NSDC Qualification Pack for sewing machine operator / assistant tailor (\url{https://nqr.gov.in}). Three lessons for the MVP.
+
+\subsection{Rubrics (\code{content/rubrics/tailoring\_rubrics.json})}
+
+Per lesson, per concept: 2--3 viva questions with, for each, \code{sounds\_right} (2--3 examples of a correct answer as a non-literate learner would \emph{speak} it, informal, code-mixed) and \code{sounds\_confused} (common misconception phrasings). The viva node passes these to the LLM as grading context; grades are \code{strong} or \code{shaky}, nothing finer.
+
+\subsection{Visual-aid index (\code{content/visual\_aids/index.json})}
+
+\begin{verbatim}
+[ { "concept_id": "c-body-measure",
+    "kind": "video" | "diagram",
+    "url_or_path": "https://youtube.com/embed/..." | "assets/....png",
+    "language": "hi-IN" | "gu-IN" | "any",
+    "note": "why this one is good" }, ... ]
+\end{verbatim}
+
+Rule: 2+ aids per concept, hand-checked by a human (watched/viewed, correct, respectful). The re-teach node may \emph{only} pick from this index --- never a live search.
+
+\section{Languages}
+
+Ship \code{gu-IN}, \code{hi-IN}, \code{en-IN}. Design for five (\code{+mr-IN, bn-IN}): every user-visible string is either generated by the LLM in-language at runtime or looked up from the per-language maps in content JSON --- no hard-coded Gujarati/Hindi strings in code. Adding a language must require only: new keys in content JSON, one entry in a \code{SUPPORTED\_LANGUAGES} list, and a Bulbul voice check.
+
+\section{Consent, dignity, and data safety}
+\label{sec:consent}
+
+Non-negotiables, in scope for the MVP: (1)~before saving a profile, the mentor asks aloud, in her language, whether she agrees that the app remembers her, and stores \code{consent\_given\_at} only on a spoken/tapped yes; on no, the session continues without any \code{learners} row and nothing persists past the session. (2)~\code{delete\_learner} exists and works from day one. (3)~No biometrics anywhere. (4)~Keys server-side only. (5)~Audio recordings are transient --- transcripts are stored, raw audio is discarded after transcription.
+
+\section{Engineering conventions}
+
+\begin{itemize}
+  \item \textbf{Git:} small branches named \code{task/T\#\#-slug}, PR into \code{main}, at least one other person reads the diff. \code{main} must always run. Commit messages: \code{T\#\# short description}.
+  \item \textbf{Tests:} every service module and every agent node gets a pytest; LLM-dependent tests mock the LLM (assert on prompts and structured-output handling), plus a small number of live smoke tests marked \code{@pytest.mark.live} that are run manually.
+  \item \textbf{Style:} \code{ruff} for Python lint+format, \code{prettier} for the frontend; both wired into CI later, run locally from day one.
+  \item \textbf{Latency log:} every \code{/api/turn} response carries its \code{latency\_ms} breakdown, and the backend logs it; we watch this number from the first walking skeleton onward.
+\end{itemize}
+
+\section{MVP acceptance criteria (the demo checklist)}
+\label{sec:acceptance}
+
+The MVP is done when all of the following pass on the deployed URL, on a laptop and on one Android phone, on ordinary Wi-Fi:
+
+\begin{enumerate}
+  \item A new visitor completes onboarding in Gujarati entirely by voice+taps: greeted, consented, discovered, assessed, profile read back and saved. No typing, no menus.
+  \item Restarting the browser and returning with name+PIN resumes: greeting by name, correct history.
+  \item The pre-seeded learner completes lesson \code{tail-01}: all steps taught with visuals, viva held, at least one deliberately-wrong answer triggers a visible re-teach (different explanation or video), progress view reflects reality afterwards.
+  \item Median turn latency \(\leq\) 5s over 20 consecutive turns; a thinking earcon plays while waiting.
+  \item The same flows work with language switched to Hindi and English.
+  \item \code{delete\_learner} run against a test learner removes every row.
+  \item The 5-minute demo script from the plan document has been rehearsed twice end to end, with backup recordings ready.
+\end{enumerate}
+
+\end{document}
