@@ -70,6 +70,25 @@ async def test_transcribe_connect_error_raises_stt_error():
             await transcribe(b"fake-audio-bytes")
 
 
+@pytest.mark.asyncio
+async def test_transcribe_strips_codecs_parameter_from_content_type():
+    """Browser MediaRecorder blobs report a type like
+    "audio/webm;codecs=opus"; Sarvam's content-type allow-list rejects
+    anything with a codecs parameter, so we must strip it before sending."""
+    fake_response = httpx.Response(
+        status_code=200,
+        json={"transcript": "ok", "language_code": "hi-IN", "request_id": "req-3"},
+    )
+    mock_post = AsyncMock(return_value=fake_response)
+    with patch("httpx.AsyncClient.post", new=mock_post):
+        await transcribe(
+            b"fake-audio-bytes", filename="clip.webm", content_type="audio/webm;codecs=opus"
+        )
+
+    sent_content_type = mock_post.call_args.kwargs["files"]["file"][2]
+    assert sent_content_type == "audio/webm"
+
+
 @pytest.mark.live
 @pytest.mark.skipif(not FIXTURE_WAV.exists(), reason="no fixture WAV recorded yet (see T02)")
 @pytest.mark.asyncio

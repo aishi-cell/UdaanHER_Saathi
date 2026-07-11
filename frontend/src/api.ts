@@ -2,6 +2,21 @@ import type { UICommand } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
+interface ApiErrorBody {
+  error?: { code?: string; message?: string };
+}
+
+async function throwApiError(response: Response, fallback: string): Promise<never> {
+  let detail = '';
+  try {
+    const body = (await response.json()) as ApiErrorBody;
+    detail = body.error?.message ?? '';
+  } catch {
+    // response body wasn't JSON; fall through with no extra detail
+  }
+  throw new Error(detail ? `${fallback}: ${detail}` : `${fallback} (status ${response.status})`);
+}
+
 export interface HealthResponse {
   status: string;
   version: string;
@@ -11,6 +26,31 @@ export async function getHealth(): Promise<HealthResponse> {
   const response = await fetch(`${API_BASE_URL}/health`);
   if (!response.ok) {
     throw new Error(`Health check failed with status ${response.status}`);
+  }
+  return response.json();
+}
+
+export interface SessionResponse {
+  session_id: string;
+  learner_id: string | null;
+  greeting_audio_b64: string;
+  greeting_text: string;
+  ui: UICommand;
+  stage: string;
+}
+
+export async function postSession(
+  language: 'gu-IN' | 'hi-IN' | 'en-IN',
+  learnerName?: string,
+  pin?: string,
+): Promise<SessionResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ language, learner_name: learnerName, pin }),
+  });
+  if (!response.ok) {
+    await throwApiError(response, 'Session start failed');
   }
   return response.json();
 }
@@ -40,7 +80,7 @@ export async function postTurn(sessionId: string, input: TurnInput): Promise<Tur
     body: formData,
   });
   if (!response.ok) {
-    throw new Error(`Turn request failed with status ${response.status}`);
+    await throwApiError(response, 'Turn request failed');
   }
   return response.json();
 }

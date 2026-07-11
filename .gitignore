@@ -18,6 +18,8 @@ backend/.env
 # Data
 **/data/*.db
 **/data/*.db-journal
+**/data/*.db-shm
+**/data/*.db-wal
 
 # Smoke test artifacts
 backend/out.mp3

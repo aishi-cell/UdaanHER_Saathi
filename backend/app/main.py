@@ -21,6 +21,7 @@ from app.services.timing import timed
 from app.services.tts import TtsError, synthesize
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("udaanher.turn")
 
 settings = get_settings()
 db_repo.init_db()
@@ -126,6 +127,12 @@ async def post_turn(
 
     if audio is not None:
         audio_bytes = await audio.read()
+        logger.info(
+            "STT request: filename=%r content_type=%r bytes=%d",
+            audio.filename,
+            audio.content_type,
+            len(audio_bytes),
+        )
         try:
             stt_result, stt_ms = await timed(
                 transcribe(
@@ -135,6 +142,9 @@ async def post_turn(
                 )
             )
         except SttError as exc:
+            logger.error(
+                "STT failed: status_code=%s message=%s", exc.status_code, exc.message
+            )
             raise ApiError(502, "stt_failed", exc.message) from exc
         transcript = stt_result.transcript
     else:

@@ -43,13 +43,18 @@ async def transcribe(
     if language:
         data["language_code"] = language
 
+    # Browsers report MediaRecorder blob types with a codecs parameter
+    # (e.g. "audio/webm;codecs=opus"), which Sarvam's allow-list rejects --
+    # it only accepts the bare MIME type.
+    bare_content_type = content_type.split(";", 1)[0].strip()
+
     start = time.perf_counter()
     try:
         async with httpx.AsyncClient(timeout=STT_TIMEOUT_SECONDS) as client:
             response = await client.post(
                 SARVAM_STT_URL,
                 headers={"api-subscription-key": settings.sarvam_api_key},
-                files={"file": (filename, audio_bytes, content_type)},
+                files={"file": (filename, audio_bytes, bare_content_type)},
                 data=data,
             )
     except httpx.TimeoutException as exc:
