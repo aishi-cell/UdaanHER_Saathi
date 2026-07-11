@@ -6,15 +6,28 @@ interface ApiErrorBody {
   error?: { code?: string; message?: string };
 }
 
+export class ApiError extends Error {
+  code: string | null;
+
+  constructor(message: string, code: string | null) {
+    super(message);
+    this.name = 'ApiError';
+    this.code = code;
+  }
+}
+
 async function throwApiError(response: Response, fallback: string): Promise<never> {
   let detail = '';
+  let code: string | null = null;
   try {
     const body = (await response.json()) as ApiErrorBody;
     detail = body.error?.message ?? '';
+    code = body.error?.code ?? null;
   } catch {
     // response body wasn't JSON; fall through with no extra detail
   }
-  throw new Error(detail ? `${fallback}: ${detail}` : `${fallback} (status ${response.status})`);
+  const message = detail ? `${fallback}: ${detail}` : `${fallback} (status ${response.status})`;
+  throw new ApiError(message, code);
 }
 
 export interface HealthResponse {

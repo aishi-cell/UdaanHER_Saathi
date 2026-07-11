@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { getHealth, postSession, postTurn, type TurnResponse } from './api';
+import { ApiError, getHealth, postSession, postTurn, type TurnResponse } from './api';
 import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon, unlockAudio } from './audio/player';
 import { Renderer } from './components/Renderer';
@@ -15,6 +15,26 @@ const STATUS_LABELS: Record<TalkState, string> = {
   thinking: 'thinking...',
   speaking: 'speaking...',
 };
+
+// A very short hold (an accidental tap, or someone testing the button)
+// produces a WebM clip too short for Sarvam's parser -- "Failed to read the
+// file, please check the audio format". Padding out to this floor before
+// actually stopping avoids that failure mode entirely; it's not about
+// capturing more of what she said, just giving the recorder enough time to
+// produce a well-formed container.
+const MIN_RECORDING_MS = 700;
+
+function friendlyErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.code === 'stt_failed') {
+      return "I couldn't hear that clearly -- please hold the button a little longer and try again.";
+    }
+    if (err.code === 'tts_failed') {
+      return 'I had trouble speaking just now -- please try again.';
+    }
+  }
+  return err instanceof Error ? err.message : 'Something went wrong. Try again.';
+}
 
 const searchParams = new URLSearchParams(window.location.search);
 const isDebug = searchParams.get('debug') === '1';
@@ -38,6 +58,7 @@ function App() {
   const releaseRequestedRef = useRef(false);
   const startingRef = useRef(false);
   const sessionStartedRef = useRef(false);
+  const recordingStartedAtRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +137,7 @@ function App() {
       // before this resolves -- track that so we don't get stuck "listening"
       // forever with nothing to ever call stop().
       await recorderRef.current.start();
+      recordingStartedAtRef.current = Date.now();
       console.log('[talk] recorder started', { releaseRequested: releaseRequestedRef.current });
       startingRef.current = false;
       if (releaseRequestedRef.current) {
@@ -129,7 +151,7 @@ function App() {
       if (err instanceof MicPermissionDeniedError) {
         setMicDenied(true);
       } else {
-        setErrorMessage(err instanceof Error ? err.message : 'Could not access the microphone.');
+        setErrorMessage(friendlyErrorMessage(err));
       }
     }
   }
@@ -153,7 +175,7 @@ function App() {
       console.log('[talk] playback finished');
     } catch (err) {
       console.error('[talk] turn failed:', err);
-      setErrorMessage(err instanceof Error ? err.message : 'Something went wrong. Try again.');
+      setErrorMessage(friendlyErrorMessage(err));
     } finally {
       setTalkState('ready');
     }
@@ -161,11 +183,18 @@ function App() {
 
   async function finishTurn() {
     try {
+      const elapsed = Date.now() - recordingStartedAtRef.current;
+      console.log('[talk] finishTurn elapsed since start:', elapsed, 'ms');
+      if (elapsed < MIN_RECORDING_MS) {
+        console.log('[talk] padding to', MIN_RECORDING_MS, 'ms');
+        await new Promise((resolve) => setTimeout(resolve, MIN_RECORDING_MS - elapsed));
+      }
       const audioBlob = await recorderRef.current.stop();
+      console.log('[talk] audioBlob size:', audioBlob.size, 'type:', audioBlob.type);
       await runTurn({ audioBlob });
     } catch (err) {
       console.error('Could not stop recording:', err);
-      setErrorMessage(err instanceof Error ? err.message : 'Recording failed. Try again.');
+      setErrorMessage(friendlyErrorMessage(err));
       setTalkState('ready');
     }
   }
