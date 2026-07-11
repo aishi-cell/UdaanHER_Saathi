@@ -16,8 +16,8 @@ backend/.env
 .claude/settings.local.json
 
 # Data
-data/*.db
-data/*.db-journal
+**/data/*.db
+**/data/*.db-journal
 
 # Smoke test artifacts
 backend/out.mp3
