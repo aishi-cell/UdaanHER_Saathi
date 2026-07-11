@@ -46,6 +46,15 @@ class AgentState(TypedDict):
     reteach_counts: dict[str, int]
     reply_text: str
     ui: dict  # serialized UICommand; validated against app.models.ui.UICommand at the API boundary
+    # Not in Spec S9.2's illustrative shape, but needed to run a real
+    # multi-exchange conversation within a single node while the graph stays
+    # one-node-per-turn: how many sub-turns have happened since a node last
+    # advanced `stage`. Reset to 0 by whichever node writes a new stage.
+    stage_step: int
+    # Set by greet on a spoken "no" to remembering her (Spec S12); honoured
+    # by confirm_profile, which skips the DB save but lets the session
+    # continue normally.
+    consent_declined: bool
 
 
 def initial_state(
@@ -70,4 +79,6 @@ def initial_state(
         reteach_counts={},
         reply_text="",
         ui={"type": "idle"},
+        stage_step=0,
+        consent_declined=False,
     )

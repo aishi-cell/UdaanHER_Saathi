@@ -31,16 +31,25 @@ async def _fake_tts_post(url, **kwargs):
     )
 
 
-def test_session_new_visitor_is_greeted_and_advances_to_discover(client):
-    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+def test_session_new_visitor_is_greeted(client):
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Namaste! Aapka naam kya hai?"),
+        ),
+    ):
         response = client.post("/api/session", json={"language": "gu-IN"})
 
     assert response.status_code == 200
     body = response.json()
     assert body["learner_id"] is None
-    assert body["stage"] == "discover"
+    # /api/session runs greet's first sub-turn only (asks name+consent); the
+    # real onboarding conversation (T12) needs several more turns to reach
+    # discover -- see test_onboarding.py and test_agent_graph.py.
+    assert body["stage"] == "greet"
     assert body["session_id"]
-    assert body["greeting_text"]
+    assert body["greeting_text"] == "Namaste! Aapka naam kya hai?"
     assert b64decode(body["greeting_audio_b64"]) == b"fake-mp3-bytes"
     assert body["ui"] == {"type": "idle"}
 
@@ -84,7 +93,10 @@ def test_session_wrong_pin_treated_as_new_visitor(client):
         consent_given_at=datetime.now(timezone.utc),
     )
 
-    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)),
+        patch("app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Namaste!")),
+    ):
         response = client.post(
             "/api/session",
             json={"learner_name": "Sunita", "pin": "0000", "language": "gu-IN"},
@@ -93,7 +105,7 @@ def test_session_wrong_pin_treated_as_new_visitor(client):
     assert response.status_code == 200
     body = response.json()
     assert body["learner_id"] is None
-    assert body["stage"] == "discover"
+    assert body["stage"] == "greet"
 
 
 def test_progress_endpoint_matches_repository_shape(client):

@@ -211,6 +211,19 @@ def create_session(*, learner_id: str | None, language: str) -> Session:
     return session_row
 
 
+def link_session_to_learner(session_id: str, learner_id: str) -> None:
+    """Backfills sessions.learner_id once a profile is saved mid-conversation
+    (T12) -- the session starts with no learner attached for a brand-new
+    visitor."""
+    with get_db_session() as db:
+        session_row = db.get(Session, session_id)
+        if session_row is None:
+            raise ValueError(f"No session with id {session_id}")
+        session_row.learner_id = learner_id
+        db.add(session_row)
+        db.commit()
+
+
 def log_turn(
     *,
     session_id: str,

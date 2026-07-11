@@ -6,6 +6,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agent.nodes.greet import GreetExtraction
 from app.main import app
 from app.models import db
 
@@ -40,7 +41,16 @@ async def _fake_post(url, **kwargs):
 
 
 def test_turn_advances_stage_with_mocked_sarvam(client):
-    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_post)):
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_post)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Namaste!")
+        ),
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=True)),
+        ),
+    ):
         session_id = client.post("/api/session", json={"language": "hi-IN"}).json()["session_id"]
 
         response = client.post(
@@ -52,8 +62,9 @@ def test_turn_advances_stage_with_mocked_sarvam(client):
     assert response.status_code == 200
     body = response.json()
     assert body["transcript"] == "Namaste"
-    # /api/session already ran greet -> discover; this turn runs discover -> assess.
-    assert body["stage"] == "assess"
+    # /api/session runs greet's step0 (asks); this turn runs greet's step1
+    # (extracts name+consent) -> discover.
+    assert body["stage"] == "discover"
     assert b64decode(body["reply_audio_b64"]) == b"fake-mp3-bytes"
     assert body["ui"] == {"type": "idle"}
     assert set(body["latency_ms"]) == {"stt", "agent", "tts"}
@@ -77,7 +88,16 @@ def test_turn_rejects_both_audio_and_tapped_option(client):
 
 
 def test_turn_tapped_option_skips_stt(client):
-    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_post)):
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_post)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Namaste!")
+        ),
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=True)),
+        ),
+    ):
         session_id = client.post("/api/session", json={"language": "hi-IN"}).json()["session_id"]
 
         response = client.post(
@@ -88,7 +108,10 @@ def test_turn_tapped_option_skips_stt(client):
     assert response.status_code == 200
     body = response.json()
     assert body["transcript"] is None
-    assert body["stage"] == "assess"
+    # A tap while still in greet is nonsensical UI-wise, but the pipeline
+    # should still process it as her greet reply (transcript = "tailoring")
+    # and advance the same way voice input would.
+    assert body["stage"] == "discover"
     assert b64decode(body["reply_audio_b64"]) == b"fake-mp3-bytes"
     assert body["latency_ms"]["stt"] == 0
 
