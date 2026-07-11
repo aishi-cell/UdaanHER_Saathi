@@ -293,6 +293,13 @@ def upsert_concept_mastery(
         return row
 
 
+# lesson_progress.status ('in_progress'|'completed', Spec S10) uses a different
+# vocabulary than ProgressPayload.lessons[].status ('done'|'current'|'locked',
+# Spec S8). 'locked' can't be derived here -- it means "not yet started", which
+# requires knowing the full lesson order from the curriculum (T18).
+_LESSON_STATUS_TO_UI = {"in_progress": "current", "completed": "done"}
+
+
 def get_progress(learner_id: str) -> dict:
     """Returns the ProgressPayload shape from Spec S8. `title`/`label`/`skill`/
     `next_step_text` stay placeholders until T18 wires the content loader in."""
@@ -307,7 +314,11 @@ def get_progress(learner_id: str) -> dict:
     return {
         "skill": "",
         "lessons": [
-            {"lesson_id": lesson.lesson_id, "title": lesson.lesson_id, "status": lesson.status}
+            {
+                "lesson_id": lesson.lesson_id,
+                "title": lesson.lesson_id,
+                "status": _LESSON_STATUS_TO_UI.get(lesson.status, lesson.status),
+            }
             for lesson in lessons
         ],
         "concepts": [

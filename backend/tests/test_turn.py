@@ -45,9 +45,35 @@ def test_turn_echoes_transcript_with_mocked_sarvam():
     assert all(v >= 0 for v in body["latency_ms"].values())
 
 
-def test_turn_requires_audio_field():
+def test_turn_requires_audio_or_tapped_option():
     response = client.post("/api/turn", data={"session_id": "any-session"})
-    assert response.status_code == 422
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "missing_input"
+
+
+def test_turn_rejects_both_audio_and_tapped_option():
+    response = client.post(
+        "/api/turn",
+        data={"session_id": "any-session", "tapped_option_id": "beauty"},
+        files={"audio": ("clip.webm", b"fake-audio-bytes", "audio/webm")},
+    )
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "ambiguous_input"
+
+
+def test_turn_tapped_option_skips_stt_and_echoes():
+    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_post)):
+        response = client.post(
+            "/api/turn",
+            data={"session_id": "any-session", "tapped_option_id": "tailoring"},
+        )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["transcript"] is None
+    assert body["reply_text"] == "Aapne chuna: tailoring"
+    assert b64decode(body["reply_audio_b64"]) == b"fake-mp3-bytes"
+    assert body["latency_ms"]["stt"] == 0
 
 
 @pytest.mark.live

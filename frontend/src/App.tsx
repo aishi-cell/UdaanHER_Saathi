@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { getHealth, postTurn, type TurnResponse } from './api';
 import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon } from './audio/player';
+import { Renderer } from './components/Renderer';
+import { UiDemo } from './UiDemo';
+import type { UICommand } from './types';
 import './App.css';
 
 type TalkState = 'ready' | 'listening' | 'thinking' | 'speaking';
@@ -13,13 +16,18 @@ const STATUS_LABELS: Record<TalkState, string> = {
   speaking: 'speaking...',
 };
 
-const isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
+const searchParams = new URLSearchParams(window.location.search);
+const isDebug = searchParams.get('debug') === '1';
+const isUiDemo = searchParams.get('ui-demo') === '1';
+
+const IDLE_UI: UICommand = { type: 'idle' };
 
 function App() {
   const [backendUp, setBackendUp] = useState<boolean | null>(null);
   const [talkState, setTalkState] = useState<TalkState>('ready');
   const [micDenied, setMicDenied] = useState(false);
   const [lastTurn, setLastTurn] = useState<TurnResponse | null>(null);
+  const [currentUi, setCurrentUi] = useState<UICommand>(IDLE_UI);
 
   const recorderRef = useRef<PushToTalkRecorder>(new PushToTalkRecorder());
   const sessionIdRef = useRef<string>(crypto.randomUUID());
@@ -56,15 +64,13 @@ function App() {
     }
   }
 
-  async function handlePressEnd() {
-    if (!recorderRef.current.isRecording) return;
+  async function runTurn(input: Parameters<typeof postTurn>[1]) {
     setTalkState('thinking');
     playEarcon();
-
     try {
-      const audioBlob = await recorderRef.current.stop();
-      const result = await postTurn(sessionIdRef.current, audioBlob);
+      const result = await postTurn(sessionIdRef.current, input);
       setLastTurn(result);
+      setCurrentUi(result.ui);
       setTalkState('speaking');
       await playBase64Mp3(result.reply_audio_b64);
     } catch (err) {
@@ -72,6 +78,21 @@ function App() {
     } finally {
       setTalkState('ready');
     }
+  }
+
+  async function handlePressEnd() {
+    if (!recorderRef.current.isRecording) return;
+    const audioBlob = await recorderRef.current.stop();
+    await runTurn({ audioBlob });
+  }
+
+  async function handleTapOption(optionId: string) {
+    if (talkState !== 'ready') return;
+    await runTurn({ tappedOptionId: optionId });
+  }
+
+  if (isUiDemo) {
+    return <UiDemo />;
   }
 
   if (micDenied) {
@@ -97,9 +118,13 @@ function App() {
       />
 
       <section className="content-area">
-        <div className="placeholder-illustration" role="img" aria-label="Mentor waiting to talk">
-          🌼
-        </div>
+        {currentUi.type === 'idle' ? (
+          <div className="placeholder-illustration" role="img" aria-label="Mentor waiting to talk">
+            🌼
+          </div>
+        ) : (
+          <Renderer ui={currentUi} onTapOption={handleTapOption} />
+        )}
       </section>
 
       <section className="talk-area">

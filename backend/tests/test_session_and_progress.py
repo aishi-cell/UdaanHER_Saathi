@@ -92,7 +92,7 @@ def test_progress_endpoint_matches_repository_shape():
     assert response.status_code == 200
     body = response.json()
     assert body["lessons"] == [
-        {"lesson_id": "tail-01-measure", "title": "tail-01-measure", "status": "in_progress"}
+        {"lesson_id": "tail-01-measure", "title": "tail-01-measure", "status": "current"}
     ]
     assert body["concepts"] == [
         {"concept_id": "c-body-measure", "label": "c-body-measure", "mastery": "strong"}

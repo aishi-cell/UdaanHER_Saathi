@@ -1,2 +1,76 @@
-// Mirrors backend/app/models/ui.py UI command types. Filled in by task T10 (Spec S8).
-export {};
+export interface OptionCardData {
+  id: string;
+  label: string;
+  image: string;
+}
+
+export interface IdleCommand {
+  type: 'idle';
+}
+
+export interface ShowOptionsCommand {
+  type: 'show_options';
+  prompt: string;
+  options: OptionCardData[];
+}
+
+export interface ShowLessonStepCommand {
+  type: 'show_lesson_step';
+  lesson_id: string;
+  step_index: number;
+  total_steps: number;
+  image: string;
+  caption: string;
+}
+
+export interface ShowVideoCommand {
+  type: 'show_video';
+  url: string;
+  caption: string;
+}
+
+export interface LearnerProfile {
+  name: string;
+  village: string;
+  language: string;
+  interest: string;
+  starting_level: 'new' | 'some' | 'experienced';
+  notes: string;
+}
+
+export interface ShowProfileCardCommand {
+  type: 'show_profile_card';
+  profile: LearnerProfile;
+}
+
+export interface ProgressLesson {
+  lesson_id: string;
+  title: string;
+  status: 'done' | 'current' | 'locked';
+}
+
+export interface ProgressConcept {
+  concept_id: string;
+  label: string;
+  mastery: 'strong' | 'shaky' | 'unseen';
+}
+
+export interface ProgressPayload {
+  skill: string;
+  lessons: ProgressLesson[];
+  concepts: ProgressConcept[];
+  next_step_text: string;
+}
+
+export interface ShowProgressCommand {
+  type: 'show_progress';
+  payload: ProgressPayload;
+}
+
+export type UICommand =
+  | IdleCommand
+  | ShowOptionsCommand
+  | ShowLessonStepCommand
+  | ShowVideoCommand
+  | ShowProfileCardCommand
+  | ShowProgressCommand;

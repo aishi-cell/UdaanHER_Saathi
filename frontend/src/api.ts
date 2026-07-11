@@ -1,3 +1,5 @@
+import type { UICommand } from './types';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
 export interface HealthResponse {
@@ -17,15 +19,21 @@ export interface TurnResponse {
   transcript: string | null;
   reply_text: string;
   reply_audio_b64: string;
-  ui: { type: string };
+  ui: UICommand;
   stage: string;
   latency_ms: { stt: number; agent: number; tts: number };
 }
 
-export async function postTurn(sessionId: string, audioBlob: Blob): Promise<TurnResponse> {
+export type TurnInput = { audioBlob: Blob } | { tappedOptionId: string };
+
+export async function postTurn(sessionId: string, input: TurnInput): Promise<TurnResponse> {
   const formData = new FormData();
   formData.append('session_id', sessionId);
-  formData.append('audio', audioBlob, 'clip.webm');
+  if ('audioBlob' in input) {
+    formData.append('audio', input.audioBlob, 'clip.webm');
+  } else {
+    formData.append('tapped_option_id', input.tappedOptionId);
+  }
 
   const response = await fetch(`${API_BASE_URL}/api/turn`, {
     method: 'POST',

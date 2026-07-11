@@ -8,13 +8,8 @@ from app.config import get_settings
 from app.errors import ApiError, api_error_handler, unhandled_error_handler
 from app.middleware import RequestLogMiddleware
 from app.models import db as db_repo
-from app.models.api import (
-    LatencyMs,
-    ProgressResponse,
-    SessionRequest,
-    SessionResponse,
-    TurnResponse,
-)
+from app.models.api import LatencyMs, SessionRequest, SessionResponse, TurnResponse
+from app.models.ui import IdleCommand, ProgressPayload
 from app.services.stt import SttError, transcribe
 from app.services.timing import timed
 from app.services.tts import TtsError, synthesize
@@ -64,12 +59,14 @@ def post_session(payload: SessionRequest) -> SessionResponse:
     )
 
 
-@app.get("/api/learner/{learner_id}/progress", response_model=ProgressResponse)
-def get_learner_progress(learner_id: str) -> ProgressResponse:
-    return ProgressResponse(**db_repo.get_progress(learner_id))
+@app.get("/api/learner/{learner_id}/progress", response_model=ProgressPayload)
+def get_learner_progress(learner_id: str) -> ProgressPayload:
+    return ProgressPayload(**db_repo.get_progress(learner_id))
 
 
-async def _echo_reply(transcript: str | None) -> str:
+async def _echo_reply(transcript: str | None, tapped_option_id: str | None) -> str:
+    if tapped_option_id:
+        return f"Aapne chuna: {tapped_option_id}"
     spoken = transcript if transcript else "(kuch sunai nahi diya)"
     return f"Aapne kaha: {spoken}"
 
@@ -77,22 +74,32 @@ async def _echo_reply(transcript: str | None) -> str:
 @app.post("/api/turn", response_model=TurnResponse)
 async def post_turn(
     session_id: str = Form(...),
-    audio: UploadFile = File(...),
+    audio: UploadFile | None = File(None),
+    tapped_option_id: str | None = Form(None),
 ) -> TurnResponse:
-    audio_bytes = await audio.read()
-    try:
-        stt_result, stt_ms = await timed(
-            transcribe(
-                audio_bytes,
-                filename=audio.filename or "audio.webm",
-                content_type=audio.content_type or "audio/webm",
-            )
-        )
-    except SttError as exc:
-        raise ApiError(502, "stt_failed", exc.message) from exc
-    transcript = stt_result.transcript
+    if audio is None and tapped_option_id is None:
+        raise ApiError(400, "missing_input", "Provide either audio or tapped_option_id.")
+    if audio is not None and tapped_option_id is not None:
+        raise ApiError(400, "ambiguous_input", "Provide only one of audio or tapped_option_id.")
 
-    reply_text, agent_ms = await timed(_echo_reply(transcript))
+    if audio is not None:
+        audio_bytes = await audio.read()
+        try:
+            stt_result, stt_ms = await timed(
+                transcribe(
+                    audio_bytes,
+                    filename=audio.filename or "audio.webm",
+                    content_type=audio.content_type or "audio/webm",
+                )
+            )
+        except SttError as exc:
+            raise ApiError(502, "stt_failed", exc.message) from exc
+        transcript = stt_result.transcript
+    else:
+        transcript = None
+        stt_ms = 0
+
+    reply_text, agent_ms = await timed(_echo_reply(transcript, tapped_option_id))
 
     try:
         tts_result, tts_ms = await timed(synthesize(reply_text, ECHO_REPLY_LANGUAGE))
@@ -103,7 +110,7 @@ async def post_turn(
         transcript=transcript,
         reply_text=reply_text,
         reply_audio_b64=base64.b64encode(tts_result.mp3_bytes).decode(),
-        ui={"type": "idle"},
+        ui=IdleCommand(),
         stage="greet",
         latency_ms=LatencyMs(stt=stt_ms, agent=agent_ms, tts=tts_ms),
     )

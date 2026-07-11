@@ -99,7 +99,7 @@ def test_log_turn_and_progress_roundtrip():
     progress = db.get_progress(learner.id)
 
     assert progress["lessons"] == [
-        {"lesson_id": "tail-01-measure", "title": "tail-01-measure", "status": "in_progress"}
+        {"lesson_id": "tail-01-measure", "title": "tail-01-measure", "status": "current"}
     ]
     assert progress["concepts"] == [
         {"concept_id": "c-body-measure", "label": "c-body-measure", "mastery": "strong"}
@@ -123,7 +123,7 @@ def test_upsert_lesson_progress_updates_not_duplicates():
 
     progress = db.get_progress(learner.id)
     assert len(progress["lessons"]) == 1
-    assert progress["lessons"][0]["status"] == "completed"
+    assert progress["lessons"][0]["status"] == "done"
 
 
 def test_upsert_concept_mastery_updates_not_duplicates():
