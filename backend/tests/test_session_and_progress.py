@@ -1,12 +1,19 @@
+from base64 import b64decode, b64encode
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, patch
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.models import db
 
-client = TestClient(app)
+
+@pytest.fixture()
+def client():
+    with TestClient(app) as c:
+        yield c
 
 
 @pytest.fixture(autouse=True)
@@ -17,17 +24,28 @@ def temp_db(tmp_path):
     db._engine = None
 
 
-def test_session_new_visitor_has_no_learner_and_greet_stage():
-    response = client.post("/api/session", json={"language": "gu-IN"})
+async def _fake_tts_post(url, **kwargs):
+    assert "text-to-speech" in str(url)
+    return httpx.Response(
+        200, json={"request_id": "r1", "audios": [b64encode(b"fake-mp3-bytes").decode()]}
+    )
+
+
+def test_session_new_visitor_is_greeted_and_advances_to_discover(client):
+    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+        response = client.post("/api/session", json={"language": "gu-IN"})
 
     assert response.status_code == 200
     body = response.json()
     assert body["learner_id"] is None
-    assert body["stage"] == "greet"
+    assert body["stage"] == "discover"
     assert body["session_id"]
+    assert body["greeting_text"]
+    assert b64decode(body["greeting_audio_b64"]) == b"fake-mp3-bytes"
+    assert body["ui"] == {"type": "idle"}
 
 
-def test_session_returning_learner_resolves_by_name_and_pin():
+def test_session_returning_learner_resolves_by_name_and_pin(client):
     learner = db.create_learner(
         name="Sunita",
         village="Rampur",
@@ -39,18 +57,22 @@ def test_session_returning_learner_resolves_by_name_and_pin():
         consent_given_at=datetime.now(timezone.utc),
     )
 
-    response = client.post(
-        "/api/session",
-        json={"learner_name": "Sunita", "pin": "1234", "language": "gu-IN"},
-    )
+    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+        response = client.post(
+            "/api/session",
+            json={"learner_name": "Sunita", "pin": "1234", "language": "gu-IN"},
+        )
 
     assert response.status_code == 200
     body = response.json()
     assert body["learner_id"] == learner.id
-    assert body["stage"] == "resume"
+    # resume node (Spec S9.1) transitions straight to teach, since her profile
+    # already exists in the DB.
+    assert body["stage"] == "teach"
+    assert "Sunita" in body["greeting_text"]
 
 
-def test_session_wrong_pin_treated_as_new_visitor():
+def test_session_wrong_pin_treated_as_new_visitor(client):
     db.create_learner(
         name="Sunita",
         village=None,
@@ -62,18 +84,19 @@ def test_session_wrong_pin_treated_as_new_visitor():
         consent_given_at=datetime.now(timezone.utc),
     )
 
-    response = client.post(
-        "/api/session",
-        json={"learner_name": "Sunita", "pin": "0000", "language": "gu-IN"},
-    )
+    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+        response = client.post(
+            "/api/session",
+            json={"learner_name": "Sunita", "pin": "0000", "language": "gu-IN"},
+        )
 
     assert response.status_code == 200
     body = response.json()
     assert body["learner_id"] is None
-    assert body["stage"] == "greet"
+    assert body["stage"] == "discover"
 
 
-def test_progress_endpoint_matches_repository_shape():
+def test_progress_endpoint_matches_repository_shape(client):
     learner = db.create_learner(
         name="Priya",
         village=None,
@@ -99,7 +122,7 @@ def test_progress_endpoint_matches_repository_shape():
     ]
 
 
-def test_progress_endpoint_unknown_learner_returns_empty_lists():
+def test_progress_endpoint_unknown_learner_returns_empty_lists(client):
     response = client.get("/api/learner/does-not-exist/progress")
 
     assert response.status_code == 200

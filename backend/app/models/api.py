@@ -29,4 +29,7 @@ class SessionRequest(BaseModel):
 class SessionResponse(BaseModel):
     session_id: str
     learner_id: str | None
+    greeting_audio_b64: str
+    greeting_text: str
+    ui: UICommand
     stage: str
