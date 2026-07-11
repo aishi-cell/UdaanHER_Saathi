@@ -7,7 +7,7 @@ actually leads anywhere real downstream (T18+). See docs/decisions.md.
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured
+from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 
 SKILL_OPTIONS = [
@@ -24,7 +24,19 @@ ASK_VILLAGE_INSTRUCTION = (
 )
 EXTRACT_VILLAGE_INSTRUCTION = (
     "Extract her village/town name and a short note on her current work from "
-    "her reply."
+    "her reply. Her speech-to-text transcript may be imperfect, informal, "
+    "code-mixed, or have a strong regional accent -- make your best "
+    "reasonable guess rather than expecting a perfectly clean sentence."
+)
+REASK_VILLAGE_INSTRUCTION = (
+    "You couldn't quite make out what she said. Warmly and briefly say you "
+    "didn't catch that, and ask again which village or town she's from and "
+    "what work she does -- no need to apologise much, this happens."
+)
+REASK_INTEREST_INSTRUCTION = (
+    "You couldn't quite make out which skill she wants to learn. Warmly say "
+    "you didn't catch that, and ask again -- she can tap a card or say it "
+    "aloud."
 )
 ASK_INTEREST_INSTRUCTION = (
     "Thank her for sharing about her village and work. Now ask which skill "
@@ -68,6 +80,20 @@ async def run(state: AgentState) -> dict:
         return {"stage": "discover", "stage_step": 1, "reply_text": reply, "ui": {"type": "idle"}}
 
     if step == 1:
+        if is_unclear(state["transcript"]):
+            reply = await ask_conversational(
+                "discover",
+                language=state["language"],
+                instruction=REASK_VILLAGE_INSTRUCTION,
+                transcript="",
+            )
+            return {
+                "stage": "discover",
+                "stage_step": 1,
+                "reply_text": reply,
+                "ui": {"type": "idle"},
+            }
+
         extraction = await extract_structured(
             "discover",
             language=state["language"],
@@ -96,6 +122,14 @@ async def run(state: AgentState) -> dict:
     # which will essentially never equal one of our short id strings exactly.
     if state["transcript"] in SKILL_LABELS:
         option_id = state["transcript"]
+    elif is_unclear(state["transcript"]):
+        reply = await ask_conversational(
+            "discover",
+            language=state["language"],
+            instruction=REASK_INTEREST_INSTRUCTION,
+            transcript="",
+        )
+        return {"stage": "discover", "stage_step": 2, "reply_text": reply, "ui": {"type": "idle"}}
     else:
         extraction = await extract_structured(
             "discover",
@@ -103,7 +137,9 @@ async def run(state: AgentState) -> dict:
             instruction=(
                 "From her reply, work out which of these skills she means: "
                 + ", ".join(f"{k} ({v})" for k, v in SKILL_LABELS.items())
-                + ". Answer with the exact id."
+                + ". Answer with the exact id. Her speech-to-text transcript "
+                "may be imperfect, informal, code-mixed, or have a strong "
+                "regional accent -- make your best reasonable guess."
             ),
             transcript=state["transcript"],
             schema=InterestExtraction,

@@ -357,3 +357,103 @@ def test_consent_given_at_recorded():
     with db.get_db_session() as s:
         session_row = s.get(db.Session, session.id)
         assert session_row.learner_id == learner.id
+
+
+# --- unclear/incomplete speech handling -----------------------------------
+# Sarvam's transcript can be empty or near-empty for a low-literacy speaker's
+# mumbled, cut-off, or heavily accented answer. Every real extraction point
+# must re-ask instead of pushing garbage through structured extraction.
+
+
+@pytest.mark.parametrize("bad_transcript", ["", " ", "a", "  h  "])
+@pytest.mark.asyncio
+async def test_greet_reasks_on_unclear_answer_instead_of_extracting(bad_transcript):
+    state = make_state(stage="greet", stage_step=1, transcript=bad_transcript)
+
+    with (
+        patch("app.agent.nodes.greet.extract_structured", new=AsyncMock()) as mock_extract,
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Sorry, again?")
+        ),
+    ):
+        result = await greet.run(state)
+
+    mock_extract.assert_not_awaited()
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 1
+
+
+@pytest.mark.asyncio
+async def test_discover_village_reasks_on_unclear_answer():
+    state = make_state(
+        stage="discover", stage_step=1, profile={"name": "Sunita"}, transcript="  "
+    )
+
+    with (
+        patch("app.agent.nodes.discover.extract_structured", new=AsyncMock()) as mock_extract,
+        patch(
+            "app.agent.nodes.discover.ask_conversational", new=AsyncMock(return_value="Again?")
+        ),
+    ):
+        result = await discover.run(state)
+
+    mock_extract.assert_not_awaited()
+    assert result["stage"] == "discover"
+    assert result["stage_step"] == 1
+
+
+@pytest.mark.asyncio
+async def test_discover_interest_reasks_on_unclear_voice_answer():
+    state = make_state(
+        stage="discover",
+        stage_step=2,
+        profile={"name": "Sunita", "village": "Rampur"},
+        transcript="m",
+    )
+
+    with (
+        patch("app.agent.nodes.discover.extract_structured", new=AsyncMock()) as mock_extract,
+        patch(
+            "app.agent.nodes.discover.ask_conversational", new=AsyncMock(return_value="Again?")
+        ),
+    ):
+        result = await discover.run(state)
+
+    mock_extract.assert_not_awaited()
+    assert result["stage"] == "discover"
+    assert result["stage_step"] == 2
+
+
+@pytest.mark.asyncio
+async def test_assess_reasks_same_question_on_unclear_answer():
+    profile = {"name": "Sunita", "interest": "tailoring"}
+    state = make_state(stage="assess", stage_step=2, profile=profile, transcript="")
+
+    with patch(
+        "app.agent.nodes.assess.ask_conversational", new=AsyncMock(return_value="Again?")
+    ) as mock_ask:
+        result = await assess.run(state)
+
+    assert result["stage"] == "assess"
+    assert result["stage_step"] == 2  # unchanged -- same question repeats
+    assert mock_ask.call_args.kwargs["instruction"] == assess.REASK_INSTRUCTION
+
+
+@pytest.mark.asyncio
+async def test_confirm_profile_reasks_on_unclear_answer_without_saving():
+    profile = {"name": "Sunita", "village": "Rampur", "interest": "tailoring"}
+    state = make_state(stage="confirm_profile", stage_step=1, profile=profile, transcript="")
+
+    with (
+        patch("app.agent.nodes.confirm_profile.extract_structured", new=AsyncMock()) as mock_extract,
+        patch(
+            "app.agent.nodes.confirm_profile.ask_conversational",
+            new=AsyncMock(return_value="Again?"),
+        ),
+    ):
+        result = await confirm_profile.run(state)
+
+    mock_extract.assert_not_awaited()
+    assert result["stage"] == "confirm_profile"
+    assert result["stage_step"] == 1
+    assert result["ui"]["type"] == "show_profile_card"

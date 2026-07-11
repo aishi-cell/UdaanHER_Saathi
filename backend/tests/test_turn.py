@@ -71,6 +71,37 @@ def test_turn_advances_stage_with_mocked_sarvam(client):
     assert all(v >= 0 for v in body["latency_ms"].values())
 
 
+def test_turn_passes_session_language_to_stt(client):
+    """An explicit language hint measurably improves Sarvam's accuracy on
+    accented/regional/code-mixed speech versus blind auto-detect."""
+    captured_data = {}
+
+    async def _capturing_post(url, **kwargs):
+        if "speech-to-text" in str(url):
+            captured_data.update(kwargs.get("data") or {})
+        return await _fake_post(url, **kwargs)
+
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_capturing_post)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Namaste!")
+        ),
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=True)),
+        ),
+    ):
+        session_id = client.post("/api/session", json={"language": "gu-IN"}).json()["session_id"]
+
+        client.post(
+            "/api/turn",
+            data={"session_id": session_id},
+            files={"audio": ("clip.webm", b"fake-audio-bytes", "audio/webm")},
+        )
+
+    assert captured_data.get("language_code") == "gu-IN"
+
+
 def test_turn_requires_audio_or_tapped_option(client):
     response = client.post("/api/turn", data={"session_id": "any-session"})
     assert response.status_code == 400

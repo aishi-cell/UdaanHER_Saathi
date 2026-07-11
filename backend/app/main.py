@@ -125,18 +125,31 @@ async def post_turn(
     if audio is not None and tapped_option_id is not None:
         raise ApiError(400, "ambiguous_input", "Provide only one of audio or tapped_option_id.")
 
+    graph = request.app.state.agent_graph
+    config = {"configurable": {"thread_id": session_id}}
+
     if audio is not None:
+        # An explicit language hint measurably improves Sarvam's accuracy on
+        # accented/regional/code-mixed speech versus blind auto-detect --
+        # important since this app is built for speakers who don't speak
+        # "textbook" language. Read the session's language from the
+        # checkpoint rather than trusting the client to send it.
+        snapshot = await graph.aget_state(config)
+        session_language = snapshot.values.get("language") if snapshot.values else None
+
         audio_bytes = await audio.read()
         logger.info(
-            "STT request: filename=%r content_type=%r bytes=%d",
+            "STT request: filename=%r content_type=%r bytes=%d language=%r",
             audio.filename,
             audio.content_type,
             len(audio_bytes),
+            session_language,
         )
         try:
             stt_result, stt_ms = await timed(
                 transcribe(
                     audio_bytes,
+                    language=session_language,
                     filename=audio.filename or "audio.webm",
                     content_type=audio.content_type or "audio/webm",
                 )
@@ -153,8 +166,6 @@ async def post_turn(
 
     agent_input = transcript if transcript else (tapped_option_id or "")
 
-    graph = request.app.state.agent_graph
-    config = {"configurable": {"thread_id": session_id}}
     result_state, agent_ms = await timed(
         graph.ainvoke({"transcript": agent_input}, config=config)
     )

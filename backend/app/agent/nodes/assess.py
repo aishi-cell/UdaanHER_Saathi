@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured
+from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 
 MAX_QUESTIONS = 3
@@ -20,6 +20,11 @@ QUESTION_INSTRUCTION = (
     "conversation so far below, build on it and don't repeat a question "
     "already asked.\n\n"
     "Conversation so far:\n{conversation_so_far}"
+)
+REASK_INSTRUCTION = (
+    "You couldn't quite make out her last answer. Warmly and briefly say you "
+    "didn't catch that, and ask the same question again in slightly "
+    "different, simpler words -- no need to apologise much, this happens."
 )
 WRAP_INSTRUCTION = (
     "Thank her warmly for sharing, and say you're ready to look at her "
@@ -50,6 +55,15 @@ async def run(state: AgentState) -> dict:
     profile = dict(state.get("profile") or {})
     interest = profile.get("interest", "this skill")
     step = state["stage_step"]
+
+    # step 0 is the first question -- nothing assess-specific has been asked
+    # yet, so there's no prior answer to have been "unclear." Steps 1+ are
+    # processing her answer to the previous question.
+    if 0 < step <= MAX_QUESTIONS and is_unclear(state["transcript"]):
+        reply = await ask_conversational(
+            "assess", language=state["language"], instruction=REASK_INSTRUCTION, transcript=""
+        )
+        return {"stage": "assess", "stage_step": step, "reply_text": reply, "ui": {"type": "idle"}}
 
     if step < MAX_QUESTIONS:
         reply = await ask_conversational(

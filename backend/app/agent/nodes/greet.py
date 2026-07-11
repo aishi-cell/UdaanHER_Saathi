@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured
+from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 
 ASK_INSTRUCTION = (
@@ -13,7 +13,17 @@ ASK_INSTRUCTION = (
 EXTRACT_INSTRUCTION = (
     "She just answered your greeting. From her reply, work out her name and "
     "whether she agreed to be remembered (a plain yes/no, spoken any way she "
-    "likes -- 'haan', 'ha', 'nahi', silence-then-hesitation counts as no)."
+    "likes -- 'haan', 'ha', 'nahi', silence-then-hesitation counts as no).\n\n"
+    "Her speech-to-text transcript may be imperfect, informal, code-mixed, or "
+    "have a strong regional accent -- she is not expected to speak "
+    "'textbook' language. Make your best reasonable guess from what's there "
+    "rather than expecting a perfectly clean sentence."
+)
+REASK_INSTRUCTION = (
+    "You couldn't quite make out what she said. Warmly and briefly say you "
+    "didn't catch that, and ask her name and whether she'd like to be "
+    "remembered again, in a relaxed way -- no need to apologise much, this "
+    "happens."
 )
 ACK_INSTRUCTION_YES = (
     "She agreed to be remembered and told you her name. Thank her warmly by "
@@ -37,6 +47,15 @@ async def run(state: AgentState) -> dict:
             "greet",
             language=state["language"],
             instruction=ASK_INSTRUCTION,
+            transcript=state["transcript"],
+        )
+        return {"stage": "greet", "stage_step": 1, "reply_text": reply, "ui": {"type": "idle"}}
+
+    if is_unclear(state["transcript"]):
+        reply = await ask_conversational(
+            "greet",
+            language=state["language"],
+            instruction=REASK_INSTRUCTION,
             transcript=state["transcript"],
         )
         return {"stage": "greet", "stage_step": 1, "reply_text": reply, "ui": {"type": "idle"}}

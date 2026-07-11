@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured
+from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 from app.models import db as db_repo
 
@@ -23,7 +23,10 @@ READBACK_INSTRUCTION = (
 EXTRACT_INSTRUCTION = (
     "Work out whether she confirmed the profile is correct, or is correcting "
     "something. If correcting, say which field (name, village, or interest) "
-    "and the corrected value."
+    "and the corrected value. Her speech-to-text transcript may be "
+    "imperfect, informal, code-mixed, or have a strong regional accent -- "
+    "make your best reasonable guess rather than expecting a perfectly "
+    "clean sentence."
 )
 CORRECTED_INSTRUCTION = (
     "Thank her for the correction, confirm the updated detail back to her, "
@@ -37,6 +40,11 @@ NOT_SAVED_INSTRUCTION = (
     "She confirmed everything is correct, but earlier chose not to be "
     "remembered -- that's fine. Warmly say you're excited to start learning "
     "together today."
+)
+REASK_INSTRUCTION = (
+    "You couldn't quite make out her answer. Warmly and briefly say you "
+    "didn't catch that, and ask again if the profile shown is right -- no "
+    "need to apologise much, this happens."
 )
 
 
@@ -74,6 +82,20 @@ async def run(state: AgentState) -> dict:
                 village=profile.get("village", ""),
                 interest=profile.get("interest", ""),
             ),
+            transcript="",
+        )
+        return {
+            "stage": "confirm_profile",
+            "stage_step": 1,
+            "reply_text": reply,
+            "ui": _profile_card_ui(profile, state["language"]),
+        }
+
+    if is_unclear(state["transcript"]):
+        reply = await ask_conversational(
+            "confirm_profile",
+            language=state["language"],
+            instruction=REASK_INSTRUCTION,
             transcript="",
         )
         return {
