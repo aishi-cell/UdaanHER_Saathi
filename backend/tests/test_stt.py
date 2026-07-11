@@ -60,6 +60,16 @@ async def test_transcribe_timeout_raises_stt_error():
             await transcribe(b"fake-audio-bytes")
 
 
+@pytest.mark.asyncio
+async def test_transcribe_connect_error_raises_stt_error():
+    with patch(
+        "httpx.AsyncClient.post",
+        new=AsyncMock(side_effect=httpx.ConnectError("dns lookup failed")),
+    ):
+        with pytest.raises(SttError):
+            await transcribe(b"fake-audio-bytes")
+
+
 @pytest.mark.live
 @pytest.mark.skipif(not FIXTURE_WAV.exists(), reason="no fixture WAV recorded yet (see T02)")
 @pytest.mark.asyncio

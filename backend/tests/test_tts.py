@@ -48,6 +48,16 @@ async def test_synthesize_timeout_raises_tts_error():
 
 
 @pytest.mark.asyncio
+async def test_synthesize_connect_error_raises_tts_error():
+    with patch(
+        "httpx.AsyncClient.post",
+        new=AsyncMock(side_effect=httpx.ConnectError("dns lookup failed")),
+    ):
+        with pytest.raises(TtsError):
+            await synthesize("Namaste", "hi-IN")
+
+
+@pytest.mark.asyncio
 async def test_synthesize_splits_long_text_and_concatenates(caplog):
     long_text = "Ek. " * (TTS_CHAR_LIMIT // 4 + 50)
     mock_post = AsyncMock(return_value=_fake_response(b"chunk"))

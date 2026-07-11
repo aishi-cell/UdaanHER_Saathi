@@ -54,6 +54,8 @@ async def transcribe(
             )
     except httpx.TimeoutException as exc:
         raise SttError(f"Sarvam STT request timed out after {STT_TIMEOUT_SECONDS}s") from exc
+    except httpx.RequestError as exc:
+        raise SttError(f"Sarvam STT request failed: {exc}") from exc
 
     elapsed_ms = (time.perf_counter() - start) * 1000
 

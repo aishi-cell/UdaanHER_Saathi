@@ -100,6 +100,8 @@ async def synthesize(text: str, language: str) -> Mp3Result:
             ]
     except httpx.TimeoutException as exc:
         raise TtsError(f"Sarvam TTS request timed out after {TTS_TIMEOUT_SECONDS}s") from exc
+    except httpx.RequestError as exc:
+        raise TtsError(f"Sarvam TTS request failed: {exc}") from exc
 
     elapsed_ms = (time.perf_counter() - start) * 1000
     return Mp3Result(mp3_bytes=b"".join(mp3_parts), elapsed_ms=elapsed_ms)
