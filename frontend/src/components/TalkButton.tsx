@@ -13,9 +13,9 @@ interface Props {
 
 const BUTTON_GRADIENT: Record<TalkState, string> = {
   ready: 'from-brand-500 to-brand-700',
-  listening: 'from-red-500 to-brand-700',
+  listening: 'from-blush-500 to-brand-700',
   thinking: 'from-brand-300 to-brand-400',
-  speaking: 'from-sun-400 to-brand-500',
+  speaking: 'from-brand-400 to-blush-500',
 };
 
 function Waveform() {
@@ -40,7 +40,7 @@ function ListeningRipples() {
         <motion.span
           key={i}
           aria-hidden
-          className="absolute inset-0 rounded-full border-4 border-red-400/60"
+          className="absolute inset-0 rounded-full border-4 border-blush-400/60"
           initial={{ scale: 1, opacity: 0.8 }}
           animate={{ scale: 1.55, opacity: 0 }}
           transition={{ repeat: Infinity, duration: 1.6, delay: i * 0.5, ease: 'easeOut' }}

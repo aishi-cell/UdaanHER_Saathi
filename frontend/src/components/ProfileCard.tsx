@@ -19,7 +19,7 @@ export function ProfileCard({ profile }: Props) {
     <Card className="w-full max-w-md border-brand-100 bg-white/85 shadow-xl shadow-brand-200/40 backdrop-blur">
       <CardContent className="flex flex-col items-center gap-4 p-7 text-center sm:p-8">
         <motion.div
-          className="flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-sun-400 text-5xl font-black text-white shadow-lg"
+          className="flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-blush-400 text-5xl font-black text-white shadow-lg"
           initial={{ scale: 0.6, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15 }}

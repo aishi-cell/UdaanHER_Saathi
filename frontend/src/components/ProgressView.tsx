@@ -2,7 +2,6 @@ import { motion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Lock, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import type { ProgressPayload } from '../types';
 
@@ -22,22 +21,76 @@ function LessonIcon({ status }: { status: ProgressPayload['lessons'][number]['st
   return <Lock className="size-5 shrink-0 text-muted-foreground" />;
 }
 
+/** The mockup's circular "72% — Keep going!" ring. */
+function ProgressRing({ percent }: { percent: number }) {
+  const r = 52;
+  const c = 2 * Math.PI * r;
+  return (
+    <div className="relative flex size-36 items-center justify-center">
+      <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+        <circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="var(--color-brand-100)"
+          strokeWidth="11"
+        />
+        <motion.circle
+          cx="60"
+          cy="60"
+          r={r}
+          fill="none"
+          stroke="var(--color-brand-600)"
+          strokeWidth="11"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          initial={{ strokeDashoffset: c }}
+          animate={{ strokeDashoffset: c * (1 - percent / 100) }}
+          transition={{ duration: 1.1, ease: 'easeOut', delay: 0.2 }}
+        />
+      </svg>
+      <span className="absolute text-3xl font-black text-brand-800">{percent}%</span>
+    </div>
+  );
+}
+
 export function ProgressView({ payload }: Props) {
   const done = payload.lessons.filter((lesson) => lesson.status === 'done').length;
   const percent = payload.lessons.length ? Math.round((done / payload.lessons.length) * 100) : 0;
+  const solid = payload.concepts.filter((concept) => concept.mastery === 'strong').length;
+
+  const stats = [
+    { label: 'Lessons', value: done },
+    { label: 'Ideas solid', value: solid },
+    { label: 'Skill', value: 1 },
+  ];
 
   return (
     <Card className="w-full max-w-xl border-brand-100 bg-white/85 shadow-xl shadow-brand-200/40 backdrop-blur">
       <CardContent className="flex flex-col gap-6 p-6 sm:p-8">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold capitalize text-brand-900">{payload.skill}</p>
-            <span className="text-lg font-semibold text-brand-600">{percent}%</span>
-          </div>
-          <Progress value={percent} className="h-3 bg-brand-100" />
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-2xl font-extrabold text-foreground">Your Progress</p>
+          <ProgressRing percent={percent} />
+          <p className="text-base font-semibold text-brand-700">Keep going!</p>
         </div>
 
-        <ul className="flex flex-col gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          {stats.map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="flex flex-col items-center gap-0.5 rounded-2xl bg-brand-50 py-3"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.08 }}
+            >
+              <span className="text-2xl font-black text-brand-800">{stat.value}</span>
+              <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
+            </motion.div>
+          ))}
+        </div>
+
+        <ul className="flex flex-col gap-2">
           {payload.lessons.map((lesson, i) => (
             <motion.li
               key={lesson.lesson_id}

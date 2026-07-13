@@ -12,8 +12,8 @@ export function LessonStep({ step }: Props) {
   return (
     <Card className="w-full max-w-xl border-brand-100 bg-white/85 shadow-xl shadow-brand-200/40 backdrop-blur">
       <CardContent className="flex flex-col items-center gap-5 p-6 sm:p-8">
-        <Badge className="bg-secondary px-4 py-1 text-sm font-semibold text-secondary-foreground">
-          {step.step_index + 1} / {step.total_steps}
+        <Badge className="bg-secondary px-4 py-1.5 text-base font-semibold text-secondary-foreground">
+          Step {step.step_index + 1} of {step.total_steps}
         </Badge>
 
         {step.image && (

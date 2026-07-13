@@ -1,22 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Flower2, MicOff } from 'lucide-react';
+import { MicOff } from 'lucide-react';
 import { ApiError, getHealth, postSession, postTurn, type TurnResponse } from './api';
 import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon, unlockAudio } from './audio/player';
 import { AuroraBackground } from './components/AuroraBackground';
 import { Landing, type Language } from './components/Landing';
 import { Renderer } from './components/Renderer';
+import { SaathiAvatar } from './components/SaathiAvatar';
 import { TalkButton, type TalkState } from './components/TalkButton';
 import { UiDemo } from './UiDemo';
 import { cn } from '@/lib/utils';
 import type { UICommand } from './types';
 
 const STATUS_LABELS: Record<TalkState, string> = {
-  ready: 'दबाकर बोलिए · Hold to talk',
-  listening: 'सुन रही हूँ…',
+  ready: 'दबाकर बोलिए · Hold & speak',
+  listening: 'Listening…',
   thinking: 'सोच रही हूँ…',
-  speaking: 'बोल रही हूँ…',
+  speaking: 'Saathi बोल रही हैं…',
 };
 
 // A very short hold (an accidental tap, or someone testing the button)
@@ -282,8 +283,8 @@ function App() {
             transition={{ duration: 0.4 }}
           >
             <header className="flex items-center justify-center pt-5">
-              <span className="text-lg font-bold tracking-tight text-brand-700">
-                UdaanHer <span className="text-sun-500">Saathi</span>
+              <span className="text-lg font-bold tracking-tight text-brand-800">
+                Udaan <span className="text-blush-600">Her Saathi</span>
               </span>
             </header>
 
@@ -298,15 +299,10 @@ function App() {
                   transition={{ duration: 0.3 }}
                 >
                   {currentUi.type === 'idle' ? (
-                    <motion.div
-                      className="flex size-40 items-center justify-center rounded-full bg-white/60 text-brand-400 shadow-inner backdrop-blur"
-                      animate={{ scale: [1, 1.04, 1] }}
-                      transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-                      role="img"
-                      aria-label="Mentor waiting to talk"
-                    >
-                      <Flower2 className="size-20" strokeWidth={1.4} />
-                    </motion.div>
+                    <SaathiAvatar
+                      talking={talkState === 'speaking' || talkState === 'listening'}
+                      aria-label="Saathi, your mentor"
+                    />
                   ) : (
                     <Renderer ui={currentUi} onTapOption={handleTapOption} />
                   )}
@@ -318,7 +314,10 @@ function App() {
               <AnimatePresence mode="wait">
                 <motion.p
                   key={sessionReady ? talkState : 'connecting'}
-                  className="text-lg font-medium text-brand-800/80"
+                  className={cn(
+                    'rounded-full px-5 py-1.5 text-lg font-medium text-brand-800',
+                    talkState === 'listening' ? 'bg-brand-100 shadow-sm' : 'bg-transparent',
+                  )}
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}

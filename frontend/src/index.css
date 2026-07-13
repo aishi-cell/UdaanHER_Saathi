@@ -5,17 +5,21 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* UdaanHer Saathi — warm rose/amber, high-contrast, big-target */
-  --color-brand-50: #fff1f4;
-  --color-brand-100: #ffe0e8;
-  --color-brand-200: #ffc2d1;
-  --color-brand-300: #ff94ad;
-  --color-brand-400: #fb5c83;
-  --color-brand-500: #f0295f;
-  --color-brand-600: #d8144c;
-  --color-brand-700: #b60c3f;
-  --color-brand-800: #980e3b;
-  --color-brand-900: #821038;
+  /* UdaanHer Saathi — violet/lavender per the product mockup; pink brand
+     accent, gold badges. High-contrast, big-target. */
+  --color-brand-50: #f6f2ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-blush-400: #f472b6;
+  --color-blush-500: #ec4899;
+  --color-blush-600: #db2777;
   --color-sun-300: #ffd27a;
   --color-sun-400: #ffb63f;
   --color-sun-500: #ff9d0a;
@@ -32,11 +36,11 @@
     0%,
     100% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgb(240 41 95 / 0.35);
+      box-shadow: 0 0 0 0 rgb(124 58 237 / 0.35);
     }
     50% {
       transform: scale(1.045);
-      box-shadow: 0 0 0 24px rgb(240 41 95 / 0);
+      box-shadow: 0 0 0 24px rgb(124 58 237 / 0);
     }
   }
   @keyframes aurora {
@@ -52,41 +56,41 @@
   }
 }
 
-/* shadcn/ui semantic tokens — UdaanHer warm rose/amber, light-only */
+/* shadcn/ui semantic tokens — UdaanHer violet/lavender, light-only */
 :root {
-  --background: #fff8f6;
-  --foreground: #3d0f1f;
+  --background: #fdfbf7;
+  --foreground: #2b2145;
   --card: #ffffff;
-  --card-foreground: #3d0f1f;
+  --card-foreground: #2b2145;
   --popover: #ffffff;
-  --popover-foreground: #3d0f1f;
-  --primary: #d8144c;
-  --primary-foreground: #fff5f7;
-  --secondary: #ffe0e8;
-  --secondary-foreground: #821038;
-  --muted: #fdeee9;
-  --muted-foreground: #8a5a66;
+  --popover-foreground: #2b2145;
+  --primary: #6d28d9;
+  --primary-foreground: #f8f5ff;
+  --secondary: #ede9fe;
+  --secondary-foreground: #4c1d95;
+  --muted: #f3eefe;
+  --muted-foreground: #6f6690;
   --accent: #fff0d6;
   --accent-foreground: #7a4a08;
   --destructive: #b91c1c;
   --destructive-foreground: #fef2f2;
-  --border: #f6d5dc;
-  --input: #f6d5dc;
-  --ring: #f0295f;
+  --border: #e5dcf8;
+  --input: #e5dcf8;
+  --ring: #8b5cf6;
   --radius: 1rem;
-  --chart-1: #f0295f;
-  --chart-2: #ffb63f;
-  --chart-3: #b60c3f;
-  --chart-4: #ff94ad;
-  --chart-5: #ffd27a;
-  --sidebar: #fff1f4;
-  --sidebar-foreground: #3d0f1f;
-  --sidebar-primary: #d8144c;
-  --sidebar-primary-foreground: #fff5f7;
+  --chart-1: #7c3aed;
+  --chart-2: #ec4899;
+  --chart-3: #ffb63f;
+  --chart-4: #c4b5fd;
+  --chart-5: #4c1d95;
+  --sidebar: #f6f2ff;
+  --sidebar-foreground: #2b2145;
+  --sidebar-primary: #6d28d9;
+  --sidebar-primary-foreground: #f8f5ff;
   --sidebar-accent: #fff0d6;
   --sidebar-accent-foreground: #7a4a08;
-  --sidebar-border: #f6d5dc;
-  --sidebar-ring: #f0295f;
+  --sidebar-border: #e5dcf8;
+  --sidebar-ring: #8b5cf6;
 }
 
 @theme inline {
