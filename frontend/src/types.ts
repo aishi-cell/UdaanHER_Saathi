@@ -19,7 +19,9 @@ export interface ShowLessonStepCommand {
   lesson_id: string;
   step_index: number;
   total_steps: number;
-  image: string;
+  // Optional (plan v2): voice is the interface; a step's visual is an aid,
+  // not a requirement. null renders as a caption-only card.
+  image: string | null;
   caption: string;
 }
 

@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.agent.nodes import assess, confirm_profile, discover, greet
-from app.agent.nodes.assess import LevelExtraction
+from app.agent.nodes.assess import DiagnosticExtraction
 from app.agent.nodes.confirm_profile import ConfirmationExtraction
-from app.agent.nodes.discover import InterestExtraction, VillageWorkExtraction
+from app.agent.nodes.discover import SkillChoiceExtraction, VillageWorkExtraction
 from app.agent.nodes.greet import GreetExtraction
 from app.agent.state import initial_state
 from app.models import db
@@ -123,7 +123,8 @@ async def test_discover_step1_extracts_village_and_shows_interest_options():
     assert result["stage_step"] == 2
     assert result["profile"]["village"] == "Rampur"
     assert result["ui"]["type"] == "show_options"
-    assert len(result["ui"]["options"]) == 4
+    # Cards come from the content store now (plan v2) -- whatever is seeded.
+    assert len(result["ui"]["options"]) >= 1
     assert {opt["id"] for opt in result["ui"]["options"]} >= {"tailoring"}
 
 
@@ -159,7 +160,11 @@ async def test_discover_step2_voice_uses_extraction():
     with (
         patch(
             "app.agent.nodes.discover.extract_structured",
-            new=AsyncMock(return_value=InterestExtraction(option_id="tailoring")),
+            new=AsyncMock(
+                return_value=SkillChoiceExtraction(
+                    matched_skill_id="tailoring", skill_name_english="tailoring"
+                )
+            ),
         ) as mock_extract,
         patch("app.agent.nodes.discover.ask_conversational", new=AsyncMock(return_value="Accha!")),
     ):
@@ -201,7 +206,9 @@ async def test_assess_final_step_extracts_level_and_advances():
         patch(
             "app.agent.nodes.assess.extract_structured",
             new=AsyncMock(
-                return_value=LevelExtraction(starting_level="some", notes="has some experience")
+                return_value=DiagnosticExtraction(
+                    starting_level="some", notes="has some experience", concept_estimates=[]
+                )
             ),
         ),
         patch("app.agent.nodes.assess.ask_conversational", new=AsyncMock(return_value="Shukriya!")),

@@ -7,7 +7,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from app.agent.graph import compile_graph
 from app.agent.guards import can_start_reteach
-from app.agent.nodes.assess import LevelExtraction
+from app.agent.nodes.assess import DiagnosticExtraction
 from app.agent.nodes.confirm_profile import ConfirmationExtraction
 from app.agent.nodes.discover import VillageWorkExtraction
 from app.agent.nodes.greet import GreetExtraction
@@ -51,7 +51,11 @@ def _mock_onboarding_llm(stack: ExitStack) -> None:
     stack.enter_context(
         patch(
             "app.agent.nodes.assess.extract_structured",
-            new=AsyncMock(return_value=LevelExtraction(starting_level="some", notes="ok")),
+            new=AsyncMock(
+                return_value=DiagnosticExtraction(
+                    starting_level="some", notes="ok", concept_estimates=[]
+                )
+            ),
         )
     )
     stack.enter_context(
@@ -194,10 +198,17 @@ async def test_guard_teach_proceeds_once_a_profile_exists():
         language="hi-IN",
         stage="teach",
         profile={"name": "Sunita", "interest": "tailoring", "starting_level": "some"},
+        skill_id="tailoring",  # seeded content-store skill
     )
-    result = await graph.ainvoke(state, config=config)
+    with patch(
+        "app.agent.nodes.teach.ask_conversational", new=AsyncMock(return_value="ok")
+    ):
+        result = await graph.ainvoke(state, config=config)
 
-    assert result["stage"] == "viva"
+    # Not redirected to confirm_profile: teaching actually began (step 0 of
+    # her path, with the lesson-step command on screen).
+    assert result["stage"] == "teach"
+    assert result["ui"]["type"] == "show_lesson_step"
 
 
 def test_guard_reteach_caps_at_two_rounds():

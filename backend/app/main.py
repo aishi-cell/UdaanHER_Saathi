@@ -11,6 +11,7 @@ from pydantic import TypeAdapter
 from app.agent.graph import compile_graph
 from app.agent.state import ProfileDraft, initial_state
 from app.config import get_settings
+from app.content import store as content_store
 from app.errors import ApiError, api_error_handler, unhandled_error_handler
 from app.middleware import RequestLogMiddleware
 from app.models import db as db_repo
@@ -25,6 +26,10 @@ logger = logging.getLogger("udaanher.turn")
 
 settings = get_settings()
 db_repo.init_db()
+# Fail loud at boot, not in front of a learner: a typo in any cached skill
+# package refuses to start with a message naming the file + field (plan v2).
+_skills = content_store.validate_all()
+logging.getLogger("udaanher.content").info("content store OK: %s", _skills or "(empty)")
 
 APP_VERSION = "0.1.0"
 CHECKPOINT_DB_PATH = "data/checkpoints.db"
@@ -86,6 +91,8 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
         language=payload.language,
         stage="resume" if learner else "greet",
         profile=_profile_draft_from_learner(learner) if learner else None,
+        # Her saved interest is a content-store skill id; resume/teach read it.
+        skill_id=(learner.interest_skill or None) if learner else None,
     )
 
     graph = request.app.state.agent_graph

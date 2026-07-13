@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     default_language: str = Field(validation_alias="DEFAULT_LANGUAGE")
     database_url: str = Field(validation_alias="DATABASE_URL")
     cors_origins: str = Field(validation_alias="CORS_ORIGINS")
+    # Optional: enables the Content Builder's YouTube search (plan v2 slow
+    # lane). Without it the builder still runs, but distills ungrounded.
+    youtube_api_key: str | None = Field(default=None, validation_alias="YOUTUBE_API_KEY")
 
 
 def get_settings() -> Settings:

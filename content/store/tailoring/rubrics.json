@@ -1,0 +1,148 @@
+{
+  "skill_id": "tailoring",
+  "questions": [
+    {
+      "question_id": "q-tape-1",
+      "concept_id": "c-tape-basics",
+      "question": "Why do tailors use the soft inch-tape instead of a wooden ruler for taking body measurements?",
+      "sounds_right": [
+        "tape mud jaati hai na, body ke gol gol ghum jaati hai",
+        "ruler seedha hota hai, body gol hai, isliye tape"
+      ],
+      "sounds_confused": [
+        "ruler chhota padta hai isliye",
+        "tape sasti aati hai"
+      ]
+    },
+    {
+      "question_id": "q-points-1",
+      "concept_id": "c-measure-points",
+      "question": "Suppose you are measuring for a blouse -- which places on the body will you measure, and where exactly does the bust measurement go?",
+      "sounds_right": [
+        "chhati, kamar, aur hip ka naap -- chhati mein sabse ubhri jagah pe tape ghumana",
+        "bust waist hip, aur bust ka naap sabse full jagah se lena, peeche se barabar rakhna"
+      ],
+      "sounds_confused": [
+        "bas kandhe ka naap kaafi hai",
+        "chhati mein upar ke taraf se, gale ke paas se lena"
+      ]
+    },
+    {
+      "question_id": "q-points-2",
+      "concept_id": "c-measure-points",
+      "question": "Where on the body do you take the waist measurement -- how do you find the right spot?",
+      "sounds_right": [
+        "kamar mein jahan sabse patla hai, nabhi ke thoda upar",
+        "jo sabse patli jagah hai wahan tape ghumao, seedha rakhna"
+      ],
+      "sounds_confused": [
+        "jahan pet sabse bada hai wahan se",
+        "hip ke paas se hi le lete hain"
+      ]
+    },
+    {
+      "question_id": "q-tension-1",
+      "concept_id": "c-tape-tension",
+      "question": "Suppose the blouse comes out tight at the chest even though you measured -- what might have gone wrong when measuring?",
+      "sounds_right": [
+        "tape zyada tight kheench diya hoga, thoda dheela rakhna tha",
+        "naap ke time tape kas ke pakda hoga, ek ungli jaani chahiye andar"
+      ],
+      "sounds_confused": [
+        "tape chhoti hogi",
+        "machine ne galat sil diya hoga"
+      ]
+    },
+    {
+      "question_id": "q-tension-2",
+      "concept_id": "c-tape-tension",
+      "question": "When the tape is around the body, how do you know it is sitting just right -- not too loose, not too tight?",
+      "sounds_right": [
+        "ek ungli tape ke neeche aaram se jaani chahiye",
+        "tape body pe tike lekin kase nahi, aur seedha rahe, tedha nahi"
+      ],
+      "sounds_confused": [
+        "jitna tight utna sahi naap",
+        "dheela hi rakho hamesha, baad mein kam kar lenge"
+      ]
+    },
+    {
+      "question_id": "q-grain-1",
+      "concept_id": "c-grain",
+      "question": "Before cutting a piece of cloth, why do we look at the fabric's direction first? What happens if we cut it any which way?",
+      "sounds_right": [
+        "kapde ki ek seedhi disha hoti hai, usi mein katna chahiye nahi to kapda tedha latakta hai",
+        "kinare wali seedhi disha mein kaato, tirchha kaatoge to kapda khinch ke tedha ho jayega"
+      ],
+      "sounds_confused": [
+        "koi farak nahi padta, kapda to kapda hai",
+        "jaise fit ho jaye waise kaat lo, kapda bachta hai"
+      ]
+    },
+    {
+      "question_id": "q-grain-2",
+      "concept_id": "c-grain",
+      "question": "If a kurti hangs crooked and twists to one side after a wash, what could the reason be from the cutting stage?",
+      "sounds_right": [
+        "kaatne mein disha galat thi, tirchha kat gaya hoga",
+        "grain ke hisaab se nahi kata isliye tedha ho gaya"
+      ],
+      "sounds_confused": [
+        "dhone se kapda kharab ho gaya, cutting se kya lena dena",
+        "silai kamzor thi isliye"
+      ]
+    },
+    {
+      "question_id": "q-allowance-1",
+      "concept_id": "c-seam-allowance",
+      "question": "When you cut the cloth, do you cut exactly on the chalk line of the body measurement? Why or why not?",
+      "sounds_right": [
+        "nahi, line ke bahar thoda chhod ke kaatna hai, silai ke liye jagah chahiye na",
+        "aadha inch bahar se kaato, wahi kapda silai mein jaata hai"
+      ],
+      "sounds_confused": [
+        "haan bilkul line pe kaato, tabhi to naap sahi rahega",
+        "andar ki taraf se kaato to fit accha aata hai"
+      ]
+    },
+    {
+      "question_id": "q-allowance-2",
+      "concept_id": "c-seam-allowance",
+      "question": "A customer says her suit has become a little tight and asks if it can be loosened. What in your cutting decides whether that is possible?",
+      "sounds_right": [
+        "agar seam mein margin chhoda tha to khol ke bada kar sakte hain",
+        "gunjaish rakhi ho kaatne mein to nikal sakte hain, warna nahi"
+      ],
+      "sounds_confused": [
+        "naya kapda jod denge kahin se bhi",
+        "tight ho gaya to kuch nahi ho sakta kabhi"
+      ]
+    },
+    {
+      "question_id": "q-seam-1",
+      "concept_id": "c-straight-seam",
+      "question": "While the machine is running, what should your hands be doing with the fabric -- and what should they never do?",
+      "sounds_right": [
+        "haath se bas seedha rakhna hai, kheenchna nahi -- machine khud aage badhati hai",
+        "guide karna hai bas, kheenchoge to sui tedhi ho jaati hai aur line bhi"
+      ],
+      "sounds_confused": [
+        "kheench ke nikalna padta hai warna ruk jaata hai",
+        "jitna zor se pakdo utna seedha silta hai"
+      ]
+    },
+    {
+      "question_id": "q-seam-2",
+      "concept_id": "c-straight-seam",
+      "question": "What do you do at the very start and very end of a seam so the stitching never opens up?",
+      "sounds_right": [
+        "shuru aur aakhir mein thoda ulta chala ke lock karna hai",
+        "back karke do teen taanke wapas lena, tab silai nahi khulti"
+      ],
+      "sounds_confused": [
+        "bas gaanth baandh do dhaage mein, kaafi hai",
+        "kuch nahi karna, machine khud pakad leti hai"
+      ]
+    }
+  ]
+}

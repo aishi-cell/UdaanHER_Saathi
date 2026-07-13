@@ -8,6 +8,7 @@ Stage = Literal[
     "teach",
     "viva",
     "reteach",
+    "earn",
     "wrapup",
     "close",
     "resume",
@@ -44,6 +45,13 @@ class AgentState(TypedDict):
     step_index: int
     viva: VivaState
     reteach_counts: dict[str, int]
+    # Plan v2 (docs/app_plan_v2.md): the skill she chose (a content-store id),
+    # assess's per-concept diagnosis ("knows" | "gap"), and the personalized
+    # path -- the ordered gap-concept ids teach walks through. step_index
+    # indexes into the store steps filtered to learning_path.
+    skill_id: str | None
+    concept_estimates: dict[str, str]
+    learning_path: list[str]
     reply_text: str
     ui: dict  # serialized UICommand; validated against app.models.ui.UICommand at the API boundary
     # Not in Spec S9.2's illustrative shape, but needed to run a real
@@ -64,6 +72,7 @@ def initial_state(
     language: str,
     stage: Stage = "greet",
     profile: ProfileDraft | None = None,
+    skill_id: str | None = None,
 ) -> AgentState:
     return AgentState(
         session_id=session_id,
@@ -77,6 +86,9 @@ def initial_state(
         step_index=0,
         viva=VivaState(question_ids_asked=[], grades={}),
         reteach_counts={},
+        skill_id=skill_id,
+        concept_estimates={},
+        learning_path=[],
         reply_text="",
         ui={"type": "idle"},
         stage_step=0,

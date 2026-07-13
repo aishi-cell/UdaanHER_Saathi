@@ -24,7 +24,9 @@ class ShowLessonStepCommand(BaseModel):
     lesson_id: str
     step_index: int
     total_steps: int
-    image: str
+    # Optional (plan v2): voice is the interface; a step's visual is an aid,
+    # not a requirement. None renders as a caption-only card.
+    image: str | None = None
     caption: str
 
 
