@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { AuroraBackground } from './components/AuroraBackground';
 import { Renderer } from './components/Renderer';
 import type { UICommand } from './types';
-import './App.css';
 
 function placeholderImage(label: string, color: string): string {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><rect width='200' height='200' fill='${color}'/><text x='50%' y='50%' font-size='24' fill='white' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'>${label}</text></svg>`;
@@ -20,7 +21,7 @@ const DEMO_COMMANDS: UICommand[] = [
   },
   {
     type: 'show_lesson_step',
-    lesson_id: 'tail-01-measure',
+    lesson_id: 'tailoring',
     step_index: 1,
     total_steps: 4,
     image: placeholderImage('Step 2', '#2f8f5b'),
@@ -54,6 +55,7 @@ const DEMO_COMMANDS: UICommand[] = [
       concepts: [
         { concept_id: 'c-body-measure', label: 'Body Measurement', mastery: 'strong' },
         { concept_id: 'c-fabric-grain', label: 'Fabric Grain', mastery: 'shaky' },
+        { concept_id: 'c-seam', label: 'Seams', mastery: 'unseen' },
       ],
       next_step_text: 'Next time: cutting practice.',
     },
@@ -65,23 +67,27 @@ export function UiDemo() {
   const current = DEMO_COMMANDS[index];
 
   return (
-    <div className="kiosk">
-      <section className="content-area">
-        <Renderer ui={current} onTapOption={(id) => console.log('tapped', id)} />
-      </section>
-      <section className="talk-area">
-        <p className="status-line">
+    <div className="relative flex h-full flex-col overflow-hidden">
+      <AuroraBackground />
+      <main className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-6">
+        {current.type === 'idle' ? (
+          <p className="text-2xl font-medium text-muted-foreground">idle (empty screen)</p>
+        ) : (
+          <Renderer ui={current} onTapOption={(id) => console.log('tapped', id)} />
+        )}
+      </main>
+      <footer className="flex flex-col items-center gap-3 pb-8">
+        <p className="text-base font-medium text-muted-foreground">
           {index + 1} / {DEMO_COMMANDS.length}: {current.type}
         </p>
-        <button
-          type="button"
-          className="talk-button talk-button--ready"
-          style={{ fontSize: 24 }}
+        <Button
+          size="lg"
+          className="h-14 px-10 text-lg"
           onClick={() => setIndex((i) => (i + 1) % DEMO_COMMANDS.length)}
         >
           Next
-        </button>
-      </section>
+        </Button>
+      </footer>
     </div>
   );
 }
