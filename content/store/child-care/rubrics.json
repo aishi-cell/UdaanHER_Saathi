@@ -1,0 +1,173 @@
+{
+  "skill_id": "child-care",
+  "questions": [
+    {
+      "question_id": "q-child-care-0",
+      "concept_id": "c-cleanliness-and-health",
+      "question": "When you touch or feed a tiny newborn baby, what is one simple thing you should always do first to keep the baby safe?",
+      "sounds_right": [
+        "pehle haath dhona hai sabun se",
+        "haath saaf karke hi bacche ko uthana",
+        "koi kaam se aake seedha nhi, pehle haath dhounga/dhoungi"
+      ],
+      "sounds_confused": [
+        "thoda sa tel laga ke hi pakadna hai",
+        "nahi, newborn ko kuch karne ki zaroorat nahi, waise hi utha lo"
+      ]
+    },
+    {
+      "question_id": "q-child-care-1",
+      "concept_id": "c-cleanliness-and-health",
+      "question": "A neighbour tells you to give a newborn some pani or ghutti. For the first months, what should the baby mostly drink?",
+      "sounds_right": [
+        "sirf maa ka doodh dena hai",
+        "doctor bole to powder doodh, warna maa ka doodh hi",
+        "pani ya ghutti nahi, bas maa ka dudh"
+      ],
+      "sounds_confused": [
+        "thoda pani to dena hi padta hai garami me",
+        "subah ghutti, baad me maa ka doodh"
+      ]
+    },
+    {
+      "question_id": "q-child-care-2",
+      "concept_id": "c-daily-routine-and-play",
+      "question": "If 3–4 small children come to your house every morning, how can you start a simple daily routine so they feel safe and enjoy?",
+      "sounds_right": [
+        "roz aane pe bag rakhenge, haath dhoyenge, phir khelne dena",
+        "pehle free khel, fir thoda kaam jaise drawing, fir geet sunaungi",
+        "har din same time pe khelna, khana, sone ka rakhungi"
+      ],
+      "sounds_confused": [
+        "jo marzi kare, kabhi bhi, routine ki kya zaroorat",
+        "roz naya kuch bina soche, kabhi khilao kabhi mat khilao"
+      ]
+    },
+    {
+      "question_id": "q-child-care-3",
+      "concept_id": "c-daily-routine-and-play",
+      "question": "What is one small zimmedari (responsibility) you can give to slightly older kids in your daycare, like they do in big schools?",
+      "sounds_right": [
+        "bada bacha apna bag aur joota khud rakhe",
+        "bade bachche ko bol sakte toys jama karo sab",
+        "vo paani ka glass chota bache ko pakda de"
+      ],
+      "sounds_confused": [
+        "sab ka kaam main hi karu, bachchon se kuch nahi karwana",
+        "bade bache se bartan dhulwana, jhaadu lagwana pura ghar"
+      ]
+    },
+    {
+      "question_id": "q-child-care-4",
+      "concept_id": "c-mealtime-habits",
+      "question": "Before children sit to eat at your home daycare, what is one habit you will follow every time?",
+      "sounds_right": [
+        "pehle haath dhulwana sabke",
+        "ek jagah bitha ke fir khilana",
+        "sabko khana deke fir start karenge"
+      ],
+      "sounds_confused": [
+        "jo kha raha hai kha le, haath dhona zaruri nahi",
+        "bacha bhaagte bhaagte bhi khaye to chalta hai"
+      ]
+    },
+    {
+      "question_id": "q-child-care-5",
+      "concept_id": "c-mealtime-habits",
+      "question": "How can you make children wait and start eating together in a nice way, not fighting over food?",
+      "sounds_right": [
+        "bolungi sab aajaye, ek saath bolenge chalo khaate hain phir shuru",
+        "pehle sabki plate bhar ke, fir signal dungi ab khaao",
+        "geet ga ke bolungi sab ready? fir start"
+      ],
+      "sounds_confused": [
+        "jo pehle plate pakde vo kha le, baaki baad me",
+        "ek ko de do, dusra roye to ro ne do"
+      ]
+    },
+    {
+      "question_id": "q-child-care-6",
+      "concept_id": "c-safe-home-daycare-setup",
+      "question": "In the room where children will play, what dangerous things should you remove or keep high so they can’t touch?",
+      "sounds_right": [
+        "chaaku, dawai, phenyl sab upar rakhna",
+        "kerosene, matchis door rakhni",
+        "chhoti chhoti cheeze jaise sikka, moti hata dena"
+      ],
+      "sounds_confused": [
+        "sab cheeze wahi rehne do, main dekh lungi",
+        "bus khidki band kar do, baaki sab theek hai"
+      ]
+    },
+    {
+      "question_id": "q-child-care-7",
+      "concept_id": "c-safe-home-daycare-setup",
+      "question": "How will you use the idea of ‘shoes outside’ to keep your play corner cleaner for babies?",
+      "sounds_right": [
+        "bahar gate pe joota chappal utarwaungi",
+        "andar sirf saaf chappal ya nange pair bacha aayega",
+        "andar ka mat saaf rahe isliye joota bahar rakhenge"
+      ],
+      "sounds_confused": [
+        "andar bhi khet wala joota pehen ke aane do",
+        "sirf bade log joota utare, bachche kuch bhi kare"
+      ]
+    },
+    {
+      "question_id": "q-child-care-8",
+      "concept_id": "c-parent-communication",
+      "question": "When a parent comes in the evening to take their child, what are two small things you can tell them about the child’s day?",
+      "sounds_right": [
+        "batana ki kya khela, khana khaya ya nahi",
+        "bola sakti ho ki kitna soya, susu potty theek tha",
+        "agar ro raha tha ya bukhar tha to bataungi"
+      ],
+      "sounds_confused": [
+        "kuch batane ki zaroorat nahi, bas bacha de do",
+        "sirf paise ki baat karni hai, bacche ke bare me nahi"
+      ]
+    },
+    {
+      "question_id": "q-child-care-9",
+      "concept_id": "c-parent-communication",
+      "question": "In the morning, what is one simple sawaal you can ask parents so you know how to care for the child that day?",
+      "sounds_right": [
+        "poochungi raat ko bacha thik tha? bukhar to nahi",
+        "koi dawai chal rahi hai kya?",
+        "aaj khana ghar se kya laaya hai?"
+      ],
+      "sounds_confused": [
+        "kuch mat puchho, bas le lo bacha",
+        "sirf fees puchhna hai, aur kuch nahi"
+      ]
+    },
+    {
+      "question_id": "q-child-care-10",
+      "concept_id": "c-basic-daycare-business",
+      "question": "If you start a home daycare, why is it better to take only as many children as you can safely watch?",
+      "sounds_right": [
+        "zyada bache lenge to sambhal nahi paungi, danger ho jayega",
+        "3–4 se zyada hogaya to nazar nahi rahegi sab pe",
+        "thoda kam bache rakho par achchhe se dekh bhale se"
+      ],
+      "sounds_confused": [
+        "jitne aajayen sab le lo, paise zyada milenge, dekhbhal baad me",
+        "jitne bache ho, sabko TV chalu karke bitha do, khud kuch mat karo"
+      ]
+    },
+    {
+      "question_id": "q-child-care-11",
+      "concept_id": "c-basic-daycare-business",
+      "question": "How can you find your first 1–2 paying children for your daycare in your own village or basti?",
+      "sounds_right": [
+        "padosi aur rishtedaar didi se baat karungi",
+        "mahila group me bataungi ki main bacche sambhalti hoon",
+        "anganwadi wali se bolungi kisi ko zarurat ho to mera naam de"
+      ],
+      "sounds_confused": [
+        "sirf shehar ke logon ka wait karungi",
+        "kisi ko batane ki zaroorat nahi, khud hi dekh lenge"
+      ]
+    }
+  ]
+}
