@@ -7,7 +7,10 @@ from app.config import get_settings
 
 @lru_cache(maxsize=8)
 def _cached_chat_model(model: str, api_key: str, temperature: float) -> ChatOpenAI:
-    return ChatOpenAI(model=model, api_key=api_key, temperature=temperature)
+    # max_retries covers transient network blips (live phone test: a brief
+    # DNS failure 500'd three turns in a row); the SDK backs off between
+    # attempts, so a short outage costs seconds, not the turn.
+    return ChatOpenAI(model=model, api_key=api_key, temperature=temperature, max_retries=4)
 
 
 def get_chat_model(temperature: float = 0.7) -> ChatOpenAI:
