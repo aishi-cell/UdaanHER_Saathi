@@ -36,6 +36,31 @@ def _extract_error_message(response: httpx.Response) -> str:
         return response.text
 
 
+# Emoji and pictograph ranges only -- must NOT touch Devanagari (U+0900-097F)
+# or Gujarati (U+0A80-0AFF) text. Covers emoji blocks, dingbats/misc symbols
+# (includes hearts), regional indicators, variation selectors, ZWJ, and
+# skin-tone modifiers.
+_EMOJI_RE = re.compile(
+    "["
+    "\U0001f000-\U0001faff"  # mahjong .. symbols & pictographs extended
+    "☀-➿"  # misc symbols + dingbats (sun, hearts, sparkles, checkmarks)
+    "⬀-⯿"  # misc symbols and arrows (stars, geometric)
+    "︎️"  # variation selectors
+    "‍"  # zero-width joiner
+    "\U0001f3fb-\U0001f3ff"  # skin tone modifiers
+    "]+"
+)
+
+
+def strip_emoji(text: str) -> str:
+    """Remove emoji before synthesis -- Sarvam TTS reads them aloud or mangles them."""
+    stripped = _EMOJI_RE.sub("", text)
+    stripped = re.sub(r"  +", " ", stripped).strip()
+    # An all-emoji reply should never happen, but sending Sarvam an empty
+    # string is a guaranteed 400 -- keep the original in that case.
+    return stripped if stripped else text
+
+
 def _split_into_chunks(text: str, limit: int) -> list[str]:
     if len(text) <= limit:
         return [text]
@@ -79,6 +104,7 @@ async def _synthesize_chunk(
 
 async def synthesize(text: str, language: str) -> Mp3Result:
     settings = get_settings()
+    text = strip_emoji(text)
     chunks = _split_into_chunks(text, TTS_CHAR_LIMIT)
     if len(chunks) > 1:
         logger.warning(

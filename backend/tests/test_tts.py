@@ -5,7 +5,13 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from app.services.tts import TTS_CHAR_LIMIT, TtsError, _split_into_chunks, synthesize
+from app.services.tts import (
+    TTS_CHAR_LIMIT,
+    TtsError,
+    _split_into_chunks,
+    strip_emoji,
+    synthesize,
+)
 
 FAKE_MP3_BYTES = b"ID3fake-mp3-bytes"
 
@@ -68,6 +74,24 @@ async def test_synthesize_splits_long_text_and_concatenates(caplog):
     assert mock_post.call_count > 1
     assert result.mp3_bytes == b"chunk" * mock_post.call_count
     assert any("split into" in record.message for record in caplog.records)
+
+
+def test_strip_emoji_removes_pictographs_keeps_indic_text():
+    assert strip_emoji("शाबाश! 🎉 बहुत अच्छा 👍🏽") == "शाबाश! बहुत अच्छा"
+    assert strip_emoji("સરસ! ❤️ હવે આગળ વધીએ ✨") == "સરસ! હવે આગળ વધીએ"
+    assert strip_emoji("No emoji here.") == "No emoji here."
+    # all-emoji fallback: never send Sarvam an empty string
+    assert strip_emoji("🎉👍") == "🎉👍"
+
+
+@pytest.mark.asyncio
+async def test_synthesize_strips_emoji_before_sending():
+    mock_post = AsyncMock(return_value=_fake_response())
+    with patch("httpx.AsyncClient.post", new=mock_post):
+        await synthesize("बहुत अच्छा! 🎉👏", "hi-IN")
+
+    sent_text = mock_post.call_args.kwargs["json"]["text"]
+    assert sent_text == "बहुत अच्छा!"
 
 
 def test_split_into_chunks_respects_sentence_boundaries():
