@@ -1,0 +1,155 @@
+{
+  "skill_id": "pickle-making",
+  "title": {
+    "en-IN": "Pickle Making",
+    "hi-IN": "अचार बनाना",
+    "gu-IN": "અથાણું બનાવવું"
+  },
+  "card_image": null,
+  "concepts": [
+    {
+      "concept_id": "c-dryness-rule",
+      "label": {
+        "en-IN": "The dryness rule",
+        "hi-IN": "सूखेपन का नियम",
+        "gu-IN": "સૂકાપણાનો નિયમ"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-salt-oil",
+      "label": {
+        "en-IN": "Salt and oil keep it safe",
+        "hi-IN": "नमक और तेल की मात्रा",
+        "gu-IN": "મીઠું અને તેલનું પ્રમાણ"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-sun-curing",
+      "label": {
+        "en-IN": "Sun curing",
+        "hi-IN": "धूप में पकाना",
+        "gu-IN": "તડકામાં પકવવું"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-storage-spoilage",
+      "label": {
+        "en-IN": "Storing and spotting spoilage",
+        "hi-IN": "रखना और खराबी पहचानना",
+        "gu-IN": "સંગ્રહ અને બગાડ ઓળખવો"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-packaging-selling",
+      "label": {
+        "en-IN": "Packing it to sell",
+        "hi-IN": "बेचने के लिए पैकिंग",
+        "gu-IN": "વેચવા માટે પેકિંગ"
+      },
+      "must_land": false
+    }
+  ],
+  "steps": [
+    {
+      "step_index": 0,
+      "concept_id": "c-dryness-rule",
+      "teaching_notes": "The one rule above all rules: water is the enemy of achaar. Everything must be completely dry -- the jar (washed and sun-dried), the spoon, the vegetables (wiped and air-dried after washing), and hands. One drop of raw water in the jar and the pickle grows fungus in a week. Every spoiled batch traces back to moisture.",
+      "caption": {
+        "en-IN": "Water is the enemy",
+        "hi-IN": "पानी दुश्मन है",
+        "gu-IN": "પાણી દુશ્મન છે"
+      },
+      "image": null
+    },
+    {
+      "step_index": 1,
+      "concept_id": "c-dryness-rule",
+      "teaching_notes": "Preparing raw mango (the classic first pickle): wash, wipe fully, and spread the cut pieces on a clean cotton cloth in shade for a few hours so every surface is dry to the touch. Always use a dry spoon to serve or stir -- never fingers, never a wet spoon back into the jar.",
+      "caption": {
+        "en-IN": "Dry the pieces fully",
+        "hi-IN": "टुकड़े पूरे सुखाएं",
+        "gu-IN": "કટકા પૂરા સૂકવો"
+      },
+      "image": null
+    },
+    {
+      "step_index": 2,
+      "concept_id": "c-salt-oil",
+      "teaching_notes": "Salt is not just taste -- it pulls water out of the vegetable and keeps the pickle safe. For raw mango, roughly one big spoon of salt per cup of pieces is the traditional measure; salted pieces rest overnight and release water, which is drained away. Under-salted pickle spoils; you can always balance saltiness later with more masala.",
+      "caption": {
+        "en-IN": "Salt protects",
+        "hi-IN": "नमक रक्षा करता है",
+        "gu-IN": "મીઠું રક્ષણ કરે છે"
+      },
+      "image": null
+    },
+    {
+      "step_index": 3,
+      "concept_id": "c-salt-oil",
+      "teaching_notes": "Oil is the second guard: mustard oil (heated once till it smokes gently, then cooled) mixed with the masala should cover the pieces. In the jar, the top layer of oil must stand above the pickle like water over rice in a pot -- anything poking out of the oil is where fungus starts. Top up oil as the jar empties.",
+      "caption": {
+        "en-IN": "Oil must cover all",
+        "hi-IN": "तेल सबको ढके",
+        "gu-IN": "તેલ બધું ઢાંકે"
+      },
+      "image": null
+    },
+    {
+      "step_index": 4,
+      "concept_id": "c-sun-curing",
+      "teaching_notes": "Sun is the third guard and the flavour-maker: the filled jar sits in strong sunlight for 4-7 days, shaken or stirred once daily with a dry spoon, brought in each evening. The sun softens the pieces, deepens the colour, and its warmth keeps spoilage away while the salt and oil settle into the vegetable.",
+      "caption": {
+        "en-IN": "Days in the sun",
+        "hi-IN": "धूप के दिन",
+        "gu-IN": "તડકાના દિવસો"
+      },
+      "image": null
+    },
+    {
+      "step_index": 5,
+      "concept_id": "c-storage-spoilage",
+      "teaching_notes": "Store in glass or ceramic (never plastic for oily pickle, never metal lids touching the pickle -- keep a cloth or paper between). Check weekly: white or green fuzz, a bad sour smell, or bubbling means that jar is gone -- do not taste it, do not sell it, and wash everything with hot water before the next batch.",
+      "caption": {
+        "en-IN": "Glass jar, weekly check",
+        "hi-IN": "कांच का जार, साप्ताहिक जांच",
+        "gu-IN": "કાચની બરણી, અઠવાડિક તપાસ"
+      },
+      "image": null
+    },
+    {
+      "step_index": 6,
+      "concept_id": "c-packaging-selling",
+      "teaching_notes": "Selling starts small and clean: 200g and 500g glass jars, a simple sticker with the pickle's name, the date it was made, and her name or brand. A taste spoon sells more jars than any words. Price the small jar so a first-time customer can say yes without thinking -- they return for the big one.",
+      "caption": {
+        "en-IN": "Small jars sell first",
+        "hi-IN": "छोटे जार पहले बिकते हैं",
+        "gu-IN": "નાની બરણી પહેલા વેચાય"
+      },
+      "image": null
+    }
+  ],
+  "common_mistakes": [
+    "A drop of raw water in the jar or on the spoon -- the number one cause of fungus",
+    "Under-salting because the pickle tasted too salty raw",
+    "Pieces poking out above the oil layer, where spoilage always starts first",
+    "Using wet or licked spoons to serve from the jar",
+    "Plastic containers for oily pickle, which take the smell and leach",
+    "Selling from a batch that smells even slightly off"
+  ],
+  "earning": {
+    "products": [
+      "Raw mango achaar (the classic -- everyone buys it in season)",
+      "Lemon, green chilli and mixed-vegetable pickles for year-round sale",
+      "Seasonal specials: gunda, ker-sangri, garlic -- whatever the region loves",
+      "Festival gift packs of 2-3 small jars"
+    ],
+    "pricing_notes": "Home pickle commonly sells for Rs 150-400 per kg depending on the town and ingredient -- roughly double the cost of materials. Small 200g jars at Rs 50-80 move fastest. Mango season (April-June) is when a whole year's mango achaar is made and much of it pre-sold. Jars are the biggest recurring cost; customers returning empty jars for a discount solves it.",
+    "customer_notes": "First customers are neighbours who taste it -- one good jar in a colony sells ten. Then: the local kirana shop (keep a few jars on commission), SHG melas and haats, tiffin services and small restaurants, and WhatsApp groups before mango season. Consistent taste batch to batch is what turns one-time buyers into monthly ones."
+  },
+  "source_video_ids": [],
+  "trusted": true
+}

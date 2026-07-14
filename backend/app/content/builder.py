@@ -277,7 +277,7 @@ def start_background_build(
 ) -> Literal["started", "already_building", "already_built"]:
     """Fire-and-forget build used by discover for unseeded skills. Deduped so
     two learners asking for the same skill build it once."""
-    if store.has_skill(skill_id):
+    if store.package_exists(skill_id):
         return "already_built"
     if skill_id in _in_flight:
         return "already_building"

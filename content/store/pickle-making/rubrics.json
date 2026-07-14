@@ -1,0 +1,122 @@
+{
+  "skill_id": "pickle-making",
+  "questions": [
+    {
+      "question_id": "q-dry-1",
+      "concept_id": "c-dryness-rule",
+      "question": "Before filling a jar with achaar, what do you make sure of about the jar and spoon?",
+      "sounds_right": [
+        "bilkul sookha hona chahiye, paani ki ek boond bhi fungus laati hai",
+        "dho ke dhoop mein sukhati hoon, geela chammach kabhi nahi daalti"
+      ],
+      "sounds_confused": [
+        "bas saaf hona chahiye, dhone ke baad turant bhar do",
+        "jar ka kya hai, achaar toh masale se banta hai"
+      ]
+    },
+    {
+      "question_id": "q-dry-2",
+      "concept_id": "c-dryness-rule",
+      "question": "After washing the raw mango pieces, what do you do before they meet the salt and masala?",
+      "sounds_right": [
+        "kapde pe phaila ke poora sukhaati hoon, chhoo ke dekho sookha lage",
+        "ponch ke hawa mein sukhana zaroori hai, geele tukde kharab karte hain"
+      ],
+      "sounds_confused": [
+        "dho ke seedha masala laga do, taaza rehta hai",
+        "thoda paani rahe toh chalta hai, namak sab sambhal lega"
+      ]
+    },
+    {
+      "question_id": "q-salt-1",
+      "concept_id": "c-salt-oil",
+      "question": "Why is salt so important in achaar, beyond the taste?",
+      "sounds_right": [
+        "namak sabzi ka paani nikaal deta hai, isi se achaar kharab nahi hota",
+        "namak hi bachata hai -- kam namak wala achaar jaldi sad jata hai"
+      ],
+      "sounds_confused": [
+        "namak sirf swad ke liye hai, kam bhi chalega",
+        "zyada namak sehat ke liye bura hai isliye kam daalo"
+      ]
+    },
+    {
+      "question_id": "q-oil-1",
+      "concept_id": "c-salt-oil",
+      "question": "When you look at a filled pickle jar, how do you know the oil is enough?",
+      "sounds_right": [
+        "upar tel ki parat dikhni chahiye, koi tukda bahar na jhaanke",
+        "tel sab ke upar khada ho -- jo tukda tel se bahar hai wahin fungus lagti hai"
+      ],
+      "sounds_confused": [
+        "tel toh swad ke liye hai, thoda bhi chalega",
+        "tel neeche baith jata hai, koi baat nahi"
+      ]
+    },
+    {
+      "question_id": "q-sun-1",
+      "concept_id": "c-sun-curing",
+      "question": "What does keeping the jar in the sun for those first days actually do?",
+      "sounds_right": [
+        "dhoop se tukde galte hain, rang gehra hota hai, aur kharabi nahi lagti",
+        "roz hilana aur dhoop dikhana -- isi se achaar pakta hai"
+      ],
+      "sounds_confused": [
+        "dhoop ka koi kaam nahi, andar rakho toh bhi wahi hai",
+        "dhoop mein rakhne se achaar sookh jata hai, nahi rakhna chahiye"
+      ]
+    },
+    {
+      "question_id": "q-sun-2",
+      "concept_id": "c-sun-curing",
+      "question": "While the jar is sun-curing, what do you do with it each day?",
+      "sounds_right": [
+        "sookhe chammach se hilao ya jar ghumao, shaam ko andar le aao",
+        "roz ek baar mila deti hoon taaki namak masala sab jagah lage"
+      ],
+      "sounds_confused": [
+        "bas rakh do aur bhool jao, khud ban jayega",
+        "roz kholke chakh ke dekho"
+      ]
+    },
+    {
+      "question_id": "q-spoil-1",
+      "concept_id": "c-storage-spoilage",
+      "question": "How would you know a jar of pickle has gone bad, and what would you do with it?",
+      "sounds_right": [
+        "safed ya hari fafundi, ajeeb khatti badbu, ya bulbule -- wo jar phek do, bechna toh door",
+        "fuzz dikhe ya smell kharab ho toh chakhna bhi nahi, poora hatao aur bartan garam paani se dho lo"
+      ],
+      "sounds_confused": [
+        "upar se fafundi hata ke neeche ka use kar lo",
+        "thoda kharab smell toh achaar mein hota hi hai"
+      ]
+    },
+    {
+      "question_id": "q-store-1",
+      "concept_id": "c-storage-spoilage",
+      "question": "What kind of container do you store pickle in for the long months?",
+      "sounds_right": [
+        "kaanch ya cheeni-mitti ki barni, plastic mein tel wala achaar nahi",
+        "glass jar, aur dhakkan ke neeche kapda ya kagaz taaki metal na chhue"
+      ],
+      "sounds_confused": [
+        "koi bhi dabba chalega, plastic sabse aasan hai",
+        "steel ke dabbe mein seedha bhar do"
+      ]
+    },
+    {
+      "question_id": "q-sell-1",
+      "concept_id": "c-packaging-selling",
+      "question": "If you made your first sellable batch, how would you pack and offer it?",
+      "sounds_right": [
+        "chhote 200 gram ke jar, naam aur date ka sticker, aur chakhne ko ek chammach",
+        "pehle chhota jar sasta rakho taaki log try karein, phir bada khud maangte hain"
+      ],
+      "sounds_confused": [
+        "bade dabbe mein bharo, zyada bikta hai",
+        "packing ka kya, thaili mein de do"
+      ]
+    }
+  ]
+}

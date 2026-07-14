@@ -1,0 +1,155 @@
+{
+  "skill_id": "mehndi",
+  "title": {
+    "en-IN": "Mehndi",
+    "hi-IN": "मेहंदी",
+    "gu-IN": "મહેંદી"
+  },
+  "card_image": null,
+  "concepts": [
+    {
+      "concept_id": "c-cone-control",
+      "label": {
+        "en-IN": "Holding the cone",
+        "hi-IN": "कोन पकड़ना",
+        "gu-IN": "કોન પકડવો"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-basic-elements",
+      "label": {
+        "en-IN": "Dots, lines and leaves",
+        "hi-IN": "बिंदी, रेखा और पत्ती",
+        "gu-IN": "ટપકાં, રેખા અને પાન"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-keri-motif",
+      "label": {
+        "en-IN": "The keri (paisley)",
+        "hi-IN": "केरी बनाना",
+        "gu-IN": "કેરી બનાવવી"
+      },
+      "must_land": false
+    },
+    {
+      "concept_id": "c-palm-design",
+      "label": {
+        "en-IN": "A simple palm design",
+        "hi-IN": "हथेली का सरल डिज़ाइन",
+        "gu-IN": "હથેળીની સાદી ડિઝાઇન"
+      },
+      "must_land": true
+    },
+    {
+      "concept_id": "c-stain-care",
+      "label": {
+        "en-IN": "Drying and dark colour",
+        "hi-IN": "सुखाना और गहरा रंग",
+        "gu-IN": "સૂકવવું અને ઘાટો રંગ"
+      },
+      "must_land": true
+    }
+  ],
+  "steps": [
+    {
+      "step_index": 0,
+      "concept_id": "c-cone-control",
+      "teaching_notes": "How to hold the mehndi cone: like a pencil but a little more upright, resting on the middle finger, thumb gently on top. The hole at the tip should be tiny -- cut less than you think, you can always cut more. Pressure comes from the thumb, steady and soft; the line's thickness follows the pressure, not the speed.",
+      "caption": {
+        "en-IN": "Holding the cone",
+        "hi-IN": "कोन पकड़ना",
+        "gu-IN": "કોન પકડવો"
+      },
+      "image": null
+    },
+    {
+      "step_index": 1,
+      "concept_id": "c-cone-control",
+      "teaching_notes": "Pressure practice before any design: on an old paper or a steel plate, draw straight lines slowly -- thin, then thick, then thin again -- by changing only thumb pressure. Then rows of even dots. If the paste blobs, the hole is too big or the thumb is pressing too hard.",
+      "caption": {
+        "en-IN": "Practice lines first",
+        "hi-IN": "पहले रेखा का अभ्यास",
+        "gu-IN": "પહેલા રેખાનો મહાવરો"
+      },
+      "image": null
+    },
+    {
+      "step_index": 2,
+      "concept_id": "c-basic-elements",
+      "teaching_notes": "Every design in the world is built from a few small elements: dots (bindi), straight and curved lines, half-moons, and the leaf -- two curved strokes meeting at a point. Practice a bel (vine): one wavy line, then leaves left and right along it. This bel alone fills fingers and borders beautifully.",
+      "caption": {
+        "en-IN": "Dots, lines, leaves",
+        "hi-IN": "बिंदी, रेखा, पत्ती",
+        "gu-IN": "ટપકાં, રેખા, પાન"
+      },
+      "image": null
+    },
+    {
+      "step_index": 3,
+      "concept_id": "c-keri-motif",
+      "teaching_notes": "The keri (paisley/mango shape) is the queen of mehndi: draw a tilted teardrop with a curled tip, then fill it -- lines inside, dots along the edge, or a small flower within. One well-made keri on the palm with a bel to the finger is already a complete, sellable design.",
+      "caption": {
+        "en-IN": "The keri",
+        "hi-IN": "केरी",
+        "gu-IN": "કેરી"
+      },
+      "image": null
+    },
+    {
+      "step_index": 4,
+      "concept_id": "c-palm-design",
+      "teaching_notes": "A simple full-palm design, in order: a flower or round motif in the centre of the palm, a bel from the flower to each finger, fingertips capped with solid colour or dense mesh, and one keri at the wrist. Work from the centre outwards so your own hand never smudges finished work.",
+      "caption": {
+        "en-IN": "Simple palm design",
+        "hi-IN": "हथेली का डिज़ाइन",
+        "gu-IN": "હથેળીની ડિઝાઇન"
+      },
+      "image": null
+    },
+    {
+      "step_index": 5,
+      "concept_id": "c-stain-care",
+      "teaching_notes": "The colour comes from patience: let the mehndi dry 20-30 minutes, then dab lemon-sugar water gently (never soaking). Keep it on for hours -- overnight is best. Scrape it off dry, NEVER wash with water right away, and rub a little mustard oil or balm. The stain deepens over the next day; warmth helps.",
+      "caption": {
+        "en-IN": "Dark colour secrets",
+        "hi-IN": "गहरे रंग का राज़",
+        "gu-IN": "ઘાટા રંગનું રહસ્ય"
+      },
+      "image": null
+    },
+    {
+      "step_index": 6,
+      "concept_id": "c-palm-design",
+      "teaching_notes": "Speed comes from repetition of the same design, not from rushing: pick ONE simple palm design and do it ten times on paper, then on friends. A design she can finish confidently in 15 minutes per hand is what makes festival-day queues possible -- and festival days are where the money is.",
+      "caption": {
+        "en-IN": "One design, ten times",
+        "hi-IN": "एक डिज़ाइन, दस बार",
+        "gu-IN": "એક ડિઝાઇન, દસ વાર"
+      },
+      "image": null
+    }
+  ],
+  "common_mistakes": [
+    "Cutting the cone hole too big, so lines come out thick and blobby",
+    "Pressing with the whole fist instead of gentle thumb pressure",
+    "Starting with complex bridal designs before lines and dots are steady",
+    "Washing hands with water right after removing the dried mehndi, which kills the colour",
+    "Resting the working hand on finished areas and smudging them",
+    "Filling the palm edge-to-edge with no breathing space, which looks crowded"
+  ],
+  "earning": {
+    "products": [
+      "Festival-day hands (Karva Chauth, Teej, Eid, Raksha Bandhan) -- queues of neighbours in one day",
+      "Simple guest mehndi at weddings (the bride's party needs 10-30 pairs of hands)",
+      "Bridal mehndi once skilled (the highest-paying single job)",
+      "Kids' party designs and college-fest stalls"
+    ],
+    "pricing_notes": "Simple designs commonly earn Rs 50-200 per hand depending on the town; wedding-guest hands Rs 100-300 each and they come in batches; full bridal work runs Rs 1500-5000+ once her name is known. The cone costs Rs 10-20, so almost everything she charges is earning. One festival day can bring what a normal week does.",
+    "customer_notes": "First customers are neighbours and relatives before a festival -- do two hands free the first time, the photos are the advertisement. Keep photos of every design on the phone; a WhatsApp status before festivals fills the day. Beauty parlours take overflow mehndi work, and wedding mehndi comes through the ladies who liked her festival work."
+  },
+  "source_video_ids": [],
+  "trusted": true
+}

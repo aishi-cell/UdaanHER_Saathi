@@ -172,17 +172,38 @@ _FILES = {
 }
 
 
-def list_skills() -> list[str]:
+def list_skills(*, include_untrusted: bool = False) -> list[str]:
+    """Teachable skills. Builder output starts trusted=false and stays
+    invisible here until a human reviews it (decisions.md 2026-07-13) --
+    a live session once offered an unreviewed auto-built skill as a card.
+    Pass include_untrusted=True only for review tooling."""
     root = store_root()
     if not root.exists():
         return []
-    return sorted(
+    ids = sorted(
         d.name for d in root.iterdir() if d.is_dir() and (d / "curriculum.json").exists()
     )
+    if include_untrusted:
+        return ids
+    trusted = []
+    for skill_id in ids:
+        try:
+            if load_skill(skill_id).curriculum.trusted:
+                trusted.append(skill_id)
+        except ContentError:
+            continue  # invalid packages are surfaced by validate_all, not here
+    return trusted
+
+
+def package_exists(skill_id: str) -> bool:
+    """Raw store presence, trusted or not -- the builder's dedupe check."""
+    return (store_root() / skill_id / "curriculum.json").exists()
 
 
 def has_skill(skill_id: str) -> bool:
-    return (store_root() / skill_id / "curriculum.json").exists()
+    """True only for teachable (trusted) skills -- defense in depth so a
+    stale learner row pointing at an unreviewed build never reaches teach."""
+    return skill_id in list_skills()
 
 
 def _load_json(path: Path) -> object:
@@ -271,7 +292,7 @@ def save_skill(package: SkillPackage) -> Path:
 def validate_all() -> list[str]:
     """Load every cached skill; raise ContentError on the first bad one.
     Called at startup: fail loud, not in front of Sunita."""
-    skills = list_skills()
+    skills = list_skills(include_untrusted=True)
     for skill_id in skills:
         load_skill(skill_id)
     return skills

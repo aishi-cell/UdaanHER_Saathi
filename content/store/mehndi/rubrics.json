@@ -1,0 +1,122 @@
+{
+  "skill_id": "mehndi",
+  "questions": [
+    {
+      "question_id": "q-cone-1",
+      "concept_id": "c-cone-control",
+      "question": "When you pick up a new cone, how big should you cut the hole at the tip?",
+      "sounds_right": [
+        "chhota sa, bilkul thoda -- zaroorat pade toh aur kaat sakte hain",
+        "pehle chhota kaato, badi hole se moti line aati hai"
+      ],
+      "sounds_confused": [
+        "bada kaato taaki mehndi jaldi nikle",
+        "jitna kaato utna hi theek hai, farak nahi padta"
+      ]
+    },
+    {
+      "question_id": "q-cone-2",
+      "concept_id": "c-cone-control",
+      "question": "If your lines are coming out thick and blobby, what would you check first?",
+      "sounds_right": [
+        "ya toh hole bada hai ya main zyada daba rahi hoon",
+        "thumb ka pressure kam karungi, ya cone ka muh chhota hai ki nahi dekhungi"
+      ],
+      "sounds_confused": [
+        "haath jaldi chalana chahiye",
+        "mehndi patli hai isliye, paani mila dungi"
+      ]
+    },
+    {
+      "question_id": "q-elements-1",
+      "concept_id": "c-basic-elements",
+      "question": "Someone asks you to fill a whole finger quickly and simply -- what would you draw?",
+      "sounds_right": [
+        "ek bel -- lehrati line aur uske dono taraf pattiyan",
+        "wavy line ke saath patti banaungi, upar dot laga dungi"
+      ],
+      "sounds_confused": [
+        "poora bhar dungi mehndi se",
+        "kuch bhi bana dungi, finger mein kya dikhta hai"
+      ]
+    },
+    {
+      "question_id": "q-elements-2",
+      "concept_id": "c-basic-elements",
+      "question": "What small things is every big mehndi design actually made of?",
+      "sounds_right": [
+        "bindi, line, patti, adha chand -- sab designs inhi se bante hain",
+        "dots aur chhote patte jod jod ke hi bada design banta hai"
+      ],
+      "sounds_confused": [
+        "bade design alag hote hain, unka alag tarika hai",
+        "wo toh bas haath se aata hai, koi cheez nahi hoti"
+      ]
+    },
+    {
+      "question_id": "q-keri-1",
+      "concept_id": "c-keri-motif",
+      "question": "Tell me how you would draw a keri on someone's palm.",
+      "sounds_right": [
+        "tedha aansu jaisa shape, upar se muda hua, phir andar line ya phool bharti hoon",
+        "aam jaisi shape banake kinare pe dots aur andar jaali"
+      ],
+      "sounds_confused": [
+        "keri matlab bas gol phool hota hai na",
+        "wo bahut mushkil hai, direct nahi ban sakti"
+      ]
+    },
+    {
+      "question_id": "q-palm-1",
+      "concept_id": "c-palm-design",
+      "question": "When you do a full palm, where do you start and which direction do you work?",
+      "sounds_right": [
+        "beech se shuru karke bahar ki taraf, warna haath lag ke kharab ho jata hai",
+        "centre ka phool pehle, phir ungliyon ki taraf jaati hoon"
+      ],
+      "sounds_confused": [
+        "ungliyon se shuru karti hoon kyunki wo aasan hai",
+        "kahin se bhi shuru karo, koi farak nahi"
+      ]
+    },
+    {
+      "question_id": "q-palm-2",
+      "concept_id": "c-palm-design",
+      "question": "What all goes into a simple full-hand design that customers like?",
+      "sounds_right": [
+        "beech mein phool, ungliyon tak bel, tips bhari hui, kalai pe keri",
+        "centre motif, fingers pe bel aur tips solid -- bas ho gaya"
+      ],
+      "sounds_confused": [
+        "poora haath bhar do bas, khaali jagah nahi chhodni",
+        "jo mann mein aaye bana do, design ka koi order nahi hota"
+      ]
+    },
+    {
+      "question_id": "q-stain-1",
+      "concept_id": "c-stain-care",
+      "question": "After the mehndi dries on the hand, what should the customer do to get a dark colour?",
+      "sounds_right": [
+        "nimbu-cheeni lagao halke se, der tak rakho, aur paani se mat dhona",
+        "sukhne ke baad ghanton rakhna hai, utaar ke tel lagao, paani nahi"
+      ],
+      "sounds_confused": [
+        "jaldi dho lo taaki design dikhe",
+        "sukhte hi utaar do aur sabun se saaf karo"
+      ]
+    },
+    {
+      "question_id": "q-stain-2",
+      "concept_id": "c-stain-care",
+      "question": "A customer complains her mehndi colour came out light. What might have gone wrong?",
+      "sounds_right": [
+        "usne jaldi utaar diya hoga ya paani se dho liya hoga",
+        "kam time rakha, ya nimbu-cheeni zyada bhigo diya hoga"
+      ],
+      "sounds_confused": [
+        "mehndi hi kharab thi, aur kuch nahi ho sakta",
+        "rang toh kismat se aata hai"
+      ]
+    }
+  ]
+}

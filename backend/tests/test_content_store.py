@@ -96,7 +96,7 @@ def test_skill_cards_come_from_the_store():
 def test_save_and_load_round_trip(tmp_store):
     saved = _minimal_package()
     store.save_skill(saved)
-    assert store.has_skill("candle-making")
+    assert store.package_exists("candle-making")
     loaded = store.load_skill("candle-making")
     assert loaded.curriculum.title["hi-IN"] == "मोमबत्ती"
     assert [q.question_id for q in loaded.rubrics.questions] == ["q1", "q2"]
@@ -196,8 +196,12 @@ async def test_build_skill_distills_saves_and_revalidates(tmp_store):
     with patch("app.content.builder.get_chat_model", return_value=fake_llm):
         package = await builder.build_skill("candle-making", "candle making")
 
-    assert store.has_skill("candle-making")
-    assert package.curriculum.trusted is False  # human review flips this
+    assert store.package_exists("candle-making")
+    # human review flips trusted -- until then the build exists but is NOT
+    # offered or teachable (a live session once showed an unreviewed card)
+    assert package.curriculum.trusted is False
+    assert store.has_skill("candle-making") is False
+    assert "candle-making" not in store.list_skills()
     assert package.curriculum.title["gu-IN"] == "મીણબત્તી"
     assert package.rubrics.questions[0].concept_id == "c-wax"
     # no YOUTUBE_API_KEY passed -> ungrounded, no provenance
@@ -216,13 +220,13 @@ async def test_background_build_dedupes(tmp_store):
         import asyncio
 
         for _ in range(50):
-            if store.has_skill("candle-making"):
+            if store.package_exists("candle-making"):
                 break
             await asyncio.sleep(0.05)
 
     assert first == "started"
     assert second == "already_building"
-    assert store.has_skill("candle-making")
+    assert store.package_exists("candle-making")
     assert builder.start_background_build("candle-making", "candle making") == "already_built"
 
 
