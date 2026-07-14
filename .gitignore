@@ -13,6 +13,8 @@ frontend/dist/
 # Secrets and local config
 .env
 backend/.env
+.env.local
+frontend/.env.local
 .claude/settings.local.json
 
 # Data
