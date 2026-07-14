@@ -23,6 +23,11 @@ export class PushToTalkRecorder {
     return this.mediaRecorder?.state === 'recording';
   }
 
+  /** The live mic stream while recording -- the speech watcher taps it. */
+  get mediaStream(): MediaStream | null {
+    return this.stream;
+  }
+
   async start(): Promise<void> {
     if (this.isRecording) return;
 

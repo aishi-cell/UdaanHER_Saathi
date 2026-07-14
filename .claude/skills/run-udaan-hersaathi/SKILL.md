@@ -49,15 +49,17 @@ Then drive the app. Screenshots land in `shots/` (gitignored):
 
 ```bash
 node .claude/skills/run-udaan-hersaathi/driver.mjs landing   # landing, desktop + mobile (frontend only)
-node .claude/skills/run-udaan-hersaathi/driver.mjs picker    # language picker states (frontend only)
 node .claude/skills/run-udaan-hersaathi/driver.mjs ui-demo   # every UICommand via ?ui-demo=1 (frontend only)
 node .claude/skills/run-udaan-hersaathi/driver.mjs session   # full flow to live conversation (needs backend)
 ```
 
-`session` clicks Talk to Saathi → picks a language → Continue, captures the
-connecting state ("Saathi आ रही हैं…"), waits up to 45 s for the greeting,
-and captures the ready conversation view. It exits non-zero on console
-errors or if the session never becomes ready. **Look at the screenshots.**
+`session` clicks Talk to Saathi (voice-first: the session opens with a
+trilingual spoken prompt + tappable language cards), captures the
+connecting state, taps the हिन्दी card, and waits for greet's first
+question in Hindi. It exits non-zero on console errors or if greet is
+never reached. The fake mic is fed `silence.wav` so the app's continuous-
+conversation auto-listen never sends garbage turns (real STT/LLM cost)
+mid-drive. **Look at the screenshots.**
 
 ## Run (human path)
 

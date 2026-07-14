@@ -9,6 +9,7 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from pydantic import TypeAdapter
 
 from app.agent.graph import compile_graph
+from app.agent.nodes import choose_language
 from app.agent.nodes.resume import profile_from_learner
 from app.agent.state import initial_state
 from app.config import get_settings
@@ -71,16 +72,27 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
     if payload.learner_name and payload.pin:
         learner = db_repo.get_learner_by_name_pin(payload.learner_name, payload.pin)
 
+    # No language given -> voice-first: Saathi opens by asking for it.
+    # The placeholder language covers the trilingual prompt's TTS and is
+    # overwritten by choose_language the moment she answers.
+    language = payload.language or choose_language.PROMPT_TTS_LANGUAGE
+    if learner:
+        stage = "resume"
+    elif payload.language:
+        stage = "greet"
+    else:
+        stage = "choose_language"
+
     session = db_repo.create_session(
         learner_id=learner.id if learner else None,
-        language=payload.language,
+        language=language,
     )
 
     starting_state = initial_state(
         session_id=session.id,
         learner_id=learner.id if learner else None,
-        language=payload.language,
-        stage="resume" if learner else "greet",
+        language=language,
+        stage=stage,
         profile=profile_from_learner(learner) if learner else None,
         # Her saved interest is a content-store skill id; resume/teach read it.
         skill_id=(learner.interest_skill or None) if learner else None,
@@ -92,7 +104,7 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
 
     greeting_text = result_state["reply_text"]
     try:
-        tts_result, _ = await timed(synthesize(greeting_text, payload.language))
+        tts_result, _ = await timed(synthesize(greeting_text, language))
     except TtsError as exc:
         raise ApiError(502, "tts_failed", exc.message) from exc
 
@@ -134,6 +146,10 @@ async def post_turn(
         # checkpoint rather than trusting the client to send it.
         snapshot = await graph.aget_state(config)
         session_language = snapshot.values.get("language") if snapshot.values else None
+        # While she is still choosing a language, the checkpoint holds only
+        # the placeholder -- let Sarvam auto-detect instead of biasing it.
+        if snapshot.values and snapshot.values.get("stage") == "choose_language":
+            session_language = None
 
         audio_bytes = await audio.read()
         logger.info(

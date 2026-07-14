@@ -1,24 +1,14 @@
-import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Bird, BookOpen, Check, Heart, IndianRupee, Loader2, Mic } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Bird, BookOpen, Heart, IndianRupee, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { SaathiAvatar } from './SaathiAvatar';
 
 export type Language = 'gu-IN' | 'hi-IN' | 'en-IN';
 
 interface Props {
-  connectingLanguage: Language | null;
-  onPick: (language: Language) => void;
-  /** Start on the picker instead of the hero, e.g. when a connect attempt failed. */
-  initialStep?: 'hero' | 'language';
+  connecting: boolean;
+  onStart: () => void;
 }
-
-const LANGUAGES: { code: Language; label: string; sub?: string }[] = [
-  { code: 'hi-IN', label: 'हिन्दी', sub: 'Hindi' },
-  { code: 'gu-IN', label: 'ગુજરાતી', sub: 'Gujarati' },
-  { code: 'en-IN', label: 'English' },
-];
 
 const FEATURES = [
   { icon: Mic, title: 'Voice First', sub: 'Speak naturally, we understand.' },
@@ -35,7 +25,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 130, damping: 17 } },
 };
 
-function Hero({ onStart }: { onStart: () => void }) {
+export function Landing({ connecting, onStart }: Props) {
   return (
     <motion.div
       key="hero"
@@ -62,7 +52,7 @@ function Hero({ onStart }: { onStart: () => void }) {
         <h2 className="max-w-md text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
           A voice mentor that helps you learn skills and earn with confidence.
         </h2>
-        <p className="max-w-sm text-base text-muted-foreground">
+        <p className="max-w-sm text-lg text-muted-foreground">
           Personalized. Practical. In your language.
           <br />
           No reading. Just your voice.
@@ -72,14 +62,23 @@ function Hero({ onStart }: { onStart: () => void }) {
       <motion.div variants={item}>
         <Button
           size="lg"
+          disabled={connecting}
           onClick={onStart}
-          className="h-16 gap-3 rounded-2xl bg-brand-700 px-10 text-xl font-semibold shadow-lg shadow-brand-400/40 hover:bg-brand-800"
+          className="h-16 rounded-full bg-brand-700 px-10 text-xl font-semibold shadow-lg shadow-brand-400/40 hover:bg-brand-800"
         >
-          <Mic className="size-6" /> Talk to Saathi
+          {connecting ? (
+            <>
+              <Loader2 className="size-6 animate-spin" /> Saathi आ रही हैं…
+            </>
+          ) : (
+            <>
+              <Mic className="size-6" /> Talk to Saathi
+            </>
+          )}
         </Button>
       </motion.div>
 
-      <motion.div variants={item} className="grid w-full max-w-lg grid-cols-3 gap-3">
+      <motion.div variants={item} className="grid w-full max-w-xl grid-cols-3 gap-3">
         {FEATURES.map((f) => (
           <div
             key={f.title}
@@ -102,89 +101,5 @@ function Hero({ onStart }: { onStart: () => void }) {
         <Heart className="size-4 fill-blush-500 text-blush-500" />
       </motion.p>
     </motion.div>
-  );
-}
-
-function LanguagePick({
-  connectingLanguage,
-  onPick,
-}: {
-  connectingLanguage: Language | null;
-  onPick: (language: Language) => void;
-}) {
-  const [selected, setSelected] = useState<Language>('hi-IN');
-  const connecting = connectingLanguage !== null;
-
-  return (
-    <motion.div
-      key="language"
-      className="flex h-full flex-col items-center justify-center gap-8 px-6 py-10 text-center"
-      initial={{ opacity: 0, x: 32 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -32 }}
-      transition={{ duration: 0.25 }}
-    >
-      <div className="flex flex-col items-center gap-2">
-        <h2 className="text-3xl font-extrabold text-foreground">Choose your language</h2>
-        <p className="text-base text-muted-foreground">You can change it anytime</p>
-      </div>
-
-      <div className="flex w-full max-w-sm flex-col gap-3">
-        {LANGUAGES.map((lang) => {
-          const isSelected = selected === lang.code;
-          return (
-            <motion.button
-              key={lang.code}
-              type="button"
-              disabled={connecting}
-              onClick={() => setSelected(lang.code)}
-              className={cn(
-                'flex min-h-16 items-center justify-between rounded-2xl border-2 bg-white px-6 shadow-sm transition-colors',
-                isSelected
-                  ? 'border-brand-500 bg-brand-50'
-                  : 'border-border hover:border-brand-300',
-                connecting && !isSelected && 'opacity-40',
-              )}
-              whileTap={connecting ? undefined : { scale: 0.98 }}
-            >
-              <span className="text-2xl font-bold text-foreground">{lang.label}</span>
-              <span className="flex items-center gap-2">
-                {lang.sub && <span className="text-sm text-muted-foreground">{lang.sub}</span>}
-                {isSelected && <Check className="size-6 text-brand-600" strokeWidth={3} />}
-              </span>
-            </motion.button>
-          );
-        })}
-      </div>
-
-      <Button
-        size="lg"
-        disabled={connecting}
-        onClick={() => onPick(selected)}
-        className="h-16 w-full max-w-sm rounded-2xl bg-brand-700 text-xl font-semibold shadow-lg shadow-brand-400/40 hover:bg-brand-800"
-      >
-        {connecting ? (
-          <>
-            <Loader2 className="size-6 animate-spin" /> Saathi आ रही हैं…
-          </>
-        ) : (
-          'Continue'
-        )}
-      </Button>
-    </motion.div>
-  );
-}
-
-export function Landing({ connectingLanguage, onPick, initialStep = 'hero' }: Props) {
-  const [step, setStep] = useState<'hero' | 'language'>(initialStep);
-
-  return (
-    <AnimatePresence mode="wait">
-      {step === 'hero' ? (
-        <Hero key="hero" onStart={() => setStep('language')} />
-      ) : (
-        <LanguagePick key="language" connectingLanguage={connectingLanguage} onPick={onPick} />
-      )}
-    </AnimatePresence>
   );
 }

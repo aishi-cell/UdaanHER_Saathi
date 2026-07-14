@@ -24,11 +24,13 @@ export function OptionCards({ prompt, options, onTap }: Props) {
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.95 }}
           >
-            <img
-              src={option.image}
-              alt=""
-              className="aspect-square w-full max-w-40 rounded-2xl object-cover"
-            />
+            {option.image && (
+              <img
+                src={option.image}
+                alt=""
+                className="aspect-square w-full max-w-40 rounded-2xl object-cover"
+              />
+            )}
             <span className="text-xl font-bold text-brand-900 sm:text-2xl">{option.label}</span>
           </motion.button>
         ))}

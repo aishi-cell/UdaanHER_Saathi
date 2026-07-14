@@ -4,9 +4,8 @@
 //
 // Flows:
 //   landing   landing page, desktop + mobile          (frontend only)
-//   picker    language picker, unselected + selected  (frontend only)
 //   ui-demo   every UICommand through the Renderer    (frontend only)
-//   session   full flow to the live conversation view (needs backend on :8000)
+//   session   voice-first flow: language cards -> greet (needs backend on :8000)
 //
 // Env overrides: APP_URL (default http://localhost:5173),
 //                PW_BROWSER_PATH (chromium executable),
@@ -47,7 +46,17 @@ function findCachedChromium() {
 }
 
 async function launch() {
-  const args = ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'];
+  // The default fake mic plays a loud tone, which the app's continuous-
+  // conversation speech watcher treats as her talking -- it would auto-send
+  // garbage turns (real STT/LLM cost) while the driver works. Feed it
+  // silence instead so auto-listen times out quietly.
+  const silenceWav = join(dirname(fileURLToPath(import.meta.url)), 'silence.wav');
+  const args = [
+    '--use-fake-ui-for-media-stream',
+    '--use-fake-device-for-media-stream',
+    `--use-file-for-fake-audio-capture=${silenceWav}`,
+    '--mute-audio',
+  ];
   const exe = findCachedChromium();
   if (exe) return chromium.launch({ executablePath: exe, args });
   // No playwright browser cache: fall back to an installed Edge/Chrome.
@@ -86,11 +95,6 @@ async function openMobile(browser) {
   return page;
 }
 
-async function toPicker(page) {
-  await page.getByText('Talk to Saathi').click();
-  await page.waitForTimeout(800); // hero -> picker slide animation
-}
-
 const flows = {
   async landing(browser) {
     const desktop = await browser.newPage({ viewport: { width: 1280, height: 800 } });
@@ -101,15 +105,6 @@ const flows = {
     const mobile = await openMobile(browser);
     await mobile.waitForTimeout(1200);
     await shot(mobile, 'landing-mobile');
-  },
-
-  async picker(browser) {
-    const page = await openMobile(browser);
-    await toPicker(page);
-    await shot(page, 'picker');
-    await page.getByText('English').first().click();
-    await page.waitForTimeout(400);
-    await shot(page, 'picker-selected');
   },
 
   async 'ui-demo'(browser) {
@@ -134,22 +129,39 @@ const flows = {
       throw new Error('Backend not reachable on :8000 -- start it first (see SKILL.md).');
     }
     const page = await openMobile(browser);
-    await toPicker(page);
-    await page.getByText('Continue').click();
+    // Voice-first: the hero button opens the session and Saathi asks for
+    // the language (trilingual prompt + tappable cards).
+    await page.getByText('Talk to Saathi').click();
     await page.waitForTimeout(1000);
     await shot(page, 'session-connecting'); // "Saathi आ रही हैं…" state
-    // Session creation does an LLM + TTS warm-up; typically 5-15 s.
     for (let i = 0; i < 45; i++) {
       await page.waitForTimeout(1000);
       const text = await page.locator('body').innerText();
-      if (!text.includes('Saathi आ रही हैं')) break;
+      if (text.includes('ગુજરાતી')) break; // language cards are up
+    }
+    await shot(page, 'session-language-cards');
+    // Tap Hindi; choose_language sets the language AND greet asks its first
+    // question in the same turn (LLM + TTS, typically 5-15 s). A tap that
+    // lands while a turn is in flight is dropped by the app, so retap if
+    // the cards are still up once the app is idle again.
+    await page.getByRole('button', { name: 'हिन्दी' }).click();
+    for (let i = 0; i < 60; i++) {
+      await page.waitForTimeout(1000);
+      const text = await page.locator('body').innerText();
+      if (!text.includes('ગુજરાતી')) {
+        if (!text.includes('सोच रही हूँ')) break;
+        continue; // turn in flight
+      }
+      if (i % 5 === 4 && !text.includes('सोच रही हूँ')) {
+        await page.getByRole('button', { name: 'हिन्दी' }).click();
+      }
     }
     await page.waitForTimeout(500);
     await shot(page, 'session-ready');
     const status = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
     console.log('status:', status);
-    if (status.includes('Saathi आ रही हैं')) {
-      throw new Error('Session never became ready after 45s -- check backend logs.');
+    if (status.includes('ગુજરાતી') || status.includes('Saathi आ रही हैं')) {
+      throw new Error('Session never reached greet after the language tap -- check backend logs.');
     }
   },
 };

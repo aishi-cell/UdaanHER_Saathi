@@ -53,10 +53,11 @@ export interface SessionResponse {
 }
 
 export async function postSession(
-  language: 'gu-IN' | 'hi-IN' | 'en-IN',
+  language?: 'gu-IN' | 'hi-IN' | 'en-IN',
   learnerName?: string,
   pin?: string,
 ): Promise<SessionResponse> {
+  // No language -> the voice-first path: Saathi opens by asking for it.
   const response = await fetch(`${API_BASE_URL}/api/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

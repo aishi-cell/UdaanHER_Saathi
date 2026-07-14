@@ -1,6 +1,7 @@
 from typing import Literal, TypedDict
 
 Stage = Literal[
+    "choose_language",
     "greet",
     "discover",
     "assess",

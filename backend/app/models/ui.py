@@ -10,7 +10,8 @@ class IdleCommand(BaseModel):
 class OptionCard(BaseModel):
     id: str
     label: str
-    image: str
+    # Optional: language cards (choose_language) are text-only.
+    image: str | None = None
 
 
 class ShowOptionsCommand(BaseModel):

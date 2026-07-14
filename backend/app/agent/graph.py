@@ -3,6 +3,7 @@ from langgraph.graph.state import CompiledStateGraph
 
 from app.agent.nodes import (
     assess,
+    choose_language,
     close,
     confirm_profile,
     discover,
@@ -17,6 +18,7 @@ from app.agent.nodes import (
 from app.agent.state import AgentState, Stage
 
 STAGE_NODES: dict[Stage, object] = {
+    "choose_language": choose_language,
     "greet": greet,
     "discover": discover,
     "assess": assess,

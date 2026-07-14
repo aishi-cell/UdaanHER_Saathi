@@ -23,7 +23,9 @@ class TurnResponse(BaseModel):
 class SessionRequest(BaseModel):
     learner_name: str | None = None
     pin: str | None = None
-    language: Literal["gu-IN", "hi-IN", "en-IN"]
+    # Omitted -> the voice-first path: the session opens in choose_language
+    # and Saathi asks for her language by voice (with tappable cards).
+    language: Literal["gu-IN", "hi-IN", "en-IN"] | None = None
 
 
 class SessionResponse(BaseModel):

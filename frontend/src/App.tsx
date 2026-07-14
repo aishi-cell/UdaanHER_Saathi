@@ -4,8 +4,9 @@ import { MicOff } from 'lucide-react';
 import { ApiError, getHealth, postSession, postTurn, type TurnResponse } from './api';
 import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon, unlockAudio } from './audio/player';
+import { SpeechWatcher } from './audio/vad';
 import { AuroraBackground } from './components/AuroraBackground';
-import { Landing, type Language } from './components/Landing';
+import { Landing } from './components/Landing';
 import { Renderer } from './components/Renderer';
 import { SaathiAvatar } from './components/SaathiAvatar';
 import { TalkButton, type TalkState } from './components/TalkButton';
@@ -14,24 +15,20 @@ import { cn } from '@/lib/utils';
 import type { UICommand } from './types';
 
 const STATUS_LABELS: Record<TalkState, string> = {
-  ready: 'दबाकर बोलिए · Hold & speak',
-  listening: 'Listening…',
+  ready: 'माइक दबाइए · Tap to speak',
+  listening: 'सुन रही हूँ… बोलिए',
   thinking: 'सोच रही हूँ…',
   speaking: 'Saathi बोल रही हैं…',
 };
 
-// A very short hold (an accidental tap, or someone testing the button)
-// produces a WebM clip too short for Sarvam's parser -- "Failed to read the
-// file, please check the audio format". Padding out to this floor before
-// actually stopping avoids that failure mode entirely; it's not about
-// capturing more of what she said, just giving the recorder enough time to
-// produce a well-formed container.
+// A very short clip produces a WebM too short for Sarvam's parser -- pad to
+// this floor before stopping so the container is always well-formed.
 const MIN_RECORDING_MS = 700;
 
 function friendlyErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.code === 'stt_failed') {
-      return "I couldn't hear that clearly -- please hold the button a little longer and try again.";
+      return "I couldn't hear that clearly -- please try speaking again.";
     }
     if (err.code === 'tts_failed') {
       return 'I had trouble speaking just now -- please try again.';
@@ -48,8 +45,7 @@ const IDLE_UI: UICommand = { type: 'idle' };
 
 function App() {
   const [view, setView] = useState<'landing' | 'session'>('landing');
-  const [landingStep, setLandingStep] = useState<'hero' | 'language'>('hero');
-  const [connectingLanguage, setConnectingLanguage] = useState<Language | null>(null);
+  const [connecting, setConnecting] = useState(false);
   const [backendUp, setBackendUp] = useState<boolean | null>(null);
   const [talkState, setTalkState] = useState<TalkState>('ready');
   const [micDenied, setMicDenied] = useState(false);
@@ -59,11 +55,10 @@ function App() {
   const [sessionReady, setSessionReady] = useState(false);
 
   const recorderRef = useRef<PushToTalkRecorder>(new PushToTalkRecorder());
+  const watcherRef = useRef<SpeechWatcher | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const greetingAudioRef = useRef<string | null>(null);
-  const releaseRequestedRef = useRef(false);
-  const startingRef = useRef(false);
-  const recordingStartedAtRef = useRef(0);
+  const busyRef = useRef(false); // a turn is in flight; don't start listening
 
   useEffect(() => {
     let cancelled = false;
@@ -91,20 +86,17 @@ function App() {
     return () => clearTimeout(timeout);
   }, [errorMessage]);
 
-  // User-gesture-triggered (language tap), so no StrictMode double-run to
-  // guard against -- the connectingLanguage state blocks double taps, and
-  // the tap itself unlocks the AudioContext so the greeting can autoplay.
-  async function beginSession(language: Language) {
-    if (connectingLanguage) return;
-    setConnectingLanguage(language);
+  // User-gesture-triggered (the hero button), so no StrictMode double-run to
+  // guard against, and the tap unlocks the AudioContext for the greeting.
+  // No language is sent: the session opens with Saathi asking for it by
+  // voice (choose_language stage), with tappable language cards on screen.
+  async function beginSession() {
+    if (connecting) return;
+    setConnecting(true);
     void unlockAudio();
-    // Switch to the session screen right away -- it renders a proper
-    // connecting state (avatar + status + disabled talk button) while
-    // postSession does its multi-second LLM/TTS warm-up, instead of
-    // leaving her staring at the picker with only the button text changed.
     setView('session');
     try {
-      const result = await postSession(language);
+      const result = await postSession();
       sessionIdRef.current = result.session_id;
       setCurrentUi(result.ui);
       setSessionReady(true);
@@ -112,125 +104,121 @@ function App() {
       try {
         await playBase64Mp3(result.greeting_audio_b64);
       } catch (err) {
-        // Autoplay refused (rare -- the tap unlocked us): stash the greeting
-        // to play on her first button press instead, like the old flow.
         console.error('[talk] greeting autoplay failed:', err);
         greetingAudioRef.current = result.greeting_audio_b64;
       }
       setTalkState('ready');
+      void startListening(); // continuous mode: her turn begins right away
     } catch (err) {
       console.error('[talk] could not start session:', err);
       setErrorMessage(
         err instanceof Error ? err.message : 'Could not reach the mentor. Try reloading.',
       );
-      setConnectingLanguage(null);
-      setLandingStep('language');
+      setConnecting(false);
       setView('landing');
     }
   }
 
-  async function handlePressStart() {
-    console.log('[talk] pressStart', { talkState, isRecording: recorderRef.current.isRecording });
-    if (
-      talkState !== 'ready' ||
-      !sessionReady ||
-      recorderRef.current.isRecording ||
-      startingRef.current
-    )
-      return;
-    startingRef.current = true;
-    releaseRequestedRef.current = false;
-    void unlockAudio();
+  /** Start hands-free listening: record + watch for her to finish speaking.
+   * Resolves silently if the mic can't start or a turn is already busy. */
+  async function startListening() {
+    if (busyRef.current || recorderRef.current.isRecording || !sessionIdRef.current) return;
     if (greetingAudioRef.current) {
       const greeting = greetingAudioRef.current;
       greetingAudioRef.current = null;
       void playBase64Mp3(greeting).catch((err) => console.error('[talk] greeting failed:', err));
     }
     try {
-      // getUserMedia is async and can take a noticeable moment (mic
-      // permission prompt, device init). A fast tap can release the button
-      // before this resolves -- track that so we don't get stuck "listening"
-      // forever with nothing to ever call stop().
       await recorderRef.current.start();
-      recordingStartedAtRef.current = Date.now();
-      console.log('[talk] recorder started', { releaseRequested: releaseRequestedRef.current });
-      startingRef.current = false;
-      if (releaseRequestedRef.current) {
-        await finishTurn();
-      } else {
-        setTalkState('listening');
-      }
     } catch (err) {
-      startingRef.current = false;
       console.error('[talk] could not start recording:', err);
-      if (err instanceof MicPermissionDeniedError) {
-        setMicDenied(true);
-      } else {
-        setErrorMessage(friendlyErrorMessage(err));
-      }
+      if (err instanceof MicPermissionDeniedError) setMicDenied(true);
+      else setErrorMessage(friendlyErrorMessage(err));
+      return;
+    }
+    setTalkState('listening');
+    const stream = recorderRef.current.mediaStream;
+    if (!stream) return;
+    watcherRef.current?.stop();
+    watcherRef.current = new SpeechWatcher(stream, {
+      onUtteranceEnd: () => void sendListenedTurn(),
+      // She stayed quiet: stop listening, wait for a tap. Never an error --
+      // silence is a normal thing to do.
+      onNoSpeech: () => void discardListening(),
+    });
+    watcherRef.current.start();
+  }
+
+  async function stopRecorder(): Promise<Blob | null> {
+    watcherRef.current?.stop();
+    watcherRef.current = null;
+    if (!recorderRef.current.isRecording) return null;
+    try {
+      return await recorderRef.current.stop();
+    } catch (err) {
+      console.error('[talk] could not stop recording:', err);
+      return null;
     }
   }
 
+  async function discardListening() {
+    await stopRecorder();
+    setTalkState('ready');
+  }
+
+  async function sendListenedTurn() {
+    // Pad very short utterances so the WebM container is parseable.
+    await new Promise((resolve) => setTimeout(resolve, MIN_RECORDING_MS / 2));
+    const audioBlob = await stopRecorder();
+    if (!audioBlob || audioBlob.size === 0) {
+      setTalkState('ready');
+      return;
+    }
+    await runTurn({ audioBlob });
+  }
+
   async function runTurn(input: Parameters<typeof postTurn>[1]) {
-    console.log('[talk] runTurn', input);
     const sessionId = sessionIdRef.current;
     if (!sessionId) {
       setErrorMessage('Still connecting to the mentor -- try again in a moment.');
       return;
     }
+    busyRef.current = true;
     setTalkState('thinking');
     playEarcon();
     try {
       const result = await postTurn(sessionId, input);
-      console.log('[talk] turn succeeded', result);
       setLastTurn(result);
       setCurrentUi(result.ui);
       setTalkState('speaking');
       await playBase64Mp3(result.reply_audio_b64);
-      console.log('[talk] playback finished');
+      busyRef.current = false;
+      setTalkState('ready');
+      void startListening(); // continuous conversation: back to her
     } catch (err) {
       console.error('[talk] turn failed:', err);
       setErrorMessage(friendlyErrorMessage(err));
-    } finally {
-      setTalkState('ready');
+      busyRef.current = false;
+      setTalkState('ready'); // no auto-listen after an error; she taps
     }
   }
 
-  async function finishTurn() {
-    try {
-      const elapsed = Date.now() - recordingStartedAtRef.current;
-      console.log('[talk] finishTurn elapsed since start:', elapsed, 'ms');
-      if (elapsed < MIN_RECORDING_MS) {
-        console.log('[talk] padding to', MIN_RECORDING_MS, 'ms');
-        await new Promise((resolve) => setTimeout(resolve, MIN_RECORDING_MS - elapsed));
-      }
-      const audioBlob = await recorderRef.current.stop();
-      console.log('[talk] audioBlob size:', audioBlob.size, 'type:', audioBlob.type);
-      await runTurn({ audioBlob });
-    } catch (err) {
-      console.error('Could not stop recording:', err);
-      setErrorMessage(friendlyErrorMessage(err));
-      setTalkState('ready');
-    }
-  }
-
-  async function handlePressEnd() {
-    console.log('[talk] pressEnd', {
-      starting: startingRef.current,
-      isRecording: recorderRef.current.isRecording,
-    });
-    if (startingRef.current) {
-      // Still waiting on getUserMedia; handlePressStart will finish the
-      // turn itself as soon as it resolves.
-      releaseRequestedRef.current = true;
+  /** The big button: tap while listening sends the turn now; tap while
+   * ready starts listening (e.g. after a quiet timeout). */
+  async function handleTap() {
+    void unlockAudio();
+    if (talkState === 'listening') {
+      await sendListenedTurn();
       return;
     }
-    if (!recorderRef.current.isRecording) return;
-    await finishTurn();
+    if (talkState === 'ready' && sessionReady) {
+      await startListening();
+    }
   }
 
   async function handleTapOption(optionId: string) {
-    if (talkState !== 'ready') return;
+    if (busyRef.current) return;
+    if (talkState === 'listening') await discardListening();
     await runTurn({ tappedOptionId: optionId });
   }
 
@@ -279,11 +267,7 @@ function App() {
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.35 }}
           >
-            <Landing
-              connectingLanguage={connectingLanguage}
-              onPick={beginSession}
-              initialStep={landingStep}
-            />
+            <Landing connecting={connecting} onStart={beginSession} />
           </motion.div>
         ) : (
           <motion.div
@@ -337,12 +321,7 @@ function App() {
                   {sessionReady ? STATUS_LABELS[talkState] : 'Saathi आ रही हैं…'}
                 </motion.p>
               </AnimatePresence>
-              <TalkButton
-                state={talkState}
-                disabled={!sessionReady}
-                onPressStart={handlePressStart}
-                onPressEnd={handlePressEnd}
-              />
+              <TalkButton state={talkState} disabled={!sessionReady} onTap={handleTap} />
             </footer>
           </motion.div>
         )}

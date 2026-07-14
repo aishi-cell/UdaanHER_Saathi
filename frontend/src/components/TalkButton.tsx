@@ -7,8 +7,8 @@ export type TalkState = 'ready' | 'listening' | 'thinking' | 'speaking';
 interface Props {
   state: TalkState;
   disabled?: boolean;
-  onPressStart: () => void;
-  onPressEnd: () => void;
+  /** Tap toggles: ready -> start listening; listening -> send now. */
+  onTap: () => void;
 }
 
 const BUTTON_GRADIENT: Record<TalkState, string> = {
@@ -50,13 +50,13 @@ function ListeningRipples() {
   );
 }
 
-export function TalkButton({ state, disabled, onPressStart, onPressEnd }: Props) {
+export function TalkButton({ state, disabled, onTap }: Props) {
   return (
     <div className="relative">
       {state === 'listening' && <ListeningRipples />}
       <motion.button
         type="button"
-        aria-label="Hold to talk"
+        aria-label={state === 'listening' ? 'Done talking' : 'Tap to talk'}
         className={cn(
           'relative flex size-40 items-center justify-center rounded-full bg-gradient-to-br text-white shadow-2xl shadow-brand-500/40 select-none sm:size-44',
           BUTTON_GRADIENT[state],
@@ -64,11 +64,9 @@ export function TalkButton({ state, disabled, onPressStart, onPressEnd }: Props)
           disabled && 'opacity-50',
         )}
         animate={{ scale: state === 'listening' ? 1.12 : 1 }}
-        whileTap={state === 'ready' && !disabled ? { scale: 1.08 } : undefined}
+        whileTap={!disabled ? { scale: 1.08 } : undefined}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        onPointerDown={onPressStart}
-        onPointerUp={onPressEnd}
-        onPointerLeave={onPressEnd}
+        onClick={onTap}
         onContextMenu={(e) => e.preventDefault()}
       >
         {state === 'thinking' ? (

@@ -1,7 +1,8 @@
 export interface OptionCardData {
   id: string;
   label: string;
-  image: string;
+  /** Absent for text-only cards, e.g. the language choices. */
+  image?: string | null;
 }
 
 export interface IdleCommand {

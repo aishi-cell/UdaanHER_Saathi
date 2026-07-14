@@ -799,3 +799,58 @@ async def test_confirm_profile_reasks_on_unclear_answer_without_saving():
     assert result["stage"] == "confirm_profile"
     assert result["stage_step"] == 1
     assert result["ui"]["type"] == "show_profile_card"
+
+
+# --- choose_language (voice-first language pick) ----------------------------
+
+
+@pytest.mark.asyncio
+async def test_choose_language_step0_speaks_prompt_with_cards():
+    from app.agent.nodes import choose_language
+
+    state = make_state(stage="choose_language", stage_step=0, language="hi-IN", transcript="")
+    result = await choose_language.run(state)
+
+    assert result["stage"] == "choose_language"
+    assert result["stage_step"] == 1
+    assert result["ui"]["type"] == "show_options"
+    assert {o["id"] for o in result["ui"]["options"]} == {"hi-IN", "gu-IN", "en-IN"}
+
+
+@pytest.mark.parametrize(
+    ("spoken", "expected"),
+    [
+        ("mujhe hindi aati hai", "hi-IN"),
+        ("હું ગુજરાતી બોલું છું", "gu-IN"),
+        ("English please", "en-IN"),
+        ("gu-IN", "gu-IN"),  # a tapped card arrives as the bare id
+    ],
+)
+@pytest.mark.asyncio
+async def test_choose_language_sets_language_and_greets_in_same_turn(spoken, expected):
+    from app.agent.nodes import choose_language
+
+    state = make_state(stage="choose_language", stage_step=1, language="hi-IN", transcript=spoken)
+    with patch(
+        "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Namaste!")
+    ) as mock_ask:
+        result = await choose_language.run(state)
+
+    assert result["language"] == expected
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 1
+    assert mock_ask.call_args.kwargs["language"] == expected
+
+
+@pytest.mark.asyncio
+async def test_choose_language_reasks_on_unrecognised_answer():
+    from app.agent.nodes import choose_language
+
+    state = make_state(
+        stage="choose_language", stage_step=1, language="hi-IN", transcript="kuch bhi"
+    )
+    result = await choose_language.run(state)
+
+    assert result["stage"] == "choose_language"
+    assert result["stage_step"] == 1
+    assert result["ui"]["type"] == "show_options"
