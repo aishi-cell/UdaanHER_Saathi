@@ -176,6 +176,33 @@ def get_learner_by_name_pin(name: str, pin: str) -> Learner | None:
     return None
 
 
+def find_learner_by_pin(pin: str, name_hint: str = "") -> Learner | None:
+    """Voice-path lookup (T22): PIN-first, name as tiebreaker.
+
+    The spoken conversation can hand us her name in a different script than
+    the one it was saved in (live run: stored 'Sunita', extracted 'सुनीता'),
+    so an exact name filter would lock real returning learners out. The PIN
+    is the actual secret: a unique PIN match wins outright; only when two
+    learners share a PIN does the name (casefolded) break the tie.
+
+    Verifies the PIN against every learner row -- PBKDF2 at 100k iterations
+    makes this O(learners × ~50ms), fine at MVP scale but worth an indexed
+    hint column if learners ever number in the hundreds.
+    """
+    if not pin:
+        return None
+    with get_db_session() as db:
+        learners = db.exec(select(Learner)).all()
+    matches = [l for l in learners if _verify_pin(pin, l.pin_hash)]
+    if len(matches) == 1:
+        return matches[0]
+    hint = name_hint.strip().casefold()
+    for learner in matches:
+        if learner.name.strip().casefold() == hint:
+            return learner
+    return None
+
+
 def save_profile(
     learner_id: str,
     *,
@@ -311,6 +338,15 @@ def upsert_concept_mastery(
 # Spec S8). 'locked' can't be derived here -- it means "not yet started", which
 # requires knowing the full lesson order from the curriculum (T18).
 _LESSON_STATUS_TO_UI = {"in_progress": "current", "completed": "done"}
+
+
+def get_mastery_map(learner_id: str) -> dict[str, str]:
+    """concept_id -> mastery ('strong'|'shaky') for resume's gap computation."""
+    with get_db_session() as db:
+        rows = db.exec(
+            select(ConceptMastery).where(ConceptMastery.learner_id == learner_id)
+        ).all()
+    return {row.concept_id: row.mastery for row in rows}
 
 
 def get_progress(learner_id: str) -> dict:

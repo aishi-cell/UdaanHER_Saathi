@@ -34,7 +34,8 @@ FAIL_CONCEPT = "c-grain"  # deliberately flub this one's first viva question
 
 ONBOARDING = {
     "hi-IN": {
-        "name_consent": "Mera naam Sunita hai, haan aap mujhe yaad rakh sakti hain",
+        "name_new": "Mera naam Sunita hai, main pehli baar aayi hoon",
+        "consent_yes": "Haan, aap mujhe yaad rakh sakti hain",
         "village": "Main Rampur gaon se hoon, ghar par kheti ka kaam karti hoon",
         "skill": "tailoring",
         "stories": [
@@ -49,7 +50,8 @@ ONBOARDING = {
         "earn_more": "haan, batao kaun kharidega",
     },
     "gu-IN": {
-        "name_consent": "Maru naam Sunita che, haa tame mane yaad rakhi shako",
+        "name_new": "Maru naam Sunita che, hu pehli vaar aavi chu",
+        "consent_yes": "Haa, tame mane yaad rakhi shako",
         "village": "Hu Rampur gaam thi chu, ghare kheti nu kaam karu chu",
         "skill": "tailoring",
         "stories": [
@@ -115,7 +117,10 @@ async def main(language: str) -> None:
             break
 
         if stage == "greet":
-            answer = script["name_consent"]
+            # step 1 answers the name + new/returning question; step 2 the
+            # consent question (T22 split greet into two exchanges for a
+            # new visitor).
+            answer = script["name_new"] if step == 1 else script["consent_yes"]
         elif stage == "discover":
             answer = {0: script["filler"], 1: script["village"], 2: script["skill"]}[step]
         elif stage == "assess":

@@ -10,7 +10,7 @@ from app.agent.guards import can_start_reteach
 from app.agent.nodes.assess import DiagnosticExtraction
 from app.agent.nodes.confirm_profile import ConfirmationExtraction
 from app.agent.nodes.discover import VillageWorkExtraction
-from app.agent.nodes.greet import GreetExtraction
+from app.agent.nodes.greet import ConsentExtraction, GreetExtraction
 from app.agent.state import initial_state
 from app.models import db
 
@@ -21,6 +21,19 @@ def temp_db(tmp_path):
     db.init_db()
     yield
     db._engine = None
+
+
+def _greet_extractor(consent_given: bool = True):
+    """greet runs two different extractions (name+returning at step 1,
+    consent at step 2) through the same patched function -- answer by
+    the schema it was asked for."""
+
+    async def extract(*_args, **kwargs):
+        if kwargs["schema"] is GreetExtraction:
+            return GreetExtraction(name="Sunita", returning=False)
+        return ConsentExtraction(consent_given=consent_given)
+
+    return extract
 
 
 def _mock_onboarding_llm(stack: ExitStack) -> None:
@@ -37,7 +50,7 @@ def _mock_onboarding_llm(stack: ExitStack) -> None:
     stack.enter_context(
         patch(
             "app.agent.nodes.greet.extract_structured",
-            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=True)),
+            new=AsyncMock(side_effect=_greet_extractor(consent_given=True)),
         )
     )
     stack.enter_context(
@@ -69,12 +82,14 @@ def _mock_onboarding_llm(stack: ExitStack) -> None:
 # Exact turn-by-turn shape of a full onboarding walk. Each stage's step-0
 # turn only *asks* (it ignores whatever transcript arrives with it), so the
 # turn count per stage is one more than the number of real answers it needs:
-# greet needs 2 invocations (ask, then extract-name-and-consent), discover
-# needs 3 (ask village/work, extract + show interest cards, receive
-# interest), assess needs 4 (3 questions asked + 1 final extraction), and
-# confirm_profile needs 2 (readback, then extract confirmation).
+# greet needs 3 invocations (ask name + new/returning, extract + ask consent
+# for a new visitor, extract consent), discover needs 3 (ask village/work,
+# extract + show interest cards, receive interest), assess needs 4 (3
+# questions asked + 1 final extraction), and confirm_profile needs 2
+# (readback, then extract confirmation).
 ONBOARDING_TURNS_AFTER_INITIAL_GREET = [
-    "Sunita, haan",  # greet step1: extract name+consent -> discover
+    "Sunita, pehli baar",  # greet step1: extract name + new visitor -> ask consent
+    "haan, yaad rakho",  # greet step2: extract consent -> discover
     "namaste",  # discover step0: ask village/work (content ignored)
     "Rampur mein kheti karti hoon",  # discover step1: extract, show interest cards
     "tailoring",  # discover step2: tap interest -> assess
@@ -114,7 +129,8 @@ async def test_stage_sequence_walks_the_full_onboarding_in_order():
 
     stages = [r["stage"] for r in results]
     assert stages == [
-        "discover",  # after extracting name+consent
+        "greet",  # new visitor: consent question asked
+        "discover",  # consent extracted
         "discover",  # asked village/work
         "discover",  # extracted village, showing interest cards
         "assess",  # tapped interest
@@ -125,7 +141,7 @@ async def test_stage_sequence_walks_the_full_onboarding_in_order():
         "confirm_profile",  # readback shown
         "teach",  # confirmed and saved
     ]
-    assert results[2]["ui"]["type"] == "show_options"
+    assert results[3]["ui"]["type"] == "show_options"
     assert results[-1]["learner_id"] is not None
 
 
@@ -140,12 +156,12 @@ async def test_declining_consent_reaches_teach_with_empty_database():
         stack.enter_context(
             patch(
                 "app.agent.nodes.greet.extract_structured",
-                new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=False)),
+                new=AsyncMock(side_effect=_greet_extractor(consent_given=False)),
             )
         )
         results = await _run_full_onboarding(graph, config, session.id)
 
-    assert results[0]["consent_declined"] is True
+    assert results[1]["consent_declined"] is True
     assert results[-1]["stage"] == "teach"
     assert results[-1]["learner_id"] is None
     with db.get_db_session() as s:
@@ -234,12 +250,16 @@ async def test_checkpoint_survives_reopening_the_sqlite_connection(tmp_path):
             graph = compile_graph(saver)
             state = initial_state(session_id="restart-test", learner_id=None, language="hi-IN")
             result = await graph.ainvoke(state, config=config)
-            result = await graph.ainvoke({"transcript": "Sunita, haan"}, config=config)
-            assert result["stage"] == "discover"
+            result = await graph.ainvoke({"transcript": "Sunita, pehli baar"}, config=config)
+            assert result["stage"] == "greet"  # new visitor: consent question
 
-        # New connection, new compiled graph -- same underlying file.
+        # New connection, new compiled graph -- same underlying file. The
+        # restart lands mid-greet, so the consent answer must still resolve.
         async with AsyncSqliteSaver.from_conn_string(str(db_path)) as saver:
             graph = compile_graph(saver)
+            result = await graph.ainvoke({"transcript": "haan, yaad rakho"}, config=config)
+            assert result["stage"] == "discover"  # consent extracted
+
             result = await graph.ainvoke({"transcript": "namaste"}, config=config)
             assert result["stage"] == "discover"  # asked village/work
 

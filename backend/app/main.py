@@ -9,7 +9,8 @@ from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from pydantic import TypeAdapter
 
 from app.agent.graph import compile_graph
-from app.agent.state import ProfileDraft, initial_state
+from app.agent.nodes.resume import profile_from_learner
+from app.agent.state import initial_state
 from app.config import get_settings
 from app.content import store as content_store
 from app.errors import ApiError, api_error_handler, unhandled_error_handler
@@ -64,16 +65,6 @@ def health() -> dict:
     return {"status": "ok", "version": APP_VERSION}
 
 
-def _profile_draft_from_learner(learner) -> ProfileDraft:
-    return ProfileDraft(
-        name=learner.name,
-        village=learner.village or "",
-        interest=learner.interest_skill or "",
-        starting_level=learner.starting_level or "some",
-        notes=learner.notes or "",
-    )
-
-
 @app.post("/api/session", response_model=SessionResponse)
 async def post_session(request: Request, payload: SessionRequest) -> SessionResponse:
     learner = None
@@ -90,7 +81,7 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
         learner_id=learner.id if learner else None,
         language=payload.language,
         stage="resume" if learner else "greet",
-        profile=_profile_draft_from_learner(learner) if learner else None,
+        profile=profile_from_learner(learner) if learner else None,
         # Her saved interest is a content-store skill id; resume/teach read it.
         skill_id=(learner.interest_skill or None) if learner else None,
     )

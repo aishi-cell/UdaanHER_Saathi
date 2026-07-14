@@ -3,11 +3,11 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.agent.nodes import assess, confirm_profile, discover, greet
+from app.agent.nodes import assess, confirm_profile, discover, greet, resume
 from app.agent.nodes.assess import DiagnosticExtraction
 from app.agent.nodes.confirm_profile import ConfirmationExtraction
 from app.agent.nodes.discover import SkillChoiceExtraction, VillageWorkExtraction
-from app.agent.nodes.greet import GreetExtraction
+from app.agent.nodes.greet import ConsentExtraction, GreetExtraction, PinExtraction
 from app.agent.state import initial_state
 from app.models import db
 
@@ -46,41 +46,336 @@ async def test_greet_step0_asks_and_stays_in_greet():
 
 
 @pytest.mark.asyncio
-async def test_greet_step1_extracts_name_and_consent_and_advances():
-    state = make_state(stage="greet", stage_step=1, transcript="Mera naam Sunita hai, haan")
+async def test_greet_step1_new_visitor_gets_consent_question():
+    state = make_state(
+        stage="greet", stage_step=1, transcript="Mera naam Sunita hai, pehli baar aayi hoon"
+    )
 
     with (
         patch(
             "app.agent.nodes.greet.extract_structured",
-            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=True)),
+            new=AsyncMock(return_value=GreetExtraction(name="Sunita", returning=False)),
         ) as mock_extract,
         patch(
-            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Shukriya Sunita!")
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Yaad rakhun aapko?"),
+        ),
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 2
+    assert result["profile"] == {"name": "Sunita"}
+    assert mock_extract.call_args.kwargs["schema"] is GreetExtraction
+
+
+@pytest.mark.asyncio
+async def test_greet_step1_returning_visitor_gets_pin_question():
+    state = make_state(stage="greet", stage_step=1, transcript="Meena, haan pehle aayi thi")
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=GreetExtraction(name="Meena", returning=True)),
+        ),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Apna PIN boliye"),
+        ),
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 3
+    assert result["profile"] == {"name": "Meena"}
+
+
+@pytest.mark.asyncio
+async def test_greet_step2_consent_yes_advances_to_discover():
+    state = make_state(
+        stage="greet", stage_step=2, profile={"name": "Sunita"}, transcript="haan, yaad rakho"
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=ConsentExtraction(consent_given=True)),
+        ) as mock_extract,
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Shukriya Sunita!"),
         ),
     ):
         result = await greet.run(state)
 
     assert result["stage"] == "discover"
     assert result["stage_step"] == 0
-    assert result["profile"] == {"name": "Sunita"}
     assert result["consent_declined"] is False
-    assert mock_extract.call_args.kwargs["schema"] is GreetExtraction
+    assert mock_extract.call_args.kwargs["schema"] is ConsentExtraction
 
 
 @pytest.mark.asyncio
 async def test_greet_consent_declined_sets_flag():
-    state = make_state(stage="greet", stage_step=1, transcript="Sunita, nahi")
+    state = make_state(
+        stage="greet", stage_step=2, profile={"name": "Sunita"}, transcript="nahi"
+    )
 
     with (
         patch(
             "app.agent.nodes.greet.extract_structured",
-            new=AsyncMock(return_value=GreetExtraction(name="Sunita", consent_given=False)),
+            new=AsyncMock(return_value=ConsentExtraction(consent_given=False)),
         ),
         patch("app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Theek hai")),
     ):
         result = await greet.run(state)
 
+    assert result["stage"] == "discover"
     assert result["consent_declined"] is True
+
+
+def _returning_learner(pin: str = "4271", interest: str | None = "tailoring"):
+    return db.create_learner(
+        name="Meena",
+        village="Rampur",
+        language="hi-IN",
+        pin=pin,
+        interest_skill=interest,
+        starting_level="some",
+        notes="was measuring well",
+        consent_given_at=datetime.now(timezone.utc),
+    )
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_match_resumes_at_her_gaps():
+    learner = _returning_learner()
+    db.upsert_concept_mastery(learner.id, "c-tape-basics", "strong")
+    db.upsert_concept_mastery(learner.id, "c-measure-points", "shaky")
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="greet",
+        stage_step=3,
+        profile={"name": "Meena"},
+        transcript="chaar do saat ek",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=PinExtraction(pin="4271")),
+        ),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Wapas swagat, Meena!"),
+        ),
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "teach"
+    assert result["stage_step"] == 0
+    assert result["learner_id"] == learner.id
+    assert result["skill_id"] == "tailoring"
+    assert result["profile"]["interest"] == "tailoring"
+    assert result["consent_declined"] is False
+    # Her path skips what she already mastered, keeps the shaky + untouched.
+    assert "c-tape-basics" not in result["learning_path"]
+    assert "c-measure-points" in result["learning_path"]
+    with db.get_db_session() as s:
+        assert s.get(db.Session, session.id).learner_id == learner.id
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_match_survives_cross_script_name():
+    """Live-run bug: stored name 'Sunita' (Latin), extracted name 'सुनीता'
+    (Devanagari). The PIN is the secret; the name must not lock her out."""
+    learner = _returning_learner(pin="4271")
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="greet",
+        stage_step=3,
+        profile={"name": "मीना"},  # different script than the stored 'Meena'
+        transcript="chaar do saat ek",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=PinExtraction(pin="४२७१")),  # Devanagari digits too
+        ),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Wapas swagat!"),
+        ),
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "teach"
+    assert result["learner_id"] == learner.id
+
+
+def test_find_learner_by_pin_name_breaks_ties():
+    a = _returning_learner(pin="4271")
+    b = db.create_learner(
+        name="Radha",
+        village=None,
+        language="hi-IN",
+        pin="4271",
+        interest_skill=None,
+        starting_level=None,
+        notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+
+    assert db.find_learner_by_pin("4271", name_hint="meena").id == a.id
+    assert db.find_learner_by_pin("4271", name_hint="RADHA").id == b.id
+    # Shared PIN and an unrecognisable name: refuse rather than guess.
+    assert db.find_learner_by_pin("4271", name_hint="कोई और") is None
+    assert db.find_learner_by_pin("9999", name_hint="meena") is None
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_extraction_tolerates_noise_around_digits():
+    learner = _returning_learner(pin="4271")
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="greet",
+        stage_step=3,
+        profile={"name": "Meena"},
+        transcript="mera pin 4-2-7-1 hai",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=PinExtraction(pin="4-2-7-1")),
+        ),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Wapas swagat!"),
+        ),
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "teach"
+    assert result["learner_id"] == learner.id
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_miss_retries_once_then_starts_fresh():
+    _returning_learner(pin="4271")
+    wrong = PinExtraction(pin="9999")
+
+    # First miss (step 3): one gentle retry.
+    state = make_state(
+        stage="greet", stage_step=3, profile={"name": "Meena"}, transcript="nau nau nau nau"
+    )
+    with (
+        patch("app.agent.nodes.greet.extract_structured", new=AsyncMock(return_value=wrong)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Phir se?")
+        ),
+    ):
+        result = await greet.run(state)
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 4
+
+    # Second miss (step 4): start fresh -- back to the consent question.
+    state = make_state(
+        stage="greet", stage_step=4, profile={"name": "Meena"}, transcript="nau nau nau nau"
+    )
+    with (
+        patch("app.agent.nodes.greet.extract_structured", new=AsyncMock(return_value=wrong)),
+        patch(
+            "app.agent.nodes.greet.ask_conversational",
+            new=AsyncMock(return_value="Koi baat nahi, naye se shuru karte hain."),
+        ),
+    ):
+        result = await greet.run(state)
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 2
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_unclear_reasks_same_step():
+    state = make_state(stage="greet", stage_step=3, profile={"name": "Meena"}, transcript=" ")
+
+    with (
+        patch("app.agent.nodes.greet.extract_structured", new=AsyncMock()) as mock_extract,
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="Phir se?")
+        ),
+    ):
+        result = await greet.run(state)
+
+    mock_extract.assert_not_awaited()
+    assert result["stage"] == "greet"
+    assert result["stage_step"] == 3
+
+
+# --- resume (T22) ----------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_resume_node_builds_gap_path_and_welcomes_back():
+    learner = _returning_learner()
+    db.upsert_concept_mastery(learner.id, "c-tape-basics", "strong")
+    state = make_state(
+        stage="resume",
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+    )
+
+    with patch(
+        "app.agent.nodes.resume.ask_conversational",
+        new=AsyncMock(return_value="Wapas swagat, Meena!"),
+    ) as mock_ask:
+        result = await resume.run(state)
+
+    assert result["stage"] == "teach"
+    assert result["stage_step"] == 0
+    assert "c-tape-basics" not in result["learning_path"]
+    assert len(result["learning_path"]) == 5
+    assert result["reply_text"] == "Wapas swagat, Meena!"
+    assert "Meena" in mock_ask.call_args.kwargs["instruction"]
+
+
+@pytest.mark.asyncio
+async def test_resume_all_strong_gives_must_land_refresh():
+    learner = _returning_learner()
+    for concept_id in [
+        "c-tape-basics",
+        "c-measure-points",
+        "c-tape-tension",
+        "c-grain",
+        "c-seam-allowance",
+        "c-straight-seam",
+    ]:
+        db.upsert_concept_mastery(learner.id, concept_id, "strong")
+    state = make_state(
+        stage="resume",
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+    )
+
+    with patch(
+        "app.agent.nodes.resume.ask_conversational",
+        new=AsyncMock(return_value="Wapas swagat!"),
+    ):
+        result = await resume.run(state)
+
+    # Finished everything -> a short refresh of the must-land concepts,
+    # never an empty session.
+    assert result["learning_path"] == [
+        "c-measure-points",
+        "c-tape-tension",
+        "c-grain",
+        "c-seam-allowance",
+    ]
 
 
 # --- discover --------------------------------------------------------------
@@ -282,6 +577,43 @@ async def test_confirm_profile_saves_learner_on_yes():
 
         session_row = s.get(db.Session, session.id)
         assert session_row.learner_id == result["learner_id"]
+
+
+@pytest.mark.asyncio
+async def test_confirm_profile_speaks_her_pin_on_save():
+    import re
+
+    profile = {"name": "Sunita", "village": "Rampur", "interest": "tailoring"}
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="confirm_profile",
+        stage_step=1,
+        profile=profile,
+        transcript="haan sahi hai",
+        consent_declined=False,
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.confirm_profile.extract_structured",
+            new=AsyncMock(return_value=ConfirmationExtraction(confirmed=True)),
+        ),
+        patch(
+            "app.agent.nodes.confirm_profile.ask_conversational",
+            new=AsyncMock(return_value="PIN yaad rakhna!"),
+        ) as mock_ask,
+    ):
+        result = await confirm_profile.run(state)
+
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    spoken = re.search(r"(\d) (\d) (\d) (\d)", instruction)
+    assert spoken, f"PIN digits not spoken in: {instruction}"
+    # The digits she hears must be the digits that actually unlock her row.
+    pin = "".join(spoken.groups())
+    found = db.get_learner_by_name_pin("Sunita", pin)
+    assert found is not None
+    assert found.id == result["learner_id"]
 
 
 @pytest.mark.asyncio

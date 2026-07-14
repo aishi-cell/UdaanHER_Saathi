@@ -66,7 +66,13 @@ def test_session_returning_learner_resolves_by_name_and_pin(client):
         consent_given_at=datetime.now(timezone.utc),
     )
 
-    with patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)):
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)),
+        patch(
+            "app.agent.nodes.resume.ask_conversational",
+            new=AsyncMock(return_value="Wapas swagat, Sunita!"),
+        ) as mock_ask,
+    ):
         response = client.post(
             "/api/session",
             json={"learner_name": "Sunita", "pin": "1234", "language": "gu-IN"},
@@ -79,6 +85,7 @@ def test_session_returning_learner_resolves_by_name_and_pin(client):
     # already exists in the DB.
     assert body["stage"] == "teach"
     assert "Sunita" in body["greeting_text"]
+    assert "Sunita" in mock_ask.call_args.kwargs["instruction"]
 
 
 def test_session_wrong_pin_treated_as_new_visitor(client):

@@ -34,7 +34,10 @@ CORRECTED_INSTRUCTION = (
 )
 SAVED_INSTRUCTION = (
     "She confirmed everything is correct. Warmly say you're excited to start "
-    "learning together."
+    "learning together. Then tell her, clearly and slowly, that her special "
+    "number (PIN) is {pin_spoken} -- say each digit separately -- and that "
+    "next time she only needs to say her name and these 4 digits to continue "
+    "right where she left off. Ask her to keep it in mind."
 )
 NOT_SAVED_INSTRUCTION = (
     "She confirmed everything is correct, but earlier chose not to be "
@@ -131,16 +134,17 @@ async def run(state: AgentState) -> dict:
         }
 
     learner_id = state.get("learner_id")
+    saved_instruction = NOT_SAVED_INSTRUCTION
     if not state.get("consent_declined"):
-        # T22 gives her a real spoken PIN for return visits; a random
-        # placeholder here just avoids every test learner colliding on the
-        # same PIN.
-        placeholder_pin = f"{secrets.randbelow(10_000):04d}"
+        # Her PIN for return visits (T22): random 4 digits, spoken to her in
+        # the confirmation reply -- greet's returning path looks it up by
+        # name + these digits.
+        pin = f"{secrets.randbelow(10_000):04d}"
         learner = db_repo.create_learner(
             name=profile.get("name", ""),
             village=profile.get("village"),
             language=state["language"],
-            pin=placeholder_pin,
+            pin=pin,
             interest_skill=profile.get("interest"),
             starting_level=profile.get("starting_level"),
             notes=profile.get("notes"),
@@ -148,11 +152,12 @@ async def run(state: AgentState) -> dict:
         )
         learner_id = learner.id
         db_repo.link_session_to_learner(state["session_id"], learner_id)
+        saved_instruction = SAVED_INSTRUCTION.format(pin_spoken=" ".join(pin))
 
     reply = await ask_conversational(
         "confirm_profile",
         language=state["language"],
-        instruction=SAVED_INSTRUCTION if not state.get("consent_declined") else NOT_SAVED_INSTRUCTION,
+        instruction=saved_instruction,
         transcript=state["transcript"],
     )
     return {
