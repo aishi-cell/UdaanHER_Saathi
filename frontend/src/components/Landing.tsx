@@ -12,10 +12,10 @@ interface Props {
   onPick: (language: Language) => void;
 }
 
-const LANGUAGES: { code: Language; label: string; sub: string }[] = [
+const LANGUAGES: { code: Language; label: string; sub?: string }[] = [
   { code: 'hi-IN', label: 'हिन्दी', sub: 'Hindi' },
   { code: 'gu-IN', label: 'ગુજરાતી', sub: 'Gujarati' },
-  { code: 'en-IN', label: 'English', sub: 'English' },
+  { code: 'en-IN', label: 'English' },
 ];
 
 const FEATURES = [
@@ -146,11 +146,10 @@ function LanguagePick({
               whileTap={connecting ? undefined : { scale: 0.98 }}
             >
               <span className="text-2xl font-bold text-foreground">{lang.label}</span>
-              {isSelected ? (
-                <Check className="size-6 text-brand-600" strokeWidth={3} />
-              ) : (
-                <span className="text-sm text-muted-foreground">{lang.sub}</span>
-              )}
+              <span className="flex items-center gap-2">
+                {lang.sub && <span className="text-sm text-muted-foreground">{lang.sub}</span>}
+                {isSelected && <Check className="size-6 text-brand-600" strokeWidth={3} />}
+              </span>
             </motion.button>
           );
         })}
