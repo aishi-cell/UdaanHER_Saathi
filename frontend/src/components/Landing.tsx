@@ -3,7 +3,7 @@ import { Bird, BookOpen, Heart, IndianRupee, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SaathiAvatar } from './SaathiAvatar';
 
-export type Language = 'gu-IN' | 'hi-IN' | 'en-IN';
+export type Language = 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN';
 
 interface Props {
   connecting: boolean;

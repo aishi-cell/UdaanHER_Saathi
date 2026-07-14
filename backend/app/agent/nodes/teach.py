@@ -74,6 +74,15 @@ async def _narrate(
         if first
         else ""
     )
+    if not first and index > 0 and index % 3 == 0:
+        # Every few steps, a human pause: is she tired, does she want to go
+        # on or rest today? (User report: sessions ran on without a break.)
+        extra += (
+            "You two have done a few steps together now -- before teaching this "
+            "one, warmly ask if she is comfortable going on or would rather "
+            "rest and continue another day; stopping is completely fine and "
+            "everything is remembered. "
+        )
     reply = await ask_conversational(
         "teach",
         language=state["language"],
@@ -133,7 +142,26 @@ async def run(state: AgentState) -> dict:
     label = store.pick_language(concept.label, "en-IN") if concept else current.concept_id
 
     if is_unclear(state["transcript"]):
-        intent = TeachIntent(intent="continue")  # a nod/silence means "go on"
+        # With hands-free listening, an empty transcript is often noise or
+        # her walking away -- advancing on it silently taught to an empty
+        # room (user report). Hold the step and check in instead.
+        reply = await ask_conversational(
+            "teach",
+            language=state["language"],
+            instruction=(
+                "You couldn't hear her clearly. Warmly check she is still "
+                "there and ask if she wants you to continue with this step, "
+                "say it again, or rest -- her pace, her choice."
+            ),
+            transcript="",
+        )
+        return {
+            "stage": "teach",
+            "stage_step": 1,
+            "step_index": index,
+            "reply_text": reply,
+            "ui": _step_ui(package, steps, index, state["language"]),
+        }
     else:
         intent = await extract_structured(
             "teach",

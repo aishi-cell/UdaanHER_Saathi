@@ -53,7 +53,7 @@ export interface SessionResponse {
 }
 
 export async function postSession(
-  language?: 'gu-IN' | 'hi-IN' | 'en-IN',
+  language?: 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN',
   learnerName?: string,
   pin?: string,
 ): Promise<SessionResponse> {
