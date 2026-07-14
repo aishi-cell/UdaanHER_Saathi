@@ -28,6 +28,16 @@ const DEMO_COMMANDS: UICommand[] = [
     caption: 'Measure from shoulder to waist.',
   },
   {
+    // Plan v2: steps are spoken beats first -- image is optional, and the
+    // seeded tailoring steps ship without one (caption-only card).
+    type: 'show_lesson_step',
+    lesson_id: 'tailoring',
+    step_index: 2,
+    total_steps: 4,
+    image: null,
+    caption: 'Keep the tape snug, not tight.',
+  },
+  {
     type: 'show_video',
     url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
     caption: 'How to thread a needle',

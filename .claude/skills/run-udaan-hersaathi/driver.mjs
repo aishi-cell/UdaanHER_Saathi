@@ -5,6 +5,7 @@
 // Flows:
 //   landing   landing page, desktop + mobile          (frontend only)
 //   picker    language picker, unselected + selected  (frontend only)
+//   ui-demo   every UICommand through the Renderer    (frontend only)
 //   session   full flow to the live conversation view (needs backend on :8000)
 //
 // Env overrides: APP_URL (default http://localhost:5173),
@@ -109,6 +110,22 @@ const flows = {
     await page.getByText('English').first().click();
     await page.waitForTimeout(400);
     await shot(page, 'picker-selected');
+  },
+
+  async 'ui-demo'(browser) {
+    // ?ui-demo=1 cycles every UICommand through the real Renderer -- pure
+    // frontend, no backend or LLM cost.
+    const page = await openMobile(browser);
+    await page.goto(`${APP_URL}/?ui-demo=1`, { waitUntil: 'networkidle' });
+    for (let i = 0; ; i++) {
+      await page.waitForTimeout(700);
+      const label = (await page.locator('footer p').innerText()).trim();
+      const [pos, type] = label.split(': ');
+      await shot(page, `ui-demo-${i}-${type}`);
+      const [current, total] = pos.split(' / ').map(Number);
+      if (current === total) break;
+      await page.getByRole('button', { name: 'Next' }).click();
+    }
   },
 
   async session(browser) {

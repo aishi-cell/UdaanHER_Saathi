@@ -50,6 +50,7 @@ Then drive the app. Screenshots land in `shots/` (gitignored):
 ```bash
 node .claude/skills/run-udaan-hersaathi/driver.mjs landing   # landing, desktop + mobile (frontend only)
 node .claude/skills/run-udaan-hersaathi/driver.mjs picker    # language picker states (frontend only)
+node .claude/skills/run-udaan-hersaathi/driver.mjs ui-demo   # every UICommand via ?ui-demo=1 (frontend only)
 node .claude/skills/run-udaan-hersaathi/driver.mjs session   # full flow to live conversation (needs backend)
 ```
 
