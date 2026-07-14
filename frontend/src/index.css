@@ -5,21 +5,22 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /* UdaanHer Saathi — violet/lavender per the product mockup; pink brand
-     accent, gold badges. High-contrast, big-target. */
-  --color-brand-50: #f6f2ff;
-  --color-brand-100: #ede9fe;
-  --color-brand-200: #ddd6fe;
-  --color-brand-300: #c4b5fd;
-  --color-brand-400: #a78bfa;
-  --color-brand-500: #8b5cf6;
-  --color-brand-600: #7c3aed;
-  --color-brand-700: #6d28d9;
-  --color-brand-800: #5b21b6;
-  --color-brand-900: #4c1d95;
-  --color-blush-400: #f472b6;
-  --color-blush-500: #ec4899;
-  --color-blush-600: #db2777;
+  /* UdaanHer Saathi — baby pink / shades of pink as the main palette,
+     navy blue as the contrast accent, gold badges. High-contrast,
+     big-target. brand-* = pinks, blush-* = navy. */
+  --color-brand-50: #fdf2f8;
+  --color-brand-100: #fce7f3;
+  --color-brand-200: #fbcfe8;
+  --color-brand-300: #f9a8d4;
+  --color-brand-400: #f472b6;
+  --color-brand-500: #ec4899;
+  --color-brand-600: #db2777;
+  --color-brand-700: #be185d;
+  --color-brand-800: #9d174d;
+  --color-brand-900: #831843;
+  --color-blush-400: #40598c;
+  --color-blush-500: #2d4a77;
+  --color-blush-600: #1d3557;
   --color-sun-300: #ffd27a;
   --color-sun-400: #ffb63f;
   --color-sun-500: #ff9d0a;
@@ -36,11 +37,11 @@
     0%,
     100% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgb(124 58 237 / 0.35);
+      box-shadow: 0 0 0 0 rgb(219 39 119 / 0.35);
     }
     50% {
       transform: scale(1.045);
-      box-shadow: 0 0 0 24px rgb(124 58 237 / 0);
+      box-shadow: 0 0 0 24px rgb(219 39 119 / 0);
     }
   }
   @keyframes aurora {
@@ -56,41 +57,41 @@
   }
 }
 
-/* shadcn/ui semantic tokens — UdaanHer violet/lavender, light-only */
+/* shadcn/ui semantic tokens — UdaanHer baby pink + navy, light-only */
 :root {
-  --background: #fdfbf7;
-  --foreground: #2b2145;
+  --background: #fff7fa;
+  --foreground: #1d3557;
   --card: #ffffff;
-  --card-foreground: #2b2145;
+  --card-foreground: #1d3557;
   --popover: #ffffff;
-  --popover-foreground: #2b2145;
-  --primary: #6d28d9;
-  --primary-foreground: #f8f5ff;
-  --secondary: #ede9fe;
-  --secondary-foreground: #4c1d95;
-  --muted: #f3eefe;
-  --muted-foreground: #6f6690;
+  --popover-foreground: #1d3557;
+  --primary: #db2777;
+  --primary-foreground: #fff5f9;
+  --secondary: #fce7f3;
+  --secondary-foreground: #831843;
+  --muted: #fdeef5;
+  --muted-foreground: #5d6b8a;
   --accent: #fff0d6;
   --accent-foreground: #7a4a08;
   --destructive: #b91c1c;
   --destructive-foreground: #fef2f2;
-  --border: #e5dcf8;
-  --input: #e5dcf8;
-  --ring: #8b5cf6;
+  --border: #f6d9e8;
+  --input: #f6d9e8;
+  --ring: #ec4899;
   --radius: 1rem;
-  --chart-1: #7c3aed;
-  --chart-2: #ec4899;
+  --chart-1: #db2777;
+  --chart-2: #2d4a77;
   --chart-3: #ffb63f;
-  --chart-4: #c4b5fd;
-  --chart-5: #4c1d95;
-  --sidebar: #f6f2ff;
-  --sidebar-foreground: #2b2145;
-  --sidebar-primary: #6d28d9;
-  --sidebar-primary-foreground: #f8f5ff;
+  --chart-4: #f9a8d4;
+  --chart-5: #831843;
+  --sidebar: #fdf2f8;
+  --sidebar-foreground: #1d3557;
+  --sidebar-primary: #db2777;
+  --sidebar-primary-foreground: #fff5f9;
   --sidebar-accent: #fff0d6;
   --sidebar-accent-foreground: #7a4a08;
-  --sidebar-border: #e5dcf8;
-  --sidebar-ring: #8b5cf6;
+  --sidebar-border: #f6d9e8;
+  --sidebar-ring: #ec4899;
 }
 
 @theme inline {

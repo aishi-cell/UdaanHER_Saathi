@@ -11,7 +11,7 @@ function SaathiFace({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 120 120" className={className} aria-hidden>
       {/* dupatta / hair backdrop */}
-      <circle cx="60" cy="60" r="56" fill="#f3eefe" />
+      <circle cx="60" cy="60" r="56" fill="#fdeef5" />
       <path
         d="M60 14c-26 0-40 20-40 42v28c0 4 4 6 8 6h64c4 0 8-2 8-6V56c0-22-14-42-40-42z"
         fill="#4c2a63"
