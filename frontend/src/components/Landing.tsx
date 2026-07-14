@@ -10,6 +10,8 @@ export type Language = 'gu-IN' | 'hi-IN' | 'en-IN';
 interface Props {
   connectingLanguage: Language | null;
   onPick: (language: Language) => void;
+  /** Start on the picker instead of the hero, e.g. when a connect attempt failed. */
+  initialStep?: 'hero' | 'language';
 }
 
 const LANGUAGES: { code: Language; label: string; sub?: string }[] = [
@@ -173,8 +175,8 @@ function LanguagePick({
   );
 }
 
-export function Landing({ connectingLanguage, onPick }: Props) {
-  const [step, setStep] = useState<'hero' | 'language'>('hero');
+export function Landing({ connectingLanguage, onPick, initialStep = 'hero' }: Props) {
+  const [step, setStep] = useState<'hero' | 'language'>(initialStep);
 
   return (
     <AnimatePresence mode="wait">

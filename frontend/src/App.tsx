@@ -48,6 +48,7 @@ const IDLE_UI: UICommand = { type: 'idle' };
 
 function App() {
   const [view, setView] = useState<'landing' | 'session'>('landing');
+  const [landingStep, setLandingStep] = useState<'hero' | 'language'>('hero');
   const [connectingLanguage, setConnectingLanguage] = useState<Language | null>(null);
   const [backendUp, setBackendUp] = useState<boolean | null>(null);
   const [talkState, setTalkState] = useState<TalkState>('ready');
@@ -97,12 +98,16 @@ function App() {
     if (connectingLanguage) return;
     setConnectingLanguage(language);
     void unlockAudio();
+    // Switch to the session screen right away -- it renders a proper
+    // connecting state (avatar + status + disabled talk button) while
+    // postSession does its multi-second LLM/TTS warm-up, instead of
+    // leaving her staring at the picker with only the button text changed.
+    setView('session');
     try {
       const result = await postSession(language);
       sessionIdRef.current = result.session_id;
       setCurrentUi(result.ui);
       setSessionReady(true);
-      setView('session');
       setTalkState('speaking');
       try {
         await playBase64Mp3(result.greeting_audio_b64);
@@ -119,6 +124,8 @@ function App() {
         err instanceof Error ? err.message : 'Could not reach the mentor. Try reloading.',
       );
       setConnectingLanguage(null);
+      setLandingStep('language');
+      setView('landing');
     }
   }
 
@@ -272,7 +279,11 @@ function App() {
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.35 }}
           >
-            <Landing connectingLanguage={connectingLanguage} onPick={beginSession} />
+            <Landing
+              connectingLanguage={connectingLanguage}
+              onPick={beginSession}
+              initialStep={landingStep}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -323,7 +334,7 @@ function App() {
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.18 }}
                 >
-                  {sessionReady ? STATUS_LABELS[talkState] : 'connecting…'}
+                  {sessionReady ? STATUS_LABELS[talkState] : 'Saathi आ रही हैं…'}
                 </motion.p>
               </AnimatePresence>
               <TalkButton
