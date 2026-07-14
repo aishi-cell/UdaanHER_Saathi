@@ -34,11 +34,27 @@ CORRECTED_INSTRUCTION = (
 )
 SAVED_INSTRUCTION = (
     "She confirmed everything is correct. Warmly say you're excited to start "
-    "learning together. Then tell her, clearly and slowly, that her special "
-    "number (PIN) is {pin_spoken} -- say each digit separately -- and that "
-    "next time she only needs to say her name and these 4 digits to continue "
-    "right where she left off. Ask her to keep it in mind."
+    "learning together. (Her return PIN will be read out right after your "
+    "reply by the system -- do NOT mention any PIN or number yourself.)"
 )
+
+# Spoken deterministically by code, never left to the LLM -- a live user
+# session finished onboarding without ever hearing a PIN when the model was
+# trusted to include it.
+PIN_SENTENCES = {
+    "hi-IN": (
+        "आपका PIN है: {pin_spoken}। इसे याद रखिए -- अगली बार बस अपना नाम और "
+        "यह PIN बोलिए, हम वहीं से शुरू करेंगे।"
+    ),
+    "gu-IN": (
+        "તમારો PIN છે: {pin_spoken}. આ યાદ રાખજો -- આગલી વાર ફક્ત તમારું નામ "
+        "અને આ PIN બોલજો, આપણે ત્યાંથી જ શરૂ કરીશું."
+    ),
+    "en-IN": (
+        "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
+        "your name and this PIN, and we will continue right where you left off."
+    ),
+}
 NOT_SAVED_INSTRUCTION = (
     "She confirmed everything is correct, but earlier chose not to be "
     "remembered -- that's fine. Warmly say you're excited to start learning "
@@ -134,11 +150,10 @@ async def run(state: AgentState) -> dict:
         }
 
     learner_id = state.get("learner_id")
-    saved_instruction = NOT_SAVED_INSTRUCTION
+    pin: str | None = None
     if not state.get("consent_declined"):
-        # Her PIN for return visits (T22): random 4 digits, spoken to her in
-        # the confirmation reply -- greet's returning path looks it up by
-        # name + these digits.
+        # Her PIN for return visits (T22): random 4 digits -- greet's
+        # returning path looks it up by name + these digits.
         pin = f"{secrets.randbelow(10_000):04d}"
         learner = db_repo.create_learner(
             name=profile.get("name", ""),
@@ -152,19 +167,27 @@ async def run(state: AgentState) -> dict:
         )
         learner_id = learner.id
         db_repo.link_session_to_learner(state["session_id"], learner_id)
-        saved_instruction = SAVED_INSTRUCTION.format(pin_spoken=" ".join(pin))
 
     reply = await ask_conversational(
         "confirm_profile",
         language=state["language"],
-        instruction=saved_instruction,
+        instruction=SAVED_INSTRUCTION if pin else NOT_SAVED_INSTRUCTION,
         transcript=state["transcript"],
     )
+
+    if pin:
+        sentence = PIN_SENTENCES.get(state["language"], PIN_SENTENCES["en-IN"])
+        reply = f"{reply} {sentence.format(pin_spoken=' '.join(pin))}"
+        ui = _profile_card_ui(profile, state["language"])
+        ui["profile"]["pin"] = pin
+    else:
+        ui = {"type": "idle"}
+
     return {
         "stage": "teach",
         "stage_step": 0,
         "profile": profile,
         "learner_id": learner_id,
         "reply_text": reply,
-        "ui": {"type": "idle"},
+        "ui": ui,
     }

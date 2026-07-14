@@ -156,18 +156,26 @@ async def run(state: AgentState) -> dict:
                 "She was asked what skill she wants to learn to earn from. "
                 "Available ready-made skills: "
                 + (", ".join(f"{k} ({v})" for k, v in labels.items()) or "(none)")
-                + ". If her reply means one of those, set matched_skill_id to that "
-                "exact id; otherwise leave it empty. Always set skill_name_english "
-                "to a short canonical English name for what she asked (e.g. "
-                "'mehndi', 'pickle making'). Her speech-to-text transcript may be "
-                "imperfect, informal, code-mixed, or have a strong regional accent "
-                "-- make your best reasonable guess."
+                + ". Match GENEROUSLY: synonyms, translations, and any name for "
+                "the same craft in any language all count -- 'sewing', "
+                "'stitching', 'silai', 'सिलाई', 'સીવણ', 'darzi work' all mean "
+                "tailoring. Set matched_skill_id to the exact id whenever her "
+                "words are the same craft; leave it empty ONLY if she asked "
+                "for a genuinely different craft (e.g. mehndi is not "
+                "tailoring). Always set skill_name_english to a short "
+                "canonical English name for what she asked (e.g. 'mehndi', "
+                "'pickle making'). Her speech-to-text transcript may be "
+                "imperfect, informal, code-mixed, or have a strong regional "
+                "accent -- make your best reasonable guess."
             ),
             transcript=state["transcript"],
             schema=SkillChoiceExtraction,
         )
-        if extraction.matched_skill_id in available:
-            skill_id = extraction.matched_skill_id
+        # Live probe: the model sometimes returns the id in a different case
+        # ('TAILORING'); ids are lowercase slugs, so normalise before checking.
+        matched = extraction.matched_skill_id.strip().lower()
+        if matched in available:
+            skill_id = matched
         else:
             asked_label = extraction.skill_name_english or state["transcript"]
 

@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { MapPin, Sparkles } from 'lucide-react';
+import { KeyRound, MapPin, Sparkles } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { LearnerProfile } from '../types';
@@ -47,6 +47,25 @@ export function ProfileCard({ profile }: Props) {
           <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
             {profile.notes}
           </p>
+        )}
+
+        {profile.pin && (
+          <motion.div
+            className="flex flex-col items-center gap-2 rounded-2xl bg-brand-50 px-6 py-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <span className="flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-brand-700">
+              <KeyRound className="size-4" /> आपका PIN · Your PIN
+            </span>
+            <span className="text-4xl font-black tracking-[0.4em] text-brand-900">
+              {profile.pin}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              अगली बार नाम और PIN बोलिए · Say your name + PIN next time
+            </span>
+          </motion.div>
         )}
       </CardContent>
     </Card>

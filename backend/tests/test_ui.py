@@ -42,6 +42,7 @@ EXAMPLES = [
             "interest": "tailoring",
             "starting_level": "some",
             "notes": "Comfortable with basic stitches.",
+            "pin": "4271",
         },
     },
     {

@@ -601,16 +601,19 @@ async def test_confirm_profile_speaks_her_pin_on_save():
         ),
         patch(
             "app.agent.nodes.confirm_profile.ask_conversational",
-            new=AsyncMock(return_value="PIN yaad rakhna!"),
-        ) as mock_ask,
+            new=AsyncMock(return_value="Chaliye shuru karein!"),
+        ),
     ):
         result = await confirm_profile.run(state)
 
-    instruction = mock_ask.call_args.kwargs["instruction"]
-    spoken = re.search(r"(\d) (\d) (\d) (\d)", instruction)
-    assert spoken, f"PIN digits not spoken in: {instruction}"
-    # The digits she hears must be the digits that actually unlock her row.
+    # The PIN sentence is appended by code, never left to the LLM (a live
+    # session once ended with no PIN ever spoken), and the card shows it too.
+    spoken = re.search(r"(\d) (\d) (\d) (\d)", result["reply_text"])
+    assert spoken, f"PIN digits not spoken in: {result['reply_text']}"
     pin = "".join(spoken.groups())
+    assert result["ui"]["type"] == "show_profile_card"
+    assert result["ui"]["profile"]["pin"] == pin
+    # The digits she hears must be the digits that actually unlock her row.
     found = db.get_learner_by_name_pin("Sunita", pin)
     assert found is not None
     assert found.id == result["learner_id"]

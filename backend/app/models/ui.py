@@ -43,6 +43,10 @@ class LearnerProfile(BaseModel):
     interest: str
     starting_level: Literal["new", "some", "experienced"]
     notes: str
+    # Set only on the card shown right after her profile is saved (T22):
+    # the 4-digit return PIN, displayed as well as spoken so a missed
+    # sentence doesn't lock her out of resuming.
+    pin: str | None = None
 
 
 class ShowProfileCardCommand(BaseModel):

@@ -38,6 +38,8 @@ export interface LearnerProfile {
   interest: string;
   starting_level: 'new' | 'some' | 'experienced';
   notes: string;
+  /** Present only on the card shown right after her profile is saved: her 4-digit return PIN. */
+  pin?: string | null;
 }
 
 export interface ShowProfileCardCommand {
