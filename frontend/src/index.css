@@ -1,17 +1,162 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* UdaanHer Saathi — violet/lavender per the product mockup; pink brand
+     accent, gold badges. High-contrast, big-target. */
+  --color-brand-50: #f6f2ff;
+  --color-brand-100: #ede9fe;
+  --color-brand-200: #ddd6fe;
+  --color-brand-300: #c4b5fd;
+  --color-brand-400: #a78bfa;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #7c3aed;
+  --color-brand-700: #6d28d9;
+  --color-brand-800: #5b21b6;
+  --color-brand-900: #4c1d95;
+  --color-blush-400: #f472b6;
+  --color-blush-500: #ec4899;
+  --color-blush-600: #db2777;
+  --color-sun-300: #ffd27a;
+  --color-sun-400: #ffb63f;
+  --color-sun-500: #ff9d0a;
+
+  --font-sans:
+    'Inter', 'Noto Sans', 'Noto Sans Devanagari', 'Noto Sans Gujarati', system-ui, sans-serif;
+
+  --radius-xl2: 1.75rem;
+
+  --animate-breathe: breathe 3.2s ease-in-out infinite;
+  --animate-aurora: aurora 14s ease-in-out infinite alternate;
+
+  @keyframes breathe {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgb(124 58 237 / 0.35);
+    }
+    50% {
+      transform: scale(1.045);
+      box-shadow: 0 0 0 24px rgb(124 58 237 / 0);
+    }
+  }
+  @keyframes aurora {
+    0% {
+      transform: translate3d(-6%, -4%, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(5%, 6%, 0) scale(1.15);
+    }
+    100% {
+      transform: translate3d(-3%, 4%, 0) scale(1.05);
+    }
+  }
+}
+
+/* shadcn/ui semantic tokens — UdaanHer violet/lavender, light-only */
 :root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  color-scheme: light;
+  --background: #fdfbf7;
+  --foreground: #2b2145;
+  --card: #ffffff;
+  --card-foreground: #2b2145;
+  --popover: #ffffff;
+  --popover-foreground: #2b2145;
+  --primary: #6d28d9;
+  --primary-foreground: #f8f5ff;
+  --secondary: #ede9fe;
+  --secondary-foreground: #4c1d95;
+  --muted: #f3eefe;
+  --muted-foreground: #6f6690;
+  --accent: #fff0d6;
+  --accent-foreground: #7a4a08;
+  --destructive: #b91c1c;
+  --destructive-foreground: #fef2f2;
+  --border: #e5dcf8;
+  --input: #e5dcf8;
+  --ring: #8b5cf6;
+  --radius: 1rem;
+  --chart-1: #7c3aed;
+  --chart-2: #ec4899;
+  --chart-3: #ffb63f;
+  --chart-4: #c4b5fd;
+  --chart-5: #4c1d95;
+  --sidebar: #f6f2ff;
+  --sidebar-foreground: #2b2145;
+  --sidebar-primary: #6d28d9;
+  --sidebar-primary-foreground: #f8f5ff;
+  --sidebar-accent: #fff0d6;
+  --sidebar-accent-foreground: #7a4a08;
+  --sidebar-border: #e5dcf8;
+  --sidebar-ring: #8b5cf6;
 }
 
-* {
-  box-sizing: border-box;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    @apply antialiased bg-background text-foreground;
+    font-family: var(--font-sans);
+    /* Kiosk: the page itself never scrolls or zooms on double-tap */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }
+
+/* Kiosk app is deliberately light-only (color-scheme: light); no .dark theme. */
