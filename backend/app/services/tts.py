@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import time
@@ -118,12 +119,16 @@ async def synthesize(text: str, language: str) -> Mp3Result:
     start = time.perf_counter()
     try:
         async with httpx.AsyncClient(timeout=TTS_TIMEOUT_SECONDS) as client:
-            mp3_parts = [
-                await _synthesize_chunk(
-                    client, chunk, language, settings.sarvam_api_key, settings.tts_speaker
+            # Chunks are independent utterances -- synthesize them
+            # concurrently (T24); order is preserved by gather.
+            mp3_parts = await asyncio.gather(
+                *(
+                    _synthesize_chunk(
+                        client, chunk, language, settings.sarvam_api_key, settings.tts_speaker
+                    )
+                    for chunk in chunks
                 )
-                for chunk in chunks
-            ]
+            )
     except httpx.TimeoutException as exc:
         raise TtsError(f"Sarvam TTS request timed out after {TTS_TIMEOUT_SECONDS}s") from exc
     except httpx.RequestError as exc:
