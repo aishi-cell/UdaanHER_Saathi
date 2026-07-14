@@ -1,1 +1,44 @@
-[]
+[
+  {
+    "concept_id": "c-why-childcare-business",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/6um1znVbFsc",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  },
+  {
+    "concept_id": "c-home-based-daycare-basics",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/6um1znVbFsc",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  },
+  {
+    "concept_id": "c-modern-childcare-concept",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/Mi7RoTpjFPw",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  },
+  {
+    "concept_id": "c-safe-fun-environment",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/6um1znVbFsc",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  },
+  {
+    "concept_id": "c-basic-baby-care-first-days",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/H4Fh7R8HvnI",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  },
+  {
+    "concept_id": "c-earning-from-daycare",
+    "kind": "video",
+    "url_or_path": "https://www.youtube.com/embed/6um1znVbFsc",
+    "language": "any",
+    "note": "source tutorial for this concept"
+  }
+]

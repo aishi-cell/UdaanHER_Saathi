@@ -103,6 +103,14 @@ class GenConcept(BaseModel):
     concept_id: str = Field(description="kebab-case id starting with 'c-'")
     label: GenText
     must_land: bool
+    best_video_id: str | None = Field(
+        default=None,
+        description=(
+            "Of the transcript video ids provided, the ONE whose tutorial "
+            "best shows this concept visually; null if none really does or "
+            "no transcripts were given"
+        ),
+    )
 
 
 class GenStep(BaseModel):
@@ -236,7 +244,20 @@ async def distill(
             for i, q in enumerate(generated.questions)
         ],
     )
-    return store.SkillPackage(curriculum=curriculum, rubrics=rubrics, visual_aids=[])
+    # Real tutorial clips per concept (user report: no visual tutorials were
+    # ever shown): the distiller names which source video best demonstrates
+    # each concept; teach/reteach offer it as an optional aid.
+    aids = [
+        store.VisualAid(
+            concept_id=c.concept_id,
+            kind="video",
+            url_or_path=f"https://www.youtube.com/embed/{c.best_video_id}",
+            note="source tutorial for this concept",
+        )
+        for c in generated.concepts
+        if c.best_video_id and c.best_video_id in transcripts
+    ]
+    return store.SkillPackage(curriculum=curriculum, rubrics=rubrics, visual_aids=aids)
 
 
 # ---------------------------------------------------------------------------

@@ -1,160 +1,204 @@
 {
   "skill_id": "child-care",
   "title": {
-    "en-IN": "Safe Childcare Basics and Starting a Small Home Daycare",
-    "hi-IN": "सुरक्षित बच्चों की देखभाल और छोटा डे-केयर शुरू करना",
-    "gu-IN": "સુરક્ષિત બાળ સંભાળ અને નાનું હોમ ડે-કેર શરૂ કરવું"
+    "en-IN": "Starting Paid Child Care From Home – Basics and Earning",
+    "hi-IN": "घर से पैसे कमाने वाली बच्चों की देखभाल – शुरुआत और कमाई",
+    "gu-IN": "ઘરેથી કમાણી કરતી બાળક સંભાળ – શરૂઆત અને કમાણી"
   },
   "card_image": null,
   "concepts": [
     {
-      "concept_id": "c-daily-routine-and-play",
+      "concept_id": "c-why-childcare-business",
       "label": {
-        "en-IN": "Daily routine and play for small children",
-        "hi-IN": "छोटे बच्चों की रोज़ की दिनचर्या और खेलने का समय",
-        "gu-IN": "નાનાં બાળકોની દૈનિક રીત અને રમવાનો સમય"
+        "en-IN": "Why child care can be good work for you",
+        "hi-IN": "बच्चों की देखभाल आपका अच्छा काम क्यों बन सकती है",
+        "gu-IN": "બાળ સંભાળ તમારું સારું કામ કેમ બની શકે"
       },
       "must_land": true
     },
     {
-      "concept_id": "c-cleanliness-and-health",
+      "concept_id": "c-home-based-daycare-basics",
       "label": {
-        "en-IN": "Cleanliness and basic health for babies and toddlers",
-        "hi-IN": "नवजात और छोटे बच्चों की सफ़ाई और सेहत",
-        "gu-IN": "નવજાત અને નાનાં બાળકોની સફાઈ અને આરોગ્ય"
+        "en-IN": "Home-based daycare: small, safe, in your own house",
+        "hi-IN": "होम बेस्ड डेकेयर: छोटा, सुरक्षित, अपने ही घर में",
+        "gu-IN": "ઘરઆધારિત ડે કેર: નાનું, સુરક્ષિત, પોતાના ઘરમાં"
       },
       "must_land": true
     },
     {
-      "concept_id": "c-mealtime-habits",
+      "concept_id": "c-modern-childcare-concept",
       "label": {
-        "en-IN": "Simple, respectful mealtime habits",
-        "hi-IN": "सरल और सम्मानजनक खाने की आदतें",
-        "gu-IN": "સરળ અને સન્માનપૂર્ણ ખાવાની ટેવો"
+        "en-IN": "Modern child care: full development, not just feeding",
+        "hi-IN": "आधुनिक चाइल्ड केयर: सिर्फ खिलाना नहीं, पूरा विकास",
+        "gu-IN": "આધુનિક ચાઇલ્ડ કેર: ફક્ત ખવડાવવું નહીં, પૂરું વિકાસ"
       },
       "must_land": true
     },
     {
-      "concept_id": "c-safe-home-daycare-setup",
+      "concept_id": "c-safe-fun-environment",
       "label": {
-        "en-IN": "Setting up a safe, child‑friendly corner at home",
-        "hi-IN": "घर में बच्चों के लिए सुरक्षित कोना बनाना",
-        "gu-IN": "ઘરે બાળકો માટે સુરક્ષિત ખૂણો બનાવવો"
+        "en-IN": "Making a safe and fun space for small children",
+        "hi-IN": "छोटे बच्चों के लिए सुरक्षित और मज़ेदार जगह बनाना",
+        "gu-IN": "નાનાં બાળકો માટે સુરક્ષિત અને મજેદાર જગ્યા બનાવવી"
       },
       "must_land": true
     },
     {
-      "concept_id": "c-basic-daycare-business",
+      "concept_id": "c-basic-baby-care-first-days",
       "label": {
-        "en-IN": "Basics of earning from home daycare",
-        "hi-IN": "होम डे-केयर से कमाई की बुनियाद",
-        "gu-IN": "હોમ ડે-કેરથી કમાણીની પાયાની વાતો"
-      },
-      "must_land": true
-    },
-    {
-      "concept_id": "c-parent-communication",
-      "label": {
-        "en-IN": "Talking with parents and sharing child updates",
-        "hi-IN": "माता‑पिता से बात करना और बच्चे की खबर देना",
-        "gu-IN": "માતા‑પિતાથી વાતચીત અને બાળકની ખબર આપવી"
+        "en-IN": "Basic newborn care in first days",
+        "hi-IN": "जन्म के बाद शुरुआती दिनों में नवजात शिशु की देखभाल",
+        "gu-IN": "જન્મ પછીના પ્રથમ દિવસોમાં નવજાતની સંભાળ"
       },
       "must_land": false
+    },
+    {
+      "concept_id": "c-earning-from-daycare",
+      "label": {
+        "en-IN": "How to take fees and find parents for home daycare",
+        "hi-IN": "होम डेकेयर के लिए फीस कैसे लें और माता‑पिता कैसे ढूँढें",
+        "gu-IN": "ઘરઆધારિત ડે કેર માટે ફી કેવી રીતે લેવી અને વાલીઓને કેવી રીતે શોધવા"
+      },
+      "must_land": true
     }
   ],
   "steps": [
     {
       "step_index": 0,
-      "concept_id": "c-cleanliness-and-health",
-      "teaching_notes": "Explain that very small babies (newborn to around 3 months) need gentle, clean handling. Ground it in the transcript ideas: hospital checks in first 24 hours, jaundice watch, breastmilk only, no water, careful with formula if prescribed. But keep it simple and spoken.\n\nKey points to convey:\n- Before touching baby, wash hands with soap and clean water. Mention village context: after sweeping, cooking, bathroom, handling animals.\n- Baby’s skin is delicate: keep clothes clean, change if wet with urine or stool; avoid strong dettol-type solutions directly on skin.\n- Feeding: for first 6 months, only mother’s milk if possible. No cow milk, no water, no honey, no ghutti. If doctor has given tin milk, it must be given exactly as told, with clean bowl and spoon, never bottle (mention risk of infection from bottle and pipes).\n- Newborn sleeps a lot; still wake/offer feed every 2–3 hours, especially first days.\n- Mention jaundice (peelia): yellow eyes/skin in first days is common but must be watched. If baby becomes very yellow, very sleepy, not feeding, tell them to go to doctor/hospital quickly.\n- Emphasise: for any doubt—fever, not feeding, continuous crying, no urine—do not try home ‘nuskhe’, go to ASHA/doctor.\n\nWarnings to highlight:\n- Do NOT give newborn plain water, animal milk, honey, or ‘janam ghutti’ without doctor.\n- Do NOT put anything inside baby’s nose/ears to ‘clean’.\n- For learners planning daycare: if they ever keep a tiny baby for someone, they must follow whatever doctor/mother has said, and call mother quickly if baby seems unwell.",
+      "concept_id": "c-why-childcare-business",
+      "teaching_notes": "Goal: Help her emotionally see child care as dignified, needed, and fitting her life. Explain in simple spoken Hindi with some English words okay.\n\nKey points to convey:\n- Many parents now go to work or farm and need safe, loving place for their small children for few hours.\n- If she already likes children or is a mother, this skill can become paid work.\n- She can earn from home, stay near her own kids, no need for big shop.\n- It is also seva for community: parents feel tension‑free when child is safe.\n- Mention that in videos expert said demand is growing as working parents increase.\n\nWarn against:\n- Doing it only for money but not having patience with children. Stress that children feel everything; they need pyar and dhairya.\n- Taking too many children at once just for extra fees; quality falls.\n\nEmphasise:\n- With correct care and safety, this can be both financially and personally rewarding.\n- It is proper work, not ‘timepass’ babysitting.\nKeep it warm and encouraging, not pushy.",
       "caption": {
-        "en-IN": "Keeping the tiniest babies clean and healthy",
-        "hi-IN": "सबसे छोटे बच्चों की सफ़ाई और सेहत",
-        "gu-IN": "સૌથી નાનાં બાળકની સફાઈ અને તંદુરસ્તી"
+        "en-IN": "Seeing child care as real paid work",
+        "hi-IN": "चाइल्ड केयर को कमाई वाला असली काम मानना",
+        "gu-IN": "બાળ સંભાળને કમાણીવાળું સાચું કામ માનવું"
       },
       "image": null
     },
     {
       "step_index": 1,
-      "concept_id": "c-daily-routine-and-play",
-      "teaching_notes": "Introduce idea of routine using Japanese daycare example: children arrive, put things in one place, play, then craft, music, outside play, lunch, then rest. Translate to a simple home setting.\n\nWhat to convey:\n- Small children feel safe if the day has a pattern: same kind of order every day.\n- Simple home routine example (adjust to village life):\n  Morning: children arrive, keep bag/shoes in one place, wash hands, 10–15 minutes free play with safe toys.\n  Mid‑morning: one planned activity – e.g., clay/atta play, tearing and pasting paper, or drawing.\n  Later: songs and movement – simple action songs, clapping, marching.\n  Before/after lunch: quiet time – stories, looking at picture books.\n  Evening: outside play if space, or indoor running games in safe area.\n- Stress that all children should get some free play (they choose any toy) and some guided activity (you show them how, like Japanese craft time).\n- Mention giving small responsibilities as they grow: older kids can keep their own bag/shoes, help put toys back, help pour water carefully. This builds discipline and is valued by parents.\n\nWarnings:\n- Do not force children to sit still for long; they naturally move. Use short activities (5–15 minutes) and change.\n- Avoid harsh punishment if they don’t follow at once; instead, repeat calmly and use songs/claps to get attention.\n- Keep toys simple and safe: no sharp edges, no small beads for under‑3s.\n\nTie to earning: a good routine makes your home daycare look ‘professional’, like a real center; parents will trust you more and pay happily.",
+      "concept_id": "c-home-based-daycare-basics",
+      "teaching_notes": "Explain what “home‑based daycare” means in very simple terms.\n\nKey points:\n- It is looking after 2–5 children (not a huge crowd) in your own house during fixed hours.\n- Mention from first video: home‑based daycare is more intimate, like family, parents like that.\n- Because it is in her own house, costs are low: she already has a room, mat, fan.\n- She must still follow local rules: if in city sometimes government asks for registration/licence – mention at a high level: later modules will explain; for now, understand the idea.\n- She chooses age group: babies, toddlers, or 3‑5 year kids. Each age has different needs.\n\nWarn against:\n- Mixing too many age groups in one tiny room at start; harder to manage safely.\n- Running it very informally with no fixed timings or rules; that confuses parents.\n\nEmphasise:\n- Start small: maybe 2–3 known children for 3–4 hours daily.\n- Clean, simple, loving home can be stronger than fancy building.\n- She should inform family members and get their support; safety and calm atmosphere are important.",
       "caption": {
-        "en-IN": "Simple daily routine and play time",
-        "hi-IN": "सरल रोज़ की दिनचर्या और खेलने का समय",
-        "gu-IN": "સરળ દૈનિક રીત અને રમવાનો સમય"
+        "en-IN": "What is a small home daycare",
+        "hi-IN": "छोटा होम डेकेयर क्या होता है",
+        "gu-IN": "નાનકડું હોમ ડે કેર શું હોય છે"
       },
       "image": null
     },
     {
       "step_index": 2,
-      "concept_id": "c-mealtime-habits",
-      "teaching_notes": "Borrow from Japanese daycare: ritual around eating, everyone same food, hand washing, thanking, waiting together. Adapt to Indian rural home daycare.\n\nKey ideas:\n- Mealtime is not only filling stomach, it teaches manners and calm.\n- Steps before eating:\n  * Wash children’s hands with soap or ash and clean water.\n  * Sit them in one place on a mat or small stools.\n  * Quickly wipe the area.\n- Simple ‘eating start’ habit:\n  * You can teach them to join hands or just say together: “Chalo sab milke khaate hain” / “Chalo badha khaiye” depending on region. This makes them wait for everyone before starting.\n- For older kids: after everyone has food, then they start – like in Japanese daycare where older ones wait until everyone is served.\n- You also eat same food or similar in front of them when possible; this shows it is safe and builds trust.\n- Encourage children to taste all food, chew slowly, not throw food.\n\nWarnings and safety:\n- For children under 3, avoid hard nuts, big chunks; cut food small to avoid choking. Watch them while eating.\n- Never leave very small child alone with food.\n- Keep water in clean lota/bottle and train them to drink sitting, not running.\n\nTie to earning:\n- Tell learners: parents love hearing that their child washes hands before food and learns ‘good habits’. When you explain this to parents, they feel they are getting ‘school‑type’ care and may pay a little more or choose you over someone else.",
+      "concept_id": "c-modern-childcare-concept",
+      "teaching_notes": "Bring in the ‘modern’ idea from the nursing videos: child care is about full development, not only feeding and keeping alive.\n\nKey points:\n- Use the word “holistic development” but immediately explain in Hindi: शरीर, दिमाग, भावना, समाज – चारों तरह से बढ़ना.\n- From the transcript: physical (health, growth), emotional (feeling loved, safe), social (sharing, mixing with others), cognitive (soch, samajh, problem‑solving).\n- Modern child care also focuses on: play‑based learning; early childhood education; individual needs of each child; positive discipline (no beating, no shouting); nutrition; parent involvement; cultural respect.\n- Make it concrete: in her daycare, children should not only sit; they will sing, play, learn simple things through game.\n\nWarn against:\n- Old habits like ‘बस पेट भर दो, टीवी चालू कर दो’ as care – this is not enough.\n- Comparing children or calling them ‘slow/dumb’; every child has unique ability.\n\nEmphasise:\n- Parents nowadays prefer places where children learn and grow, not just get parked.\n- This “modern style” will help her stand out and justify fees.\nKeep language light and example‑based (e.g., counting seeds while playing).",
       "caption": {
-        "en-IN": "Teaching small children to eat safely and nicely",
-        "hi-IN": "छोटे बच्चों को सुरक्षित और अच्छे से खिलाना",
-        "gu-IN": "નાનાં બાળકોને સલામત અને સારી રીતે ખવડાવવું"
+        "en-IN": "Modern child care means full child growth",
+        "hi-IN": "आधुनिक चाइल्ड केयर मतलब बच्चे का पूरा विकास",
+        "gu-IN": "આધુનિક ચાઇલ્ડ કેર એટલે બાળકનો સર્વાંગી વિકાસ"
       },
       "image": null
     },
     {
       "step_index": 3,
-      "concept_id": "c-safe-home-daycare-setup",
-      "teaching_notes": "Now shift to environment: how to set up one safe corner/room in learner’s own house as a mini daycare, inspired by Japanese centers: shoe area, child‑sized toilet/basin ideas, one place for bags.\n\nPoints to convey:\n- Choose one main room or corner with good light and air, where you can see children easily.\n- Floor: keep swept, free of small items (coins, pins, beads). If mud floor, you can still keep one clean mat or dari as ‘play area’.\n- Shoes: like Japanese remove‑shoes practice: keep outside shoes near door; inside, children can be barefoot or in clean chappals. This keeps floor cleaner for crawling babies.\n- One fixed place (a charpai, shelf, or bags hung on nails) for children’s bags, bottles, extra clothes – teach older ones to keep their own things there.\n- Toileting: you may not have child‑sized toilets, but you can:\n  * Keep one clean potty or small balti for toddlers.\n  * Keep separate chappals for going near bathroom area.\n  * Teach hand‑washing after toilet every time.\n- Keep unsafe things locked or high: kerosene, phenyl, medicines, knives, matchbox.\n\nSafety warnings:\n- No open buckets of water where a toddler could fall; keep buckets covered or out of the play area.\n- No loose electric wires within reach.\n- If you take children outside (like Japanese kids going to park), always hold hands or have them walk in a line, and use bright dupatta/cloth on you so they can see you.\n\nEmphasise: a simple but clean, organised corner makes parents think “ye toh proper jagah hai”, even if it is in a hut or small room.",
+      "concept_id": "c-safe-fun-environment",
+      "teaching_notes": "Now zoom into how to make her home space safe and fun, as in the daycare business video and modern concepts.\n\nKey safety points:\n- From video: place must be safe, secure, spacious, clean.\n- Remove sharp items, open buckets of water, kerosene, matchbox, loose electric wires from children’s reach.\n- Floor: keep dry to avoid slips; if possible use mats where children sit.\n- Separate area for children, so they don’t run into kitchen/animals/road.\n- Know emergency basics: what to do if a child falls, has fever; keep local doctor number handy.\n\nFun and learning points:\n- Keep some age‑appropriate toys: simple things like balls, stacking cups, picture books, safe household objects for play.\n- Use play‑based learning: songs, clapping games, sorting grains by size or colour, pretend play.\n- Have a simple daily routine: free play, snack, story, quiet time; this gives children security.\n\nWarn against:\n- Overcrowding one small room with too many children.\n- Keeping children sitting still for long with no activity; they will get cranky and misbehave.\n\nEmphasise:\n- Safe + fun together makes parents trust her.\n- All staff/older helpers in house should know basic safety rules – no leaving kids alone, no locking room, etc.",
       "caption": {
-        "en-IN": "Making a safe children’s corner at home",
-        "hi-IN": "घर में बच्चों के लिए सुरक्षित कोना बनाना",
-        "gu-IN": "ઘરે બાળકો માટે સુરક્ષિત ખૂણો બનાવવો"
+        "en-IN": "Creating a safe and happy play area",
+        "hi-IN": "सुरक्षित और खुश खेलने की जगह बनाना",
+        "gu-IN": "સુરક્ષિત અને ખુશાલ રમવાનો ખૂણો બનાવવો"
       },
       "image": null
     },
     {
       "step_index": 4,
-      "concept_id": "c-parent-communication",
-      "teaching_notes": "Introduce the idea from Japanese childcare diary (ikkuji nikki) – daily messages between parents and teachers – but adapt for low‑literacy setting.\n\nKey points:\n- Parents feel relaxed when they know what their child did: ate, slept, played, any problem.\n- In Japan they use a written diary; here, learner and parents may not read, so use spoken and simple marks.\n\nPractical methods:\n- At pickup time, take 1–2 minutes per parent to say:\n  * “Aaj baccha kitne baje aaya, kya khela, kitna khana khaya, susu‑potty theek, soya ya nahi.”\n- If learner has someone at home who can write, they can keep a simple notebook with symbols: sun mark for good eating, cloud for problem, etc.\n- Encourage learner to also listen: ask parents in morning, “Kya raat ko bacha thik tha? Koi dawai chal rahi hai?” so she can be careful.\n\nWarnings:\n- Do not hide important things like child falling, fever, or fights; always tell parents calmly and honestly.\n- Do not discuss one child’s problems in front of other parents; respect.\n\nTie to earning:\n- Good communication builds trust. Such parents will tell others, bringing more children and sometimes advance payment.",
+      "concept_id": "c-basic-baby-care-first-days",
+      "teaching_notes": "Bring in important newborn care ideas, because some women may get tiny babies in their care or start from their own baby.\n\nKey points from newborn video:\n- First days baby mostly feeds and sleeps; still needs feeding every 2 hours, even if sleepy.\n- Mother’s milk is ‘amrit’ – no need to give water, honey, ghutti, or cow milk without doctor advice.\n- Mention meconium (first blackish stool) and first urine should pass within first 24 hours; this is for awareness when it’s her own baby or if parent asks – but don’t get too technical.\n- Newborn often loses some weight in first days; small loss is normal; by about 1 month, baby usually gains again.\n- Mild jaundice (piliya) is common; hospitals usually check. But if baby looks very yellow, feeds poorly, or is too sleepy, tell parents to see doctor quickly.\n\nWarn against:\n- Giving bottle with water or cow milk early; risk of infection.\n- Ignoring very yellow eyes/skin or baby not passing urine/stool.\n\nEmphasise:\n- For very small babies, always follow doctor’s and mother’s instructions; daycare for tiny newborns is more delicate, so better to start with slightly older babies unless she has good support.\nKeep it short and practical, not like a nursing lecture.",
       "caption": {
-        "en-IN": "Sharing child updates with parents",
-        "hi-IN": "माता‑पिता को बच्चे की खबर देना",
-        "gu-IN": "માતા‑પિતાને બાળકની ખબર આપવી"
+        "en-IN": "Caring for very small babies safely",
+        "hi-IN": "बहुत छोटे बच्चों की सुरक्षित देखभाल",
+        "gu-IN": "ખૂબ નાનાં બાળકોની સુરક્ષિત સંભાળ"
       },
       "image": null
     },
     {
       "step_index": 5,
-      "concept_id": "c-basic-daycare-business",
-      "teaching_notes": "Teach how to turn this care work into income, drawing on the business‑video ideas: why start, types (home‑based), license concept simplified, planning, marketing.\n\nExplain in simple spoken way:\n- Reason: many mothers now work in fields, factories, houses; they need safe place for children in day. Learner can earn while being at home with her own kids.\n- Type: home‑based daycare from her own house is cheapest to start.\n- Local rules: in villages/small towns, for 2–4 children she usually won’t need big license, but if she wants many kids or lives in city, she should ask anganwadi worker/ward member about any rule. Emphasise not to hide from local leaders; better to inform.\n\nPlanning basics:\n- Decide age group first: maybe 1.5–5 years is easiest (no tiny newborn or big school kids at start).\n- Decide timing: for example, 9 am–1 pm, or full day 9–5. Short timing is easier at start.\n- Decide monthly fee: give ranges in earning section; here say, “thoda kam rakho shuru mein, phir dheere badha sakti ho.”\n- Think about food: Will she give snack/lunch or parents will send tiffin? Price will change accordingly.\n\nMarketing (getting first children):\n- Start with neighbours, relatives, women from self‑help group, people at temple/masjid/church. Tell them clearly what you offer: routine, play, hand‑washing, safe place.\n- Make simple ‘rules’ and say them: timing, fees date, what parents must send (extra clothes, bottle, any medicine).\n\nWarnings:\n- Do not take more children than you can watch safely. Alone, 3–5 small kids is usually max; more needs helper.\n- Money: decide monthly fee and stick to it; take part payment in advance if possible.\n- Keep one simple notebook for money in and out; even if she cannot write, someone in family can help mark.\n\nEnd by encouraging her: she already cares for her own children – with these extra steps she can run a small, respected home daycare.",
+      "concept_id": "c-modern-childcare-concept",
+      "teaching_notes": "Deepen the modern ideas with concrete daily actions she can imagine doing in her daycare.\n\nFocus on 3–4 aspects:\n1) Play‑based learning:\n- Explain with examples: counting steps while climbing; naming colours while folding clothes; sorting pulses; simple puzzles from household items.\n2) Individual attention:\n- Each child different: one talks a lot, one is quiet; one loves drawing, one loves running. She should notice this and give suitable small tasks.\n3) Positive discipline:\n- From transcript: promote self‑regulation, empathy, mutual respect.\n- In simple words: explain rules calmly, repeat, praise good behaviour, ignore some small mischief, never hit or insult.\n4) Parent involvement:\n- Talk daily 2–3 minutes with parents: what child ate, played, any new word or problem.\n\nWarn against:\n- Forcing all children to do same thing at same speed; scolding slow ones.\n- Using fear (“police bulvaungi”) or shame.\n\nEmphasise:\n- This style builds strong bond with children and parents and becomes her ‘speciality’ in the village.\nUse everyday examples, not theory words.",
       "caption": {
-        "en-IN": "Starting to earn from home daycare",
-        "hi-IN": "होम डे-केयर से कमाई शुरू करना",
-        "gu-IN": "હોમ ડે-કેરથી કમાણી શરૂ કરવી"
+        "en-IN": "Using play and gentle discipline every day",
+        "hi-IN": "रोज़ाना खेल और प्यार भरी अनुशासन से सिखाना",
+        "gu-IN": "રોજ રમતાં રમતાં અને સ્નેહથી શિસ્ત શીખવવી"
+      },
+      "image": null
+    },
+    {
+      "step_index": 6,
+      "concept_id": "c-home-based-daycare-basics",
+      "teaching_notes": "Now move to simple planning so it feels like a real small business plan, as in the daycare business video.\n\nKey points:\n- Decide timings: e.g., 9am–1pm or 10am–4pm, so parents know clearly.\n- Decide maximum number of children according to space: simple thumb rule you can say: if only one small room, start with 2–3 kids; if two rooms and safe verandah, maybe 4–6.\n- Decide age group: for beginners, 1.5–5 years may be easier than very tiny babies.\n- Think of simple daily schedule: arrival, free play, snack, learning/play activity, rest/quiet time, going home.\n- Make a list of basic things needed: mats, clean drinking water, soap, few toys, small first‑aid box, notebook to note fee and child details.\n\nWarn against:\n- Starting without any plan: parents drop children at any time, pick at any time – this creates stress.\n- Promising things she cannot do (for example, ‘I will teach English fully’ when she herself is not confident).\n\nEmphasise:\n- Writing or at least mentally fixing these points makes her sound professional when she talks to parents.\n- She can adjust later as she learns; plan is not fixed forever.",
+      "caption": {
+        "en-IN": "Planning timing, age group and daily routine",
+        "hi-IN": "समय, उम्र और रोज़ का रूटीन तय करना",
+        "gu-IN": "સમય, ઉંમર અને રોજની રૂટિન નક્કી કરવી"
+      },
+      "image": null
+    },
+    {
+      "step_index": 7,
+      "concept_id": "c-safe-fun-environment",
+      "teaching_notes": "Add a short beat about health, cleanliness and nutrition support in daycare, drawing from modern child care points.\n\nKey points:\n- Hand‑washing: before eating, after toilet. Show children how, and keep soap and clean water ready.\n- Toilet: if using potty or toilet, keep it clean; if open area in village, she must supervise and ensure children wash hands.\n- Food: decide whether she or parents will send snacks. Either way, encourage simple nutritious snacks: roti with sabzi, daliya, khichdi, seasonal fruit. Avoid giving only packaged chips and biscuits.\n- Rest: small children need short rest; have a clean mat where they can lie down.\n\nWarn against:\n- Giving leftover spoiled food; sharing one glass among many without washing.\n- Forcing a child to finish big quantity; better to offer small and repeat.\n\nEmphasise:\n- Modern child care includes promotive and preventive health: keeping children from getting sick through cleanliness and good food.\n\nKeep it grounded: nothing fancy like expensive toys or imported food – use local, affordable options.",
+      "caption": {
+        "en-IN": "Cleanliness, food and rest in your daycare",
+        "hi-IN": "डेकेयर में सफ़ाई, खाना और आराम",
+        "gu-IN": "ડે કેરમાં સફાઈ, ખોરાક અને આરામ"
+      },
+      "image": null
+    },
+    {
+      "step_index": 8,
+      "concept_id": "c-earning-from-daycare",
+      "teaching_notes": "Now directly talk about money and customers, very practically.\n\nKey points on what she can offer for pay:\n- Basic home daycare (3–6 hours care) for 2–6 children.\n- Optional: slightly higher fee if she includes early learning activities (rhymes, counting, drawing) as modern child care.\n\nPricing guidance (for mentor only, speak as ranges, adjust to local city/village):\n- In small town/village: maybe ₹500–₹1,000 per child per month for 2–3 hours daily; ₹1,000–₹2,000 per child per month for half‑day (4–6 hours).\n- Explain that fees depend on: area income level, hours, whether food is included, how many days a week.\n\nHow to find first parents:\n- Start with neighbours, relatives, women going for field work, factory, or house‑work.\n- Tell them clearly: timings, fees, what you will do (safe place, play, basic teaching), what you will NOT do (no night stay, no sick child with fever).\n- She can make a simple word‑of‑mouth ‘announcement’: tell women at anganwadi, self‑help group meeting, temple/mosque gatherings, local shop.\n- Offer small starting offer: e.g., first month slightly lower fee or one week trial.\n\nWarn against:\n- Giving free service for long ‘as favour’; it becomes habit and hard to convert to paid.\n- Promising too low fee; then she gets tired and feels it’s not worth it.\n- Taking money without noting it; maintain simple record (with help of family if she cannot write).\n\nEmphasise:\n- It is okay to talk openly about fee; her time and care have value.\n- Slowly she can increase fees as quality and demand rise.\nKeep tone confident and respectful; no shame in charging.",
+      "caption": {
+        "en-IN": "Starting to charge fees and get parents",
+        "hi-IN": "फीस लेना और माता‑पिता जोड़ना शुरू करना",
+        "gu-IN": "ફી લેવી અને વાલીઓને જોડવા શરૂઆત કરવી"
+      },
+      "image": null
+    },
+    {
+      "step_index": 9,
+      "concept_id": "c-earning-from-daycare",
+      "teaching_notes": "Add one more earning‑focused beat on staying professional and keeping trust so income continues.\n\nKey points:\n- Be reliable: open and close on time. If someday she must close, inform parents early.\n- Keep children clean when they go home; tell parents if any small injury or issue honestly.\n- Have simple rules written or at least clearly spoken: payment date (e.g., first week of month), what happens if child is absent, timing.\n- Build relationship: from modern concept, communicate, answer parent questions in simple local language, respect parent’s choices where safe.\n\nWarn against:\n- Hiding problems (e.g., a fall) from parents; this breaks trust and can finish business.\n- Shouting at parents or discussing money in front of children angrily.\n\nEmphasise:\n- Her good behaviour, clear talk, and safe, loving care are her ‘marketing’. Parents will tell others and she will get more children.\n- Over time, she can join a self‑help group or local women’s group to talk about her daycare and maybe take small loan to improve space if needed.\nKeep it encouraging; paint picture of stable, small but steady monthly earning.",
+      "caption": {
+        "en-IN": "Keeping parents’ trust so income grows",
+        "hi-IN": "माता‑पिता का भरोसा रखकर कमाई बढ़ाना",
+        "gu-IN": "વાલીનો વિશ્વાસ રાખીને કમાણી વધારવી"
       },
       "image": null
     }
   ],
   "common_mistakes": [
-    "Giving newborns water, honey, cow/buffalo milk, or herbal ghutti instead of only breastmilk in the first months.",
-    "Using feeding bottles that are not properly sterilised, leading to frequent diarrhoea.",
-    "Letting toddlers walk around or play while eating, which increases choking risk.",
-    "Keeping knives, kerosene, phenyl, medicines, or open water buckets in the same area where children play.",
-    "Accepting more children than one adult can safely watch, just to earn a little extra.",
-    "Not telling parents when a child gets hurt, fights, or seems ill, which breaks trust.",
-    "Having no fixed timing or fees and changing rules often, which confuses parents and creates arguments.",
-    "Forgetting hand‑washing before food and after toilet, causing more sickness among children."
+    "Thinking babysitting is just keeping child alive and fed, not realising parents now expect learning, cleanliness and emotional care too.",
+    "Taking too many children in a very small unsafe space just to increase fees, which raises risk of injury and complaints.",
+    "Running daycare with no fixed timing or rules, leading to confusion for parents and burnout for herself.",
+    "Using harsh punishment like hitting, shouting or shaming, which can scare children and make parents pull them out.",
+    "Giving newborns water, honey, ghutti or cow milk without doctor’s advice, instead of focusing on mother’s milk.",
+    "Agreeing to look after sick children with fever or diarrhoea along with healthy ones, increasing infection risk for all.",
+    "Promising very low fees to attract parents, then finding the work is not worth the time and quitting quickly.",
+    "Not communicating clearly with parents about small problems, money, or child behaviour, which slowly breaks trust."
   ],
   "earning": {
     "products": [
-      "Half‑day home daycare for 2–5 children (for example 9am–1pm)",
-      "Full‑day home daycare with simple lunch included",
-      "After‑school care for school‑going children (homework help, safe play)",
-      "Occasional hourly care on market day, festivals, or when parents go for labour work"
+      "Home-based daycare for 2–6 children for 3–6 hours daily, focusing on safe care, play and routine.",
+      "‘Learning with play’ batch for 3–5 year olds for 1–2 hours: rhymes, counting, drawing and social skills in small group.",
+      "Special baby care slot for 1–2 slightly older infants (6–18 months) during farm or market hours, following mother’s feeding routine.",
+      "After-school safe care for 1–3 school‑going children for a couple of hours: homework support and supervised play."
     ],
-    "pricing_notes": "Give the mentor guidance so she can speak flexibly, not quote as fixed rates.\n\nIn many rural and small‑town areas of North/West India:\n- Half‑day home daycare (3–4 hours, no food) can be around ₹400–800 per child per month, depending on village vs small town, and what activities she offers. Very low‑income villages may be ₹300–500.\n- Full‑day daycare (6–8 hours, with at least one simple meal like dal‑chawal or khichdi) can be around ₹800–1500 per child per month. Costs depend on food prices in that area; explain that if dal, rice, milk are costly, she should keep fee on higher side.\n- After‑school care (2–3 hours, maybe light snack) might be ₹300–600 per month, as children are older and partly independent.\n- Occasional/hourly care on market day or festival: around ₹20–40 per hour, or ₹60–100 for half‑day, paid same day in cash.\n\nStress to the mentor:\n- Say clearly that rates change by village, state, and local earning level. Encourage learner to ask 2–3 other women (anganwadi worker, tailoring aunty, tuition teacher) what parents can afford.\n- She can start at the lower end to attract first 1–2 families; once they are happy and talk to others, she can very slowly increase or keep slightly higher rate for new children.\n- Food is the biggest extra cost; if parents send their own food, fee can be lower.\n- Remind her to avoid promising more (like fancy toys, daily eggs) than the fee really covers; better to keep it simple and regular.",
-    "customer_notes": "Explain who the likely customers are:\n- Neighbouring mothers who go for daily wage labour (fields, construction, brick kiln).\n- Women working as housemaids, cooks, or factory workers who leave home early.\n- Shopkeepers’ or street vendors’ families who sit at shop all day.\n- Government or NGO staff in the area may ask sometimes for safe place for their child during trainings.\n\nHow she can find her first customers:\n- Start by talking to women she already knows: neighbours, relatives in the same village, women in self‑help group (SHG), parents at anganwadi, other mothers at school gate.\n- She can ask the anganwadi worker or ASHA didi to mention her service to mothers who are struggling with childcare.\n- Visit 4–5 nearby houses personally in the evening and explain politely: timings, what she will do with children (play, stories, hand‑washing, simple food), and her monthly fee.\n- She can request one satisfied parent to introduce her to another, saying, “Agar pasand aaye to kisi aur ko bhi bata dena.”\n\nPlaces/channels to grow:\n- Local kirana shop: sometimes the owner will tell customers if he knows she is trustworthy.\n- Temple/masjid/gurudwara/church gatherings: women talk and share such information.\n- Village melas, haats, or SHG meetings: she can mention that she keeps children safely on market days, by the hour.\n\nRemind the mentor to emphasise:\n- Trust and safety are more important than very low price. If she keeps children clean, safe, and talks nicely with parents, they will naturally send more children and even pay a bit more or on time.\n- Word‑of‑mouth is strongest in villages; ask happy parents politely to share her name with others."
+    "pricing_notes": "Explain in spoken form that exact fees change by village/town and family income. Give ballpark:\n- In rural/low‑income areas: ₹500–₹1,000 per child per month for 2–3 hours daily, 5–6 days a week.\n- For half‑day care (4–6 hours): ₹1,000–₹2,000 per child per month.\n- If she also gives regular nutritious snacks/meal or more structured teaching, she can be at the higher end of the range.\n- After‑school 1–2 hour care can be similar to short‑hour daycare.\n\nAsk her to also notice local anganwadi/creche or other ladies’ fees to adjust. Stress that too‑low fees make her tired and business weak; too‑high without quality makes parents unhappy. Encourage starting mid‑range with clear explanation of what she offers, then revising after a few months if there is good demand.",
+    "customer_notes": "Typical customers:\n- Neighbouring mothers working in fields, construction, house‑work or small shops.\n- Young couples in town jobs who live as nuclear families without grandparents at home.\n- Families who need temporary care during wedding seasons, market days, or harvest.\n\nHow she can find them:\n- Talk to women at anganwadi, temple/masjid, SHG meetings, ration shop queue, or school gate. Describe simply: timings, age group, fees, and what children will do in her daycare.\n- Ask existing parents, sisters, neighbours to tell their relatives; word of mouth is strongest in villages.\n- Make a simple hand‑written notice with help from someone literate and place at kirana shop, anganwadi or panchayat office, but since she and many cannot read, main focus remains spoken spreading.\n- Join or form a self‑help group: there she can share about her daycare, get small loans later to buy mats/toys, and also gain trust because other women know her.\n\nFirst customers usually come from people who already know her character: neighbours, relatives, friends from SHG or local groups. Encourage her to give extra care and clarity to these first children; if these parents are happy, they will naturally promote her, bringing more steady income."
   },
   "source_video_ids": [
-    "1qRfqboYWNo",
     "6um1znVbFsc",
-    "H4Fh7R8HvnI",
-    "pPTIASJWV3E"
+    "Il8Oyu1VrYk",
+    "Mi7RoTpjFPw",
+    "H4Fh7R8HvnI"
   ],
   "trusted": true
 }

@@ -48,6 +48,17 @@ class TeachIntent(BaseModel):
 
 def _step_ui(package: store.SkillPackage, steps: list[store.MicroStep], index: int, language: str) -> dict:
     step = steps[index]
+    # A real tutorial clip beats a caption-only card (plan v2: video first,
+    # diagram fallback) -- offer the store's clip when the step has no image.
+    if not step.image:
+        aids = package.aids_for_concept(step.concept_id, language)
+        video = next((a for a in aids if a.kind == "video"), None)
+        if video:
+            return {
+                "type": "show_video",
+                "url": video.url_or_path,
+                "caption": store.pick_language(step.caption, language),
+            }
     return {
         "type": "show_lesson_step",
         "lesson_id": package.skill_id,
