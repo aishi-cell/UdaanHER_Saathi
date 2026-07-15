@@ -29,7 +29,10 @@ export function Landing({ connecting, onStart }: Props) {
   return (
     <motion.div
       key="hero"
-      className="flex h-full flex-col items-center justify-center gap-8 px-6 py-10 text-center"
+      // safe center: centered on tall screens, top-aligned + scrollable on
+      // short ones -- plain justify-center clips the logo off-screen
+      // (user report: "can't see the whole thing").
+      className="flex min-h-full flex-col items-center gap-8 px-6 py-10 text-center [justify-content:safe_center]"
       variants={container}
       initial="hidden"
       animate="show"

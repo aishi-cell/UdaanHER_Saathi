@@ -269,7 +269,7 @@ function App() {
         {view === 'landing' ? (
           <motion.div
             key="landing"
-            className="h-full"
+            className="h-full overflow-y-auto"
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.35 }}
           >
