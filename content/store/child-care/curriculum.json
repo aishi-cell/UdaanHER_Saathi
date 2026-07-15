@@ -5,7 +5,7 @@
     "hi-IN": "घर से पैसे कमाने वाली बच्चों की देखभाल – शुरुआत और कमाई",
     "gu-IN": "ઘરેથી કમાણી કરતી બાળક સંભાળ – શરૂઆત અને કમાણી"
   },
-  "card_image": null,
+  "card_image": "assets/skill_child-care.svg",
   "concepts": [
     {
       "concept_id": "c-why-childcare-business",

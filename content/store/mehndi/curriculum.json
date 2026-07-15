@@ -5,7 +5,7 @@
     "hi-IN": "मेहंदी",
     "gu-IN": "મહેંદી"
   },
-  "card_image": null,
+  "card_image": "assets/skill_mehndi.svg",
   "concepts": [
     {
       "concept_id": "c-cone-control",

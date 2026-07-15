@@ -308,7 +308,7 @@ def skill_cards(language: str) -> list[dict]:
             {
                 "id": skill_id,
                 "label": pick_language(curriculum.title, language),
-                "image": curriculum.card_image or "assets/skill_generic.png",
+                "image": curriculum.card_image or "assets/skill_generic.svg",
             }
         )
     return cards

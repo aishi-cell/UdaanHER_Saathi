@@ -5,7 +5,7 @@
     "hi-IN": "अचार बनाना",
     "gu-IN": "અથાણું બનાવવું"
   },
-  "card_image": null,
+  "card_image": "assets/skill_pickle-making.svg",
   "concepts": [
     {
       "concept_id": "c-dryness-rule",
