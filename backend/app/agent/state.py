@@ -9,6 +9,7 @@ Stage = Literal[
     "teach",
     "viva",
     "reteach",
+    "practice",
     "earn",
     "wrapup",
     "close",

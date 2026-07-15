@@ -19,6 +19,7 @@ from app.middleware import RequestLogMiddleware
 from app.models import db as db_repo
 from app.models.api import LatencyMs, SessionRequest, SessionResponse, TurnResponse
 from app.models.ui import ProgressPayload, UICommand
+from app.services.llm import describe_practice_photo
 from app.services.stt import SttError, transcribe
 from app.services.timing import timed
 from app.services.tts import TtsError, synthesize
@@ -129,11 +130,15 @@ async def post_turn(
     session_id: str = Form(...),
     audio: UploadFile | None = File(None),
     tapped_option_id: str | None = Form(None),
+    photo: UploadFile | None = File(None),
 ) -> TurnResponse:
-    if audio is None and tapped_option_id is None:
-        raise ApiError(400, "missing_input", "Provide either audio or tapped_option_id.")
-    if audio is not None and tapped_option_id is not None:
-        raise ApiError(400, "ambiguous_input", "Provide only one of audio or tapped_option_id.")
+    provided = [x for x in (audio, tapped_option_id, photo) if x is not None]
+    if not provided:
+        raise ApiError(400, "missing_input", "Provide audio, tapped_option_id, or photo.")
+    if len(provided) > 1:
+        raise ApiError(
+            400, "ambiguous_input", "Provide only one of audio, tapped_option_id, or photo."
+        )
 
     graph = request.app.state.agent_graph
     config = {"configurable": {"thread_id": session_id}}
@@ -174,11 +179,26 @@ async def post_turn(
             )
             raise ApiError(502, "stt_failed", exc.message) from exc
         transcript = stt_result.transcript
+    elif photo is not None:
+        # Practice review: the vision model turns the photo into neutral
+        # observations; the practice node does the pedagogy. Billed to the
+        # stt latency slot (it is the input-understanding step of the turn).
+        photo_bytes = await photo.read()
+        try:
+            observations, stt_ms = await timed(
+                describe_practice_photo(photo_bytes, photo.content_type or "image/jpeg")
+            )
+        except Exception as exc:  # vision failures degrade warmly, not 500
+            logger.error("photo review failed: %s", exc)
+            raise ApiError(502, "photo_failed", "Could not look at the photo just now.") from exc
+        transcript = None
+        agent_input = f"[photo] {observations}"
     else:
         transcript = None
         stt_ms = 0
 
-    agent_input = transcript if transcript else (tapped_option_id or "")
+    if photo is None:
+        agent_input = transcript if transcript else (tapped_option_id or "")
 
     result_state, agent_ms = await timed(
         graph.ainvoke({"transcript": agent_input}, config=config)

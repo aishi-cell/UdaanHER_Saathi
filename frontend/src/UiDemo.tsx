@@ -38,6 +38,10 @@ const DEMO_COMMANDS: UICommand[] = [
     caption: 'Keep the tape snug, not tight.',
   },
   {
+    type: 'request_photo',
+    prompt: 'Apni silai ki photo dikhaiye — ya bolkar bataiye.',
+  },
+  {
     type: 'show_video',
     url: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
     caption: 'How to thread a needle',
@@ -83,7 +87,7 @@ export function UiDemo() {
         {current.type === 'idle' ? (
           <p className="text-2xl font-medium text-muted-foreground">idle (empty screen)</p>
         ) : (
-          <Renderer ui={current} onTapOption={(id) => console.log('tapped', id)} />
+          <Renderer ui={current} onTapOption={(id) => console.log('tapped', id)} onPhoto={(f) => console.log('photo', f.name)} />
         )}
       </main>
       <footer className="flex flex-col items-center gap-3 pb-8">

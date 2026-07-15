@@ -24,3 +24,34 @@ def get_chat_model(temperature: float = 0.7) -> ChatOpenAI:
     """
     settings = get_settings()
     return _cached_chat_model(settings.openai_model, settings.openai_api_key, temperature)
+
+
+async def describe_practice_photo(image_bytes: bytes, mime_type: str) -> str:
+    """Vision pass for practice review: neutral, concrete observations that
+    the practice node then turns into warm pedagogy. Kept separate so the
+    node never sees raw pixels and the vision prompt never does teaching."""
+    import base64
+
+    data_uri = f"data:{mime_type};base64,{base64.b64encode(image_bytes).decode()}"
+    llm = get_chat_model(temperature=0.2)
+    response = await llm.ainvoke(
+        [
+            {
+                "role": "system",
+                "content": (
+                    "You examine a photo of a learner's vocational practice work "
+                    "(stitch lines, mehndi on a hand or paper, a pickle jar setup, "
+                    "measurements being taken, etc.). Describe concretely and "
+                    "neutrally in English what is visible and any quality cues -- "
+                    "line steadiness, spacing, symmetry, tension, cleanliness, "
+                    "setup. 3-5 short bullet points. Purely observational: no "
+                    "judgement words like bad, wrong, poor."
+                ),
+            },
+            {
+                "role": "user",
+                "content": [{"type": "image_url", "image_url": {"url": data_uri}}],
+            },
+        ]
+    )
+    return str(response.content).strip()

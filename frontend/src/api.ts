@@ -78,13 +78,15 @@ export interface TurnResponse {
   latency_ms: { stt: number; agent: number; tts: number };
 }
 
-export type TurnInput = { audioBlob: Blob } | { tappedOptionId: string };
+export type TurnInput = { audioBlob: Blob } | { tappedOptionId: string } | { photoBlob: Blob };
 
 export async function postTurn(sessionId: string, input: TurnInput): Promise<TurnResponse> {
   const formData = new FormData();
   formData.append('session_id', sessionId);
   if ('audioBlob' in input) {
     formData.append('audio', input.audioBlob, 'clip.webm');
+  } else if ('photoBlob' in input) {
+    formData.append('photo', input.photoBlob, 'practice.jpg');
   } else {
     formData.append('tapped_option_id', input.tappedOptionId);
   }

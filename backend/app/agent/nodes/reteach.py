@@ -161,7 +161,7 @@ async def _next_or_earn(state: AgentState, package: store.SkillPackage, *, lead:
         instruction=EARN_TRANSITION_INSTRUCTION.format(lead=lead),
         transcript=state["transcript"],
     )
-    return {"stage": "earn", "stage_step": 0, "reply_text": reply, "ui": {"type": "idle"}}
+    return {"stage": "practice", "stage_step": 0, "reply_text": reply, "ui": {"type": "idle"}}
 
 
 async def run(state: AgentState) -> dict:

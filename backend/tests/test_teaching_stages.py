@@ -249,7 +249,7 @@ async def test_viva_all_strong_routes_to_earn_and_writes_mastery():
     ):
         result = await viva.run(state)
 
-    assert result["stage"] == "earn"
+    assert result["stage"] == "practice"
     assert result["viva"]["grades"] == {"c-grain": "strong"}
     progress = db.get_progress(learner.id)
     grain = next(c for c in progress["concepts"] if c["concept_id"] == "c-grain")
@@ -352,7 +352,7 @@ async def test_reteach_cap_moves_on_to_earn_never_a_third_drill():
     with patch("app.agent.nodes.reteach.ask_conversational", new=AsyncMock(return_value="ok")):
         result = await reteach.run(state)
 
-    assert result["stage"] == "earn"
+    assert result["stage"] == "practice"
 
 
 @pytest.mark.asyncio
@@ -377,7 +377,7 @@ async def test_reteach_strong_recheck_moves_on():
     ):
         result = await reteach.run(state)
 
-    assert result["stage"] == "earn"
+    assert result["stage"] == "practice"
     assert result["viva"]["grades"]["c-grain"] == "strong"
 
 
@@ -480,3 +480,50 @@ async def test_viva_never_writes_mastery_when_consent_declined():
         await viva.run(state)
 
     mock_upsert.assert_not_called()
+
+
+# --- practice (photo review) -------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_practice_step0_sets_task_with_camera():
+    from app.agent.nodes import practice
+
+    state = make_state(stage="practice", stage_step=0)
+    with patch(
+        "app.agent.nodes.practice.ask_conversational", new=AsyncMock(return_value="Ek kaam kijiye")
+    ):
+        result = await practice.run(state)
+
+    assert result["stage"] == "practice"
+    assert result["stage_step"] == 1
+    assert result["ui"]["type"] == "request_photo"
+
+
+@pytest.mark.asyncio
+async def test_practice_photo_reviewed_then_earn():
+    from app.agent.nodes import practice
+
+    state = make_state(
+        stage="practice", stage_step=1, transcript="[photo] straight stitch lines, even spacing"
+    )
+    with patch(
+        "app.agent.nodes.practice.ask_conversational", new=AsyncMock(return_value="Bahut sundar!")
+    ) as mock_ask:
+        result = await practice.run(state)
+
+    assert result["stage"] == "earn"
+    assert "even spacing" in mock_ask.call_args.kwargs["instruction"]
+
+
+@pytest.mark.asyncio
+async def test_practice_voice_skip_also_reaches_earn():
+    from app.agent.nodes import practice
+
+    state = make_state(stage="practice", stage_step=1, transcript="abhi nahi, baad mein karungi")
+    with patch(
+        "app.agent.nodes.practice.ask_conversational", new=AsyncMock(return_value="Koi baat nahi")
+    ):
+        result = await practice.run(state)
+
+    assert result["stage"] == "earn"

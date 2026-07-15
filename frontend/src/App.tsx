@@ -222,6 +222,12 @@ function App() {
     await runTurn({ tappedOptionId: optionId });
   }
 
+  async function handlePhoto(file: File) {
+    if (busyRef.current) return;
+    if (talkState === 'listening') await discardListening();
+    await runTurn({ photoBlob: file });
+  }
+
   if (isUiDemo) {
     return <UiDemo />;
   }
@@ -299,7 +305,7 @@ function App() {
                       aria-label="Saathi, your mentor"
                     />
                   ) : (
-                    <Renderer ui={currentUi} onTapOption={handleTapOption} />
+                    <Renderer ui={currentUi} onTapOption={handleTapOption} onPhoto={handlePhoto} />
                   )}
                 </motion.div>
               </AnimatePresence>

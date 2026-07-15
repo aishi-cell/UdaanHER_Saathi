@@ -37,6 +37,14 @@ class ShowVideoCommand(BaseModel):
     caption: str
 
 
+class RequestPhotoCommand(BaseModel):
+    """Practice review (plan v2 addendum): ask her to photograph her
+    practice work; the camera button appears alongside the mic."""
+
+    type: Literal["request_photo"] = "request_photo"
+    prompt: str
+
+
 class LearnerProfile(BaseModel):
     name: str
     village: str
@@ -87,6 +95,7 @@ UICommand = Annotated[
         ShowVideoCommand,
         ShowProfileCardCommand,
         ShowProgressCommand,
+        RequestPhotoCommand,
     ],
     Field(discriminator="type"),
 ]

@@ -9,6 +9,11 @@ export interface IdleCommand {
   type: 'idle';
 }
 
+export interface RequestPhotoCommand {
+  type: 'request_photo';
+  prompt: string;
+}
+
 export interface ShowOptionsCommand {
   type: 'show_options';
   prompt: string;
@@ -78,4 +83,5 @@ export type UICommand =
   | ShowLessonStepCommand
   | ShowVideoCommand
   | ShowProfileCardCommand
-  | ShowProgressCommand;
+  | ShowProgressCommand
+  | RequestPhotoCommand;

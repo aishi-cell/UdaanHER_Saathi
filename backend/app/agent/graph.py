@@ -4,6 +4,7 @@ from langgraph.graph.state import CompiledStateGraph
 from app.agent.nodes import (
     assess,
     choose_language,
+    practice,
     close,
     confirm_profile,
     discover,
@@ -26,6 +27,7 @@ STAGE_NODES: dict[Stage, object] = {
     "teach": teach,
     "viva": viva,
     "reteach": reteach,
+    "practice": practice,
     "earn": earn,
     "wrapup": wrapup,
     "close": close,

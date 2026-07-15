@@ -112,7 +112,7 @@ async def _advance(
 
     # All path concepts graded: route in code, never by the LLM.
     shaky = [c for c in coverage if viva["grades"].get(c) == "shaky"]
-    next_stage = "reteach" if shaky else "earn"
+    next_stage = "reteach" if shaky else "practice"
     instruction = (
         (
             feedback_lead
