@@ -284,8 +284,8 @@ function App() {
             transition={{ duration: 0.4 }}
           >
             <header className="flex items-center justify-center pt-5">
-              <span className="text-lg font-bold tracking-tight text-brand-800">
-                Udaan <span className="text-blush-600">Her Saathi</span>
+              <span className="text-lg font-bold tracking-tight text-brand-600">
+                UdaanHER <span className="text-blush-600">Saathi</span>
               </span>
             </header>
 

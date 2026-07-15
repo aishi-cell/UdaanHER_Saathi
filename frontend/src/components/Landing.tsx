@@ -40,11 +40,11 @@ export function Landing({ connecting, onStart }: Props) {
       transition={{ duration: 0.25 }}
     >
       <motion.div variants={item} className="flex flex-col items-center gap-2">
-        <h1 className="flex items-center gap-2 text-5xl font-black tracking-tight text-brand-800">
-          Udaan
+        <h1 className="flex items-center gap-2 text-5xl font-black tracking-tight text-brand-600">
+          Udaan<span className="-ml-2">HER</span>
           <Bird className="size-9 -scale-x-100 text-blush-500" strokeWidth={2.2} />
         </h1>
-        <p className="text-2xl font-bold text-blush-600">Her Saathi</p>
+        <p className="text-2xl font-bold text-blush-600">Saathi</p>
       </motion.div>
 
       <motion.div variants={item}>
@@ -100,8 +100,8 @@ export function Landing({ connecting, onStart }: Props) {
         variants={item}
         className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
       >
-        Built for rural women. By women.
-        <Heart className="size-4 fill-blush-500 text-blush-500" />
+        सीखिए · बनाइए · कमाइए — Learn. Make. Earn.
+        <Heart className="size-4 fill-brand-500 text-brand-500" />
       </motion.p>
     </motion.div>
   );
