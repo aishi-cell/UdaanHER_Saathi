@@ -255,6 +255,22 @@ async def test_teach_marks_lesson_in_progress_for_consented_learner():
     assert any(entry["lesson_id"] == "tailoring" for entry in progress["lessons"])
 
 
+@pytest.mark.asyncio
+async def test_teach_entry_marks_started_skill_milestone():
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    state = make_state(stage="teach", stage_step=0, learner_id=learner.id, learning_path=["c-grain"])
+
+    with patch("app.agent.nodes.teach.ask_conversational", new=AsyncMock(return_value="ok")):
+        await teach.run(state)
+
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "started_skill" in milestones
+
+
 # --- viva: rubric questions, grading, code-computed routing ------------------
 
 
@@ -515,6 +531,23 @@ async def test_earn_two_beats_then_wrapup():
 
 
 @pytest.mark.asyncio
+async def test_earn_final_beat_marks_learned_pricing_milestone():
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    state = make_state(
+        stage="earn", stage_step=1, learner_id=learner.id, transcript="haan batao"
+    )
+    with patch("app.agent.nodes.earn.ask_conversational", new=AsyncMock(return_value="ok")):
+        await earn.run(state)
+
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "learned_pricing" in milestones
+
+
+@pytest.mark.asyncio
 async def test_wrapup_completes_lesson_when_path_must_land_all_strong():
     learner = db.create_learner(
         name="Sunita", village=None, language="hi-IN", pin="1234",
@@ -541,6 +574,8 @@ async def test_wrapup_completes_lesson_when_path_must_land_all_strong():
     progress = db.get_progress(learner.id)
     lesson = next(entry for entry in progress["lessons"] if entry["lesson_id"] == "tailoring")
     assert lesson["status"] == "done"
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "completed_skill" in milestones
 
 
 @pytest.mark.asyncio
@@ -565,6 +600,8 @@ async def test_wrapup_leaves_in_progress_when_a_must_land_is_shaky():
     progress = db.get_progress(learner.id)
     lesson = next(entry for entry in progress["lessons"] if entry["lesson_id"] == "tailoring")
     assert lesson["status"] == "current"  # in_progress -> "current" in the UI vocabulary
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "completed_skill" not in milestones
     assert result["stage"] == "close"
 
 
@@ -630,6 +667,51 @@ async def test_practice_photo_reviewed_then_earn():
 
     assert result["stage"] == "earn"
     assert "even spacing" in mock_ask.call_args.kwargs["instruction"]
+
+
+@pytest.mark.asyncio
+async def test_practice_photo_marks_made_product_milestone():
+    from app.agent.nodes import practice
+
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    state = make_state(
+        stage="practice",
+        stage_step=1,
+        learner_id=learner.id,
+        transcript="[photo] straight stitch lines, even spacing",
+    )
+    with patch("app.agent.nodes.practice.ask_conversational", new=AsyncMock(return_value="ok")):
+        await practice.run(state)
+
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "made_product" in milestones
+
+
+@pytest.mark.asyncio
+async def test_practice_voice_skip_does_not_mark_made_product():
+    """No real evidence she actually made something -- only a photo does."""
+    from app.agent.nodes import practice
+
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    state = make_state(
+        stage="practice",
+        stage_step=1,
+        learner_id=learner.id,
+        transcript="abhi nahi, baad mein karungi",
+    )
+    with patch("app.agent.nodes.practice.ask_conversational", new=AsyncMock(return_value="ok")):
+        await practice.run(state)
+
+    milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "made_product" not in milestones
 
 
 @pytest.mark.asyncio

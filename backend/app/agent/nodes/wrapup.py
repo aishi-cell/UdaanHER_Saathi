@@ -34,6 +34,9 @@ async def run(state: AgentState) -> dict:
         db.upsert_lesson_progress(
             learner_id, package.skill_id, "completed" if completed else "in_progress"
         )
+        if completed:
+            # Career roadmap (roadmap item 3): "completed a skill".
+            db.mark_milestone(learner_id, package.skill_id, "completed_skill")
         ui = {"type": "show_progress", "payload": db.get_progress(learner_id)}
 
     reply = await ask_conversational(

@@ -1,4 +1,4 @@
-import type { UICommand } from './types';
+import type { JourneyPayload, UICommand } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -101,6 +101,7 @@ export interface TurnResponse {
   ui: UICommand;
   stage: string;
   latency_ms: { stt: number; agent: number; tts: number };
+  learner_id: string | null;
 }
 
 export type TurnInput = { audioBlob: Blob } | { tappedOptionId: string } | { photoBlob: Blob };
@@ -122,6 +123,16 @@ export async function postTurn(sessionId: string, input: TurnInput): Promise<Tur
   });
   if (!response.ok) {
     await throwApiError(response, 'Turn request failed');
+  }
+  return response.json();
+}
+
+/** Career roadmap (roadmap item 3): a plain read, independent of the
+ * turn-based conversation -- viewing "My Journey" never costs a turn. */
+export async function getJourney(learnerId: string): Promise<JourneyPayload> {
+  const response = await fetch(`${API_BASE_URL}/api/learner/${learnerId}/journey`);
+  if (!response.ok) {
+    await throwApiError(response, 'Could not load your journey');
   }
   return response.json();
 }

@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from pydantic import TypeAdapter
 
+from app.agent import milestones
 from app.agent.graph import compile_graph
 from app.agent.nodes import choose_language
 from app.agent.nodes.resume import profile_from_learner
@@ -18,6 +19,8 @@ from app.errors import ApiError, api_error_handler, unhandled_error_handler
 from app.middleware import RequestLogMiddleware
 from app.models import db as db_repo
 from app.models.api import (
+    JourneyMilestone,
+    JourneyPayload,
     LatencyMs,
     PinLookupRequest,
     PinLookupResponse,
@@ -151,6 +154,36 @@ def get_learner_progress(learner_id: str) -> ProgressPayload:
     return ProgressPayload(**db_repo.get_progress(learner_id))
 
 
+@app.get("/api/learner/{learner_id}/journey", response_model=JourneyPayload)
+def get_learner_journey(learner_id: str, skill_id: str | None = None) -> JourneyPayload:
+    """Career roadmap (roadmap item 3): "My Journey" -- the bigger arc for
+    one skill, independent of the turn-based conversation graph (a plain
+    read, like /progress already is), so viewing it never costs a turn."""
+    learner = db_repo.get_learner(learner_id)
+    resolved_skill = skill_id or (learner.interest_skill if learner else None) or ""
+    achieved = {m.milestone_id for m in db_repo.get_milestones(learner_id, resolved_skill)}
+
+    milestone_list = [
+        JourneyMilestone(
+            milestone_id=m.id,
+            label_hi=m.label_hi,
+            label_en=m.label_en,
+            achieved=m.id in achieved,
+            auto_tracked=m.auto_tracked,
+        )
+        for m in milestones.CATALOG
+    ]
+    next_milestone = next((m for m in milestone_list if not m.achieved), None)
+    next_step_text = (
+        f"{next_milestone.label_hi} · {next_milestone.label_en}"
+        if next_milestone
+        else "Aapne sab manzilein paar kar li hain abhi tak! · You've reached every milestone so far!"
+    )
+    return JourneyPayload(
+        skill_id=resolved_skill, milestones=milestone_list, next_step_text=next_step_text
+    )
+
+
 @app.post("/api/turn", response_model=TurnResponse)
 async def post_turn(
     request: Request,
@@ -244,4 +277,5 @@ async def post_turn(
         ui=ui_adapter.validate_python(result_state["ui"]),
         stage=result_state["stage"],
         latency_ms=LatencyMs(stt=stt_ms, agent=agent_ms, tts=tts_ms),
+        learner_id=result_state.get("learner_id"),
     )

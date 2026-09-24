@@ -18,6 +18,11 @@ class TurnResponse(BaseModel):
     ui: UICommand
     stage: str
     latency_ms: LatencyMs
+    # Absent until she's identified (declined consent, or mid-onboarding
+    # before confirm_profile saves her) -- present from then on so the
+    # frontend can fetch her career journey (roadmap item 3) without
+    # threading it through every UI command.
+    learner_id: str | None = None
 
 
 class SessionRequest(BaseModel):
@@ -52,3 +57,17 @@ class PinLookupRequest(BaseModel):
 class PinLookupResponse(BaseModel):
     found: bool
     learner_name: str | None = None
+
+
+class JourneyMilestone(BaseModel):
+    milestone_id: str
+    label_hi: str
+    label_en: str
+    achieved: bool
+    auto_tracked: bool
+
+
+class JourneyPayload(BaseModel):
+    skill_id: str
+    milestones: list[JourneyMilestone]
+    next_step_text: str

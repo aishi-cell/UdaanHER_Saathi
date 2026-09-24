@@ -168,6 +168,7 @@ def test_delete_learner_cascades_everywhere():
     )
     db.upsert_lesson_progress(learner.id, "tail-01-measure", "in_progress")
     db.upsert_concept_mastery(learner.id, "c-body-measure", "shaky")
+    db.mark_milestone(learner.id, "tailoring", "started_skill")
 
     db.delete_learner(learner.id)
 
@@ -176,6 +177,12 @@ def test_delete_learner_cascades_everywhere():
         assert s.exec(db.select(db.Session).where(db.Session.learner_id == learner.id)).all() == []
         assert (
             s.exec(db.select(db.Turn).where(db.Turn.session_id == session.id)).all() == []
+        )
+        assert (
+            s.exec(
+                db.select(db.CareerMilestone).where(db.CareerMilestone.learner_id == learner.id)
+            ).all()
+            == []
         )
         assert (
             s.exec(
@@ -189,3 +196,32 @@ def test_delete_learner_cascades_everywhere():
             ).all()
             == []
         )
+
+
+def test_mark_milestone_is_idempotent_and_scoped_per_skill():
+    learner = db.create_learner(
+        name="Kavita",
+        village=None,
+        language="gu-IN",
+        pin="4444",
+        interest_skill="tailoring",
+        starting_level="some",
+        notes=None,
+        consent_given_at=_consent_now(),
+    )
+
+    first = db.mark_milestone(learner.id, "tailoring", "started_skill")
+    again = db.mark_milestone(learner.id, "tailoring", "started_skill")
+    db.mark_milestone(learner.id, "mehndi", "started_skill")  # a different skill
+
+    # Idempotent: re-marking an achieved milestone doesn't move its timestamp.
+    assert again.achieved_at == first.achieved_at
+
+    tailoring_only = db.get_milestones(learner.id, skill_id="tailoring")
+    assert [m.milestone_id for m in tailoring_only] == ["started_skill"]
+
+    everything = db.get_milestones(learner.id)
+    assert {(m.skill_id, m.milestone_id) for m in everything} == {
+        ("tailoring", "started_skill"),
+        ("mehndi", "started_skill"),
+    }

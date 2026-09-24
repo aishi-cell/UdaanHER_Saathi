@@ -190,6 +190,8 @@ async def run(state: AgentState) -> dict:
         learner_id = persistable_learner_id(state)
         if learner_id:
             db.upsert_lesson_progress(learner_id, package.skill_id, "in_progress")
+            # Career roadmap (roadmap item 3): "started learning a skill".
+            db.mark_milestone(learner_id, package.skill_id, "started_skill")
         return await _narrate(state, package, steps, 0, first=True)
 
     index = min(state.get("step_index") or 0, len(steps) - 1)

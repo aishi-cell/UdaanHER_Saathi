@@ -79,6 +79,20 @@ export interface ProgressPayload {
   next_step_text: string;
 }
 
+export interface JourneyMilestone {
+  milestone_id: string;
+  label_hi: string;
+  label_en: string;
+  achieved: boolean;
+  auto_tracked: boolean;
+}
+
+export interface JourneyPayload {
+  skill_id: string;
+  milestones: JourneyMilestone[];
+  next_step_text: string;
+}
+
 export interface ShowProgressCommand {
   type: 'show_progress';
   payload: ProgressPayload;

@@ -6,6 +6,7 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agent.nodes.greet import GreetExtraction
 from app.main import app
 from app.models import db
 
@@ -249,3 +250,76 @@ def test_progress_endpoint_unknown_learner_returns_empty_lists(client):
     body = response.json()
     assert body["lessons"] == []
     assert body["concepts"] == []
+
+
+def test_journey_endpoint_defaults_to_her_current_skill_and_marks_achieved(client):
+    learner = db.create_learner(
+        name="Priya",
+        village=None,
+        language="gu-IN",
+        pin="2222",
+        interest_skill="tailoring",
+        starting_level="some",
+        notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    db.mark_milestone(learner.id, "tailoring", "started_skill")
+
+    response = client.get(f"/api/learner/{learner.id}/journey")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["skill_id"] == "tailoring"
+    started = next(m for m in body["milestones"] if m["milestone_id"] == "started_skill")
+    assert started["achieved"] is True
+    made_product = next(m for m in body["milestones"] if m["milestone_id"] == "made_product")
+    assert made_product["achieved"] is False
+    # Next step is the first thing not yet achieved.
+    assert made_product["label_en"] in body["next_step_text"]
+
+
+def test_journey_endpoint_unknown_learner_returns_all_unachieved(client):
+    response = client.get("/api/learner/does-not-exist/journey")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["skill_id"] == ""
+    assert all(not m["achieved"] for m in body["milestones"])
+
+
+def test_turn_response_includes_learner_id_once_pin_resolves(client):
+    """learner_id is absent on TurnResponse until she's actually identified
+    -- here, mid-conversation via the voice PIN path, not just at session
+    start (roadmap item 3: the frontend needs this to fetch her journey)."""
+    learner = db.create_learner(
+        name="Meena",
+        village=None,
+        language="hi-IN",
+        pin="4271",
+        interest_skill="tailoring",
+        starting_level="some",
+        notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    with (
+        patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)),
+        patch("app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="ok")),
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=GreetExtraction(name="Meena", returning=True)),
+        ),
+    ):
+        session_id = client.post("/api/session", json={"language": "hi-IN"}).json()["session_id"]
+
+        turn1 = client.post(
+            "/api/turn",
+            data={"session_id": session_id, "tapped_option_id": "Meena, haan pehle aayi thi"},
+        ).json()
+        assert turn1["learner_id"] is None
+
+        turn2 = client.post(
+            "/api/turn", data={"session_id": session_id, "tapped_option_id": "4271"}
+        ).json()
+
+    assert turn2["stage"] == "teach"
+    assert turn2["learner_id"] == learner.id

@@ -22,8 +22,17 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       `localStorage`; next visit on the same phone auto-resumes without asking for
       the code again (`useRememberedLogin.ts`)
 - [x] More PIN attempts before starting over — bumped 2 → 4 (`MAX_PIN_ATTEMPTS`)
-- [ ] "Log out on this phone" affordance to clear the remembered login (basic
-      version shipped: a "Not you?" link on auto-resume; polish later)
+- [x] "Log out on this phone" — the "Not you?" link is now shown for the
+      whole session (not just the first moment), and clears the remembered
+      login + stops the mic if it was listening. Live-verified with a real
+      learner + real browser: auto-resume → link visible → still visible
+      seconds later → click → back on Landing, "Talk to Saathi" enabled,
+      `localStorage` cleared
+- [x] Bonus bug found + fixed during that live test: `connecting` was never
+      reset to `false` on a successful session start, so after logging out
+      the Landing button was stuck showing "connecting..." and disabled
+      forever, even with nothing in flight — she'd have been unable to start
+      a new session at all. Fixed in `startSession` (`App.tsx`)
 
 ### Faster responses (Phase 1 partner item)
 - [x] Quick win: PIN turns skip the LLM extraction call entirely when the input is
@@ -62,12 +71,37 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       to keep growing that store — depends on Content Builder work below)
 
 ## 3. Add a Career Development Roadmap ("My Journey")
-- [ ] Milestone model beyond lesson/concept mastery: started skill, completed
-      skill, first usable product, priced it, found a customer, first paid order
-- [ ] Voice query: "Saathi, mere liye aage kya hai?" → explain progress + next
-      milestone
-- [ ] "My Journey" screen: large icons, simple milestones, minimal text
-- [ ] Backing data model/persistence for career milestones (new DB table)
+Shipped a v1 with a deliberately scoped-down decision: rather than blocking
+on a full milestone spec, I picked the 4 milestones that are actually
+observable from inside a session and auto-track those; the 2 that happen in
+her real life off-platform (a real customer, a real sale) are modelled but
+left unmarked until there's a way for her to report them.
+- [x] Milestone model: `started_skill`, `made_product`, `learned_pricing`,
+      `completed_skill` (auto-tracked) + `found_customer`, `first_paid_order`
+      (modelled, not yet markable) — `app/agent/milestones.py`
+- [x] Backing data model/persistence: new `career_milestones` table
+      (learner_id, skill_id, milestone_id, achieved_at), idempotent marking,
+      cleaned up by `delete_learner` — `db.py`
+- [x] Auto-marked at the natural point each becomes true: `started_skill` on
+      entering `teach`, `made_product` only on an actual practice photo (not
+      a voice skip — real evidence), `learned_pricing` at the end of `earn`,
+      `completed_skill` in `wrapup` when every must-land concept is strong
+- [x] "My Journey" screen: `JourneyView.tsx` — large icons (check vs. circle),
+      minimal bilingual text, a highlighted next-step banner, and a plain-
+      language hint on the two not-yet-markable milestones ("tell Saathi
+      when this happens")
+- [x] Reachable any time once she's identified, without spending a
+      conversation turn — a REST endpoint (`GET /api/learner/{id}/journey`)
+      + a small persistent button, not threaded through the turn-based graph
+- [ ] Voice query "Saathi, mere liye aage kya hai?" answered *in conversation*
+      — not built; she can only view it via the button right now, not ask
+      for it by voice. Doing this "at any point" the way teach/viva/reteach's
+      progress_query works would need the same interception in every stage,
+      a much bigger lift than those three
+- [ ] A way for her to report `found_customer` / `first_paid_order` from a
+      future session (a real sale happens after she's left the app) — needs
+      a decision on the mechanism: a dedicated voice phrase Saathi listens
+      for, a question asked at return-visit greeting, or something else
 
 ## 4. Add a Learning Roadmap for the Current Skill
 - [x] Backend already knows the ordered concept plan for a skill
@@ -145,8 +179,11 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       — covered by unit tests during teach/viva/reteach, and live-verified
       end-to-end against the real LLM mid-`teach` (see §4 above); practice
       doesn't have it (see §4 note on why)
-- [ ] Asking about the larger career journey
-- [ ] Viewing the My Journey screen
+- [ ] Asking about the larger career journey by voice — not built (see §3)
+- [x] Viewing the My Journey screen — live-verified end-to-end: a real
+      learner created via the API, reached `teach` (marking `started_skill`),
+      confirmed the button appears, opens the overlay, shows the right
+      achieved/unachieved state and next-step text, and closes cleanly
 - [ ] Small/older phone check
 - [ ] Every newly added language (none added yet)
 
@@ -156,5 +193,9 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
 - This file tracks the roadmap in `new_roadmap.md`. It does not replace
   `docs/app_plan_v2.md`, which is the canonical product/architecture doc — the
   roadmap above is layered on top of that plan, not a replacement for it.
-- Items 3 (Career Roadmap) and the language expansion (item 7) are the largest
-  remaining pieces of work and will need their own follow-up sessions.
+- The Career Roadmap (item 3) shipped a scoped-down v1 without waiting on a
+  full milestone spec — see the note in that section for what was deferred
+  and why. Language expansion (item 7) is now the largest remaining piece of
+  work and will need its own follow-up session (it needs a real decision on
+  which languages/order, plus translation + native-speaker review per
+  language, not just code).

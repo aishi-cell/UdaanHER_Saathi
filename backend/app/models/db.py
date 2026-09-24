@@ -84,6 +84,22 @@ class ConceptMastery(SQLModel, table=True):
     reteach_count: int = Field(default=0)
 
 
+class CareerMilestone(SQLModel, table=True):
+    """Roadmap item 3 ("My Journey"): the bigger arc across a skill --
+    started it, made something, learned to price it, found a customer,
+    made her first sale -- as opposed to concept-level mastery above.
+    One row per (learner, skill, milestone) the moment it's first reached;
+    marking an already-achieved milestone again is a no-op (achieved_at
+    never moves)."""
+
+    __tablename__ = "career_milestones"
+
+    learner_id: str = Field(foreign_key="learners.id", primary_key=True)
+    skill_id: str = Field(primary_key=True)
+    milestone_id: str = Field(primary_key=True)
+    achieved_at: datetime = Field(default_factory=_now)
+
+
 # --- Engine / session plumbing ---
 
 _engine = None
@@ -165,6 +181,11 @@ def create_learner(
         db.commit()
         db.refresh(learner)
     return learner
+
+
+def get_learner(learner_id: str) -> Learner | None:
+    with get_db_session() as db:
+        return db.get(Learner, learner_id)
 
 
 def get_learner_by_name_pin(name: str, pin: str) -> Learner | None:
@@ -333,6 +354,28 @@ def upsert_concept_mastery(
         return row
 
 
+def mark_milestone(learner_id: str, skill_id: str, milestone_id: str) -> CareerMilestone:
+    """Idempotent: an already-achieved milestone keeps its original
+    achieved_at rather than being bumped forward by a later session."""
+    with get_db_session() as db:
+        existing = db.get(CareerMilestone, (learner_id, skill_id, milestone_id))
+        if existing:
+            return existing
+        row = CareerMilestone(learner_id=learner_id, skill_id=skill_id, milestone_id=milestone_id)
+        db.add(row)
+        db.commit()
+        db.refresh(row)
+        return row
+
+
+def get_milestones(learner_id: str, skill_id: str | None = None) -> list[CareerMilestone]:
+    with get_db_session() as db:
+        query = select(CareerMilestone).where(CareerMilestone.learner_id == learner_id)
+        if skill_id is not None:
+            query = query.where(CareerMilestone.skill_id == skill_id)
+        return db.exec(query).all()
+
+
 # lesson_progress.status ('in_progress'|'completed', Spec S10) uses a different
 # vocabulary than ProgressPayload.lessons[].status ('done'|'current'|'locked',
 # Spec S8). 'locked' can't be derived here -- it means "not yet started", which
@@ -390,6 +433,10 @@ def delete_learner(learner_id: str) -> None:
             db.delete(row)
         for row in db.exec(
             select(LessonProgress).where(LessonProgress.learner_id == learner_id)
+        ).all():
+            db.delete(row)
+        for row in db.exec(
+            select(CareerMilestone).where(CareerMilestone.learner_id == learner_id)
         ).all():
             db.delete(row)
 

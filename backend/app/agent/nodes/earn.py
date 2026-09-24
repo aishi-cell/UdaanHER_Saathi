@@ -9,7 +9,8 @@ builder distilled (or a human wrote).
 
 from app.agent.llm_utils import ask_conversational
 from app.agent.state import AgentState
-from app.agent.teaching_utils import load_package
+from app.agent.teaching_utils import load_package, persistable_learner_id
+from app.models import db
 
 PRODUCTS_INSTRUCTION = (
     "Now the part she came for: earning from {interest}. From these notes, "
@@ -60,4 +61,9 @@ async def run(state: AgentState) -> dict:
         instruction=CUSTOMERS_INSTRUCTION.format(customer_notes=earning.customer_notes),
         transcript=state["transcript"],
     )
+    # Career roadmap (roadmap item 3): "learned how to set a price" -- she's
+    # just heard both what to make and what it sells for.
+    learner_id = persistable_learner_id(state)
+    if learner_id:
+        db.mark_milestone(learner_id, package.skill_id, "learned_pricing")
     return {"stage": "wrapup", "stage_step": 0, "reply_text": reply, "ui": {"type": "idle"}}

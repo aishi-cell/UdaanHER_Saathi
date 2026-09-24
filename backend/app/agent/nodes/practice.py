@@ -14,7 +14,8 @@ step 1  her response arrives as either
 
 from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, is_unclear
 from app.agent.state import AgentState
-from app.agent.teaching_utils import load_package, path_concept_ids
+from app.agent.teaching_utils import load_package, path_concept_ids, persistable_learner_id
+from app.models import db
 
 PHOTO_MARKER = "[photo]"
 
@@ -96,6 +97,12 @@ async def run(state: AgentState) -> dict:
             ),
             transcript=FRESH_TOPIC,
         )
+        # Career roadmap (roadmap item 3): "made the first usable product" --
+        # only on an actual photo, real evidence, not a voice "I'll skip it".
+        learner_id = persistable_learner_id(state)
+        skill_id = state.get("skill_id")
+        if learner_id and skill_id:
+            db.mark_milestone(learner_id, skill_id, "made_product")
         return {"stage": "earn", "stage_step": 0, "reply_text": reply, "ui": {"type": "idle"}}
 
     if is_unclear(transcript):

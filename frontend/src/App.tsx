@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { MicOff } from 'lucide-react';
+import { Compass, MicOff } from 'lucide-react';
 import {
   ApiError,
   getHealth,
+  getJourney,
   postLearnerLookup,
   postSession,
   postTurn,
@@ -13,6 +14,7 @@ import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon, unlockAudio } from './audio/player';
 import { SpeechWatcher } from './audio/vad';
 import { AuroraBackground } from './components/AuroraBackground';
+import { JourneyView } from './components/JourneyView';
 import { Landing } from './components/Landing';
 import { PinBadge } from './components/PinBadge';
 import { PinEntry, MAX_LOCAL_ATTEMPTS } from './components/PinEntry';
@@ -26,7 +28,7 @@ import {
   setRememberedLogin,
 } from './lib/rememberedLogin';
 import { cn } from '@/lib/utils';
-import type { UICommand } from './types';
+import type { JourneyPayload, UICommand } from './types';
 
 /** A random 4-digit code for a new learner, generated client-side the
  * moment she says she's new so it can be pinned on screen right away
@@ -85,6 +87,12 @@ function App() {
   const [pinAttemptsLeft, setPinAttemptsLeft] = useState(MAX_LOCAL_ATTEMPTS);
   const [activePin, setActivePin] = useState<string | null>(null);
   const [usingRememberedLogin, setUsingRememberedLogin] = useState(false);
+
+  // Career roadmap (roadmap item 3): "My Journey" -- a plain read from the
+  // REST endpoint, independent of the turn-based conversation.
+  const [learnerId, setLearnerId] = useState<string | null>(null);
+  const [journey, setJourney] = useState<JourneyPayload | null>(null);
+  const [journeyLoading, setJourneyLoading] = useState(false);
 
   const recorderRef = useRef<PushToTalkRecorder>(new PushToTalkRecorder());
   const watcherRef = useRef<SpeechWatcher | null>(null);
@@ -157,6 +165,12 @@ function App() {
     try {
       const result = await postSession(opts.language, opts.learnerName, opts.pin, opts.pendingPin);
       sessionIdRef.current = result.session_id;
+      setLearnerId(result.learner_id);
+      // Bug found via a logout live-test: this was never reset to false on
+      // success, so the Landing button was stuck showing "connecting..."
+      // (and disabled) forever after navigating back there -- e.g. from
+      // "Not you?" -- even though nothing was actually in flight anymore.
+      setConnecting(false);
       setCurrentUi(result.ui);
       setSessionReady(true);
       setTalkState('speaking');
@@ -223,8 +237,13 @@ function App() {
   }
 
   function forgetThisPhone() {
+    void stopRecorder(); // don't leave the mic listening in the background
     clearRememberedLogin();
     setUsingRememberedLogin(false);
+    setSessionReady(false);
+    sessionIdRef.current = null;
+    setLearnerId(null);
+    setJourney(null);
     setView('landing');
   }
 
@@ -298,6 +317,7 @@ function App() {
     try {
       const result = await postTurn(sessionId, input);
       setLastTurn(result);
+      if (result.learner_id) setLearnerId(result.learner_id);
       setCurrentUi(result.ui);
       setTalkState('speaking');
       await playBase64Mp3(result.reply_audio_b64);
@@ -335,6 +355,24 @@ function App() {
     if (busyRef.current) return;
     if (talkState === 'listening') await discardListening();
     await runTurn({ photoBlob: file });
+  }
+
+  /** Career roadmap (roadmap item 3): a plain read, doesn't touch the
+   * conversation graph -- pause listening first so an open journey screen
+   * doesn't get interrupted by an accidental turn being sent. */
+  async function openJourney() {
+    if (!learnerId || journeyLoading) return;
+    if (talkState === 'listening') await discardListening();
+    setJourneyLoading(true);
+    try {
+      const data = await getJourney(learnerId);
+      setJourney(data);
+    } catch (err) {
+      console.error('[talk] could not load journey:', err);
+      setErrorMessage(friendlyErrorMessage(err));
+    } finally {
+      setJourneyLoading(false);
+    }
   }
 
   if (isUiDemo) {
@@ -417,17 +455,34 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <header className="flex flex-col items-center gap-1 pt-5">
+            <header className="relative flex flex-col items-center gap-1 pt-5">
+              {/* Career roadmap (roadmap item 3): reachable any time once
+                  she's identified, without spending a conversation turn. */}
+              {learnerId && (
+                <button
+                  type="button"
+                  onClick={openJourney}
+                  disabled={journeyLoading}
+                  className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1.5 text-xs font-semibold text-brand-700 shadow-sm backdrop-blur disabled:opacity-60"
+                >
+                  <Compass className="size-3.5" /> मेरी Journey
+                </button>
+              )}
               <span className="text-lg font-bold tracking-tight text-brand-600">
                 UdaanHER <span className="text-blush-600">Saathi</span>
               </span>
-              {usingRememberedLogin && connecting && (
+              {/* Login roadmap item 1: "log out on this phone" -- a small,
+                  always-available escape hatch for the whole session, not
+                  just the first moment, since a remembered login might turn
+                  out wrong only once she hears her own (or someone else's)
+                  name in the greeting. */}
+              {usingRememberedLogin && (
                 <button
                   type="button"
                   onClick={forgetThisPhone}
                   className="text-xs font-medium text-muted-foreground underline"
                 >
-                  आप नहीं हैं? · Not you?
+                  आप नहीं हैं? · Not you? (log out)
                 </button>
               )}
             </header>
@@ -496,6 +551,10 @@ function App() {
           <div>latency sum: {latencySum}ms</div>
         </div>
       )}
+
+      <AnimatePresence>
+        {journey && <JourneyView journey={journey} onClose={() => setJourney(null)} />}
+      </AnimatePresence>
     </div>
   );
 }
