@@ -402,6 +402,37 @@ async def test_reteach_explains_with_fresh_question_and_counts_the_round():
 
 
 @pytest.mark.asyncio
+async def test_reteach_progress_query_holds_question_and_summarizes():
+    package = _package()
+    first_q = package.questions_for_concept("c-grain")[0]
+    state = make_state(
+        stage="reteach",
+        stage_step=1,
+        learning_path=["c-grain", "c-tape-basics"],
+        viva={"question_ids_asked": [first_q.question_id], "grades": {"c-tape-basics": "strong"}},
+        reteach_counts={"c-grain": 1},
+        transcript="ab tak maine kya seekha?",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.reteach.extract_structured",
+            new=AsyncMock(return_value=VivaGrade(progress_query=True)),
+        ),
+        patch(
+            "app.agent.nodes.reteach.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        result = await reteach.run(state)
+
+    assert result["stage"] == "reteach"
+    assert "viva" not in result  # untouched -- not graded, not skipped
+    # No extra reteach round was spent on a progress question.
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "tape" in instruction.lower() or "measure" in instruction.lower()  # already covered
+
+
+@pytest.mark.asyncio
 async def test_reteach_degrades_to_voice_when_diagram_generation_fails():
     state = make_state(
         stage="reteach",

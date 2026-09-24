@@ -78,12 +78,19 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       "Ab aage kya seekhna hai?" → new `progress_query` intent on `TeachIntent`,
       answers from done/current/upcoming concepts and holds the step (doesn't
       advance or lose her place)
-- [x] Same voice query during **viva**: folded into the existing grading
-      extraction (one `VivaGrade.progress_query` field) instead of adding a
-      second LLM call, so no latency cost; holds the just-asked question in
-      place rather than skipping or grading it
-- [ ] Same for **reteach/practice** — narrower single-purpose flows (one
-      concept re-explained, one practice task), lower priority, not done
+- [x] Same voice query during **viva** and **reteach**: both reuse the same
+      `VivaGrade.progress_query` field folded into their existing grading
+      extraction, so no extra LLM call; holds the just-asked question in
+      place rather than skipping or grading it. Live-verified end-to-end
+      (real LLM, not mocked): asked mid-`teach`, got a correct plan
+      recap, held the step, then resumed normally to the next concept on
+      the following turn
+- [ ] Same for **practice** — it has no structured-extraction call to fold
+      this into (plain text branching: done/skip/can't), and its step 1 is a
+      one-shot fork rather than a repeatable question to "hold" -- adding it
+      would cost a new LLM call for a narrow, rarely-hit case. Skipped as not
+      worth the latency cost; her real words still reach the model as
+      context either way, so it isn't blind to the question
 - [x] `show_progress` UI command + `ProgressView.tsx` exist for the full
       end-of-skill summary (unchanged, still the wrapup-stage view)
 
@@ -135,9 +142,9 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
 - [x] Returning user, same phone remembered (new — manual pass recommended,
       `localStorage`-based so no backend test coverage possible)
 - [x] "What should I learn next?" / "What have I learned so far?" voice query
-      — covered by unit tests during `teach`; not yet wired for
-      viva/reteach/practice, and not live/manually verified end-to-end (needs
-      real STT/LLM, no UI change to drive with the Playwright screenshot driver)
+      — covered by unit tests during teach/viva/reteach, and live-verified
+      end-to-end against the real LLM mid-`teach` (see §4 above); practice
+      doesn't have it (see §4 note on why)
 - [ ] Asking about the larger career journey
 - [ ] Viewing the My Journey screen
 - [ ] Small/older phone check

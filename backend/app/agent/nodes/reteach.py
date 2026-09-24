@@ -10,7 +10,7 @@ never a third drill.
 
 from app.agent.guards import can_start_reteach
 from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
-from app.agent.nodes.viva import VivaGrade, _find_question
+from app.agent.nodes.viva import VivaGrade, _concept_label, _find_question
 from app.agent.state import AgentState
 from app.agent.teaching_utils import (
     coverage_order,
@@ -40,8 +40,13 @@ LEAD_CAPPED = (
     "it is safely remembered. "
 )
 GRADE_INSTRUCTION = (
-    "Grade her spoken answer to this question about {concept_label}.\n"
-    "Question: {question}\n"
+    "She was just asked this re-check question about {concept_label}: "
+    "{question}\n\n"
+    "First: is she actually answering it, or asking something else instead "
+    "-- what she's already learned so far, or what's coming up next (e.g. "
+    "'ab tak maine kya seekha?', 'ab aage kya hai?')? If the latter, set "
+    "progress_query true and ignore grade/one_line_reason.\n\n"
+    "Otherwise, grade her answer:\n"
     "Answers like these mean she has the idea (grade 'strong'):\n{sounds_right}\n"
     "Answers like these mean she is confused (grade 'shaky'):\n{sounds_confused}\n"
     "Her transcript may be informal, incomplete, code-mixed, or imperfectly "
@@ -50,6 +55,15 @@ GRADE_INSTRUCTION = (
 REASK_INSTRUCTION = (
     "You couldn't quite make out her answer. Warmly say you didn't catch "
     "that, and ask the same thing again in simpler words: {question}"
+)
+# Learning roadmap (roadmap item 4): same treatment as viva.py -- folded
+# into the grading extraction above, no extra LLM call, question held.
+PROGRESS_QUERY_INSTRUCTION = (
+    "She just asked what she's already learned, or what's coming up next -- "
+    "not answering the re-check question you asked. Answer warmly and "
+    "briefly, in ONE short sentence, from this: covered so far today: "
+    "{done}. Looking again right now at: {current}. Still to come: "
+    "{next_up}. Then gently ask the same question again: {question}"
 )
 
 
@@ -207,6 +221,27 @@ async def run(state: AgentState) -> dict:
         transcript=state["transcript"],
         schema=VivaGrade,
     )
+
+    if graded.progress_query:
+        # Held in place: not graded, not counted as another reteach round.
+        coverage = coverage_order(package, path_concept_ids(state, package))
+        grades_so_far = state["viva"]["grades"]
+        done_ids = [c for c in coverage if c in grades_so_far and c != concept_id]
+        next_ids = [c for c in coverage if c not in grades_so_far and c != concept_id]
+        reply = await ask_conversational(
+            "reteach",
+            language=state["language"],
+            instruction=PROGRESS_QUERY_INSTRUCTION.format(
+                done=", ".join(_concept_label(package, c) for c in done_ids)
+                or "nothing yet -- you're just getting started with this chat",
+                current=_concept_label(package, concept_id),
+                next_up=", ".join(_concept_label(package, c) for c in next_ids[:3])
+                or "nothing -- this is the last thing to talk about today",
+                question=question.question,
+            ),
+            transcript=state["transcript"],
+        )
+        return {"stage": "reteach", "stage_step": 1, "reply_text": reply, "ui": {"type": "idle"}}
 
     grades = dict(state["viva"]["grades"])
     grades[concept_id] = graded.grade
