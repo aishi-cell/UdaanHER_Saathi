@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 from app.agent.guards import teach_requires_profile
-from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 from app.agent.teaching_utils import load_package, path_concept_ids, persistable_learner_id
 from app.content import store
@@ -30,6 +30,15 @@ ANSWER_INSTRUCTION = (
     "these teaching notes (do not invent technique beyond them):\n"
     "{teaching_notes}\n\nThen gently ask if she wants to go on."
 )
+# Learning roadmap (roadmap item 4): a short preview of today's plan before
+# diving into the first step, and an answer she can ask for again anytime.
+PROGRESS_QUERY_INSTRUCTION = (
+    "She just asked what she's already learned, or what's coming up next -- "
+    "not a question about the lesson content itself. Answer warmly and "
+    "briefly, in ONE short sentence, from this: already done today: {done}. "
+    "Right now: {current}. Coming up after this: {next_up}. Then gently ask "
+    "if she's ready to continue with {current}."
+)
 FINISH_INSTRUCTION = (
     "She has just finished the last step of today's path on {interest}. "
     "Warmly say the two of you will now chat a little about what you did "
@@ -43,7 +52,26 @@ STOP_INSTRUCTION = (
 
 
 class TeachIntent(BaseModel):
-    intent: Literal["question", "continue", "stop"]
+    intent: Literal["question", "continue", "stop", "progress_query"]
+
+
+def _ordered_concept_ids(steps: list[store.MicroStep]) -> list[str]:
+    """Her path's concepts, in order, each once -- a step list can repeat a
+    concept across several micro-steps (e.g. two c-grain steps)."""
+    seen: set[str] = set()
+    ids: list[str] = []
+    for step in steps:
+        if step.concept_id not in seen:
+            seen.add(step.concept_id)
+            ids.append(step.concept_id)
+    return ids
+
+
+def _concept_label(package: store.SkillPackage, concept_id: str) -> str:
+    concept = package.concept(concept_id)
+    # English label fed into the instruction, same as elsewhere in this
+    # node -- the LLM narrates it in her language as part of a natural reply.
+    return store.pick_language(concept.label, "en-IN") if concept else concept_id
 
 
 def _step_ui(package: store.SkillPackage, steps: list[store.MicroStep], index: int, language: str) -> dict:
@@ -78,13 +106,28 @@ async def _narrate(
     first: bool,
 ) -> dict:
     step = steps[index]
-    concept = package.concept(step.concept_id)
-    label = store.pick_language(concept.label, "en-IN") if concept else step.concept_id
-    extra = (
-        "This is the start of today's path -- say you two will go slowly, one small thing at a time. "
-        if first
-        else ""
-    )
+    label = _concept_label(package, step.concept_id)
+    if first:
+        # Learning roadmap (roadmap item 4): name the plan before starting,
+        # e.g. "Hum pehle yeh seekhenge, phir yeh..." -- so she knows what
+        # to expect instead of lessons just appearing one after another.
+        concept_ids = _ordered_concept_ids(steps)
+        upcoming = [_concept_label(package, c) for c in concept_ids[1:4]]
+        more_after = len(concept_ids) > 4
+        if upcoming:
+            plan = ", then ".join(upcoming) + (", and a few more things" if more_after else "")
+            extra = (
+                f"Before teaching the first step, briefly name today's plan in one short "
+                f"line -- you'll start with {label}, then {plan}. Then say you two will go "
+                "slowly, one small thing at a time. "
+            )
+        else:
+            extra = (
+                "This is the start of today's path -- say you two will go slowly, "
+                "one small thing at a time. "
+            )
+    else:
+        extra = ""
     if not first and index > 0 and index % 3 == 0:
         # Every few steps, a human pause: is she tired, does she want to go
         # on or rest today? (User report: sessions ran on without a break.)
@@ -105,7 +148,9 @@ async def _narrate(
             teaching_notes=step.teaching_notes,
             extra=extra,
         ),
-        transcript="" if first else state["transcript"],
+        # FRESH_TOPIC, not "" -- this is a new narration, not a re-ask; see
+        # app.agent.llm_utils.FRESH_TOPIC.
+        transcript=FRESH_TOPIC if first else state["transcript"],
     )
     return {
         "stage": "teach",
@@ -149,8 +194,7 @@ async def run(state: AgentState) -> dict:
 
     index = min(state.get("step_index") or 0, len(steps) - 1)
     current = steps[index]
-    concept = package.concept(current.concept_id)
-    label = store.pick_language(concept.label, "en-IN") if concept else current.concept_id
+    label = _concept_label(package, current.concept_id)
 
     if is_unclear(state["transcript"]):
         # With hands-free listening, an empty transcript is often noise or
@@ -181,13 +225,42 @@ async def run(state: AgentState) -> dict:
                 "She is mid-lesson. Decide from her reply whether she is asking "
                 "a question about what's being taught ('question'), ready to "
                 "move on -- including short agreement like haan/accha/ok "
-                "('continue'), or wants to stop for today ('stop'). Her "
+                "('continue'), wants to stop for today ('stop'), or is asking "
+                "about her overall progress rather than this step's content -- "
+                "e.g. 'ab tak maine kya seekha?', 'ab aage kya hai?', 'what have "
+                "I learned so far', 'what's next' ('progress_query'). Her "
                 "speech-to-text transcript may be imperfect, informal, or "
                 "code-mixed -- best reasonable guess."
             ),
             transcript=state["transcript"],
             schema=TeachIntent,
         )
+
+    if intent.intent == "progress_query":
+        # Learning roadmap (roadmap item 4): she can ask this at any point,
+        # not just hear it once at the start -- answered from the same
+        # concept order the plan preview used, then the step is held.
+        concept_ids = _ordered_concept_ids(steps)
+        position = concept_ids.index(current.concept_id) if current.concept_id in concept_ids else 0
+        done = [_concept_label(package, c) for c in concept_ids[:position]]
+        next_up = [_concept_label(package, c) for c in concept_ids[position + 1 : position + 3]]
+        reply = await ask_conversational(
+            "teach",
+            language=state["language"],
+            instruction=PROGRESS_QUERY_INSTRUCTION.format(
+                done=", ".join(done) if done else "nothing yet -- you're just getting started today",
+                current=label,
+                next_up=", ".join(next_up) if next_up else "nothing -- this is the last thing for today",
+            ),
+            transcript=state["transcript"],
+        )
+        return {
+            "stage": "teach",
+            "stage_step": 1,
+            "step_index": index,
+            "reply_text": reply,
+            "ui": _step_ui(package, steps, index, state["language"]),
+        }
 
     if intent.intent == "question":
         reply = await ask_conversational(

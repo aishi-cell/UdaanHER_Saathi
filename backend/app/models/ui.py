@@ -45,6 +45,17 @@ class RequestPhotoCommand(BaseModel):
     prompt: str
 
 
+class RequestPinCommand(BaseModel):
+    """Login roadmap item 1: a number keypad for her 4-digit PIN, shown from
+    the start of the PIN step (not only after voice fails) so she can speak
+    OR tap. `attempt`/`max_attempts` let the UI show how many tries remain."""
+
+    type: Literal["request_pin"] = "request_pin"
+    prompt: str
+    attempt: int
+    max_attempts: int
+
+
 class LearnerProfile(BaseModel):
     name: str
     village: str
@@ -96,6 +107,7 @@ UICommand = Annotated[
         ShowProfileCardCommand,
         ShowProgressCommand,
         RequestPhotoCommand,
+        RequestPinCommand,
     ],
     Field(discriminator="type"),
 ]

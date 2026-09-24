@@ -5,6 +5,7 @@ import { VideoEmbed } from './VideoEmbed';
 import { ProfileCard } from './ProfileCard';
 import { ProgressView } from './ProgressView';
 import { PhotoRequest } from './PhotoRequest';
+import { RequestPin } from './RequestPin';
 
 interface Props {
   ui: UICommand;
@@ -28,5 +29,7 @@ export function Renderer({ ui, onTapOption, onPhoto }: Props) {
       return <ProgressView payload={ui.payload} />;
     case 'request_photo':
       return <PhotoRequest prompt={ui.prompt} onPhoto={onPhoto} />;
+    case 'request_pin':
+      return <RequestPin ui={ui} onSubmit={onTapOption} />;
   }
 }

@@ -12,7 +12,7 @@ step 1  her response arrives as either
         Either way the session flows on to earning.
 """
 
-from app.agent.llm_utils import ask_conversational, is_unclear
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, is_unclear
 from app.agent.state import AgentState
 from app.agent.teaching_utils import load_package, path_concept_ids
 
@@ -75,7 +75,7 @@ async def run(state: AgentState) -> dict:
             "practice",
             language=state["language"],
             instruction=SET_TASK_INSTRUCTION.format(interest=interest, concept_labels=labels),
-            transcript="",
+            transcript=FRESH_TOPIC,
         )
         return {
             "stage": "practice",
@@ -94,7 +94,7 @@ async def run(state: AgentState) -> dict:
                 observations=transcript[len(PHOTO_MARKER):].strip(),
                 notes=notes,
             ),
-            transcript="",
+            transcript=FRESH_TOPIC,
         )
         return {"stage": "earn", "stage_step": 0, "reply_text": reply, "ui": {"type": "idle"}}
 

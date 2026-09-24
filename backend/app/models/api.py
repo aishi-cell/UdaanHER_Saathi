@@ -26,6 +26,11 @@ class SessionRequest(BaseModel):
     # Omitted -> the voice-first path: the session opens in choose_language
     # and Saathi asks for her language by voice (with tappable cards).
     language: Literal["gu-IN", "hi-IN", "pa-IN", "en-IN"] | None = None
+    # Login roadmap item 1: a code generated client-side the moment she taps
+    # "I'm new", so it can stay pinned on screen from before the conversation
+    # even starts. confirm_profile saves this exact code instead of minting
+    # a fresh one.
+    pending_pin: str | None = None
 
 
 class SessionResponse(BaseModel):
@@ -35,3 +40,15 @@ class SessionResponse(BaseModel):
     greeting_text: str
     ui: UICommand
     stage: str
+
+
+class PinLookupRequest(BaseModel):
+    pin: str
+    # Optional tiebreaker, same role as greet's voice path: only matters if
+    # two learners share a PIN.
+    learner_name: str | None = None
+
+
+class PinLookupResponse(BaseModel):
+    found: bool
+    learner_name: str | None = None

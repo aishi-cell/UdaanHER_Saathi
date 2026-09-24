@@ -12,7 +12,7 @@ curriculum concept not yet 'strong', in curriculum order -- so a woman who
 mastered half the skill last visit never re-sits the half she finished.
 """
 
-from app.agent.llm_utils import ask_conversational
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational
 from app.agent.state import AgentState, ProfileDraft
 from app.agent.teaching_utils import load_package
 from app.content import store
@@ -90,6 +90,6 @@ async def run(state: AgentState) -> dict:
             interest=profile.get("interest", "her skill"),
             progress_line=progress_line,
         ),
-        transcript="",
+        transcript=FRESH_TOPIC,
     )
     return {**updates, "reply_text": reply}

@@ -14,6 +14,13 @@ export interface RequestPhotoCommand {
   prompt: string;
 }
 
+export interface RequestPinCommand {
+  type: 'request_pin';
+  prompt: string;
+  attempt: number;
+  max_attempts: number;
+}
+
 export interface ShowOptionsCommand {
   type: 'show_options';
   prompt: string;
@@ -84,4 +91,5 @@ export type UICommand =
   | ShowVideoCommand
   | ShowProfileCardCommand
   | ShowProgressCommand
-  | RequestPhotoCommand;
+  | RequestPhotoCommand
+  | RequestPinCommand;

@@ -9,7 +9,8 @@ she is warmly offered what is ready today.
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
+from app.agent.nodes import assess
 from app.agent.state import AgentState
 from app.config import get_settings
 from app.content import builder, store
@@ -77,11 +78,14 @@ async def run(state: AgentState) -> dict:
         # greet's consent question, not this one. Passing it anyway lets the
         # LLM "helpfully" react to and jump ahead of it, which desyncs the
         # stage_step counter from what was actually asked (T12 postmortem).
+        # FRESH_TOPIC, not "" -- this is a new question, not a re-ask, and ""
+        # renders as "(no speech was heard clearly)" (live-run bug: the
+        # model apologised for audio it was never given).
         reply = await ask_conversational(
             "discover",
             language=language,
             instruction=ASK_VILLAGE_INSTRUCTION,
-            transcript="",
+            transcript=FRESH_TOPIC,
         )
         return {"stage": "discover", "stage_step": 1, "reply_text": reply, "ui": {"type": "idle"}}
 
@@ -191,7 +195,7 @@ async def run(state: AgentState) -> dict:
             "discover",
             language=language,
             instruction=BUILDING_INSTRUCTION.format(asked_label=asked_label),
-            transcript="",
+            transcript=FRESH_TOPIC,
         )
         return {
             "stage": "discover",
@@ -208,11 +212,23 @@ async def run(state: AgentState) -> dict:
         instruction=ACK_INTEREST_INSTRUCTION.format(interest_label=interest_label),
         transcript=state["transcript"],
     )
+    # Smoother first-time experience (roadmap item 2): fold assess's first
+    # story-question into this same turn -- otherwise she hears an ack with
+    # nothing to answer, has to say something anyway, and only then gets
+    # the real question (an extra round-trip that wastes real latency too).
+    first_question = await assess.run(
+        {
+            **state,
+            "stage": "assess",
+            "stage_step": 0,
+            "skill_id": skill_id,
+            "profile": profile,
+            "transcript": "",
+        }
+    )
     return {
-        "stage": "assess",
-        "stage_step": 0,
-        "skill_id": skill_id,
+        **first_question,
         "profile": profile,
-        "reply_text": reply,
-        "ui": {"type": "idle"},
+        "skill_id": skill_id,
+        "reply_text": f"{reply} {first_question['reply_text']}",
     }

@@ -56,15 +56,40 @@ export async function postSession(
   language?: 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN',
   learnerName?: string,
   pin?: string,
+  pendingPin?: string,
 ): Promise<SessionResponse> {
   // No language -> the voice-first path: Saathi opens by asking for it.
   const response = await fetch(`${API_BASE_URL}/api/session`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ language, learner_name: learnerName, pin }),
+    body: JSON.stringify({
+      language,
+      learner_name: learnerName,
+      pin,
+      pending_pin: pendingPin,
+    }),
   });
   if (!response.ok) {
     await throwApiError(response, 'Session start failed');
+  }
+  return response.json();
+}
+
+export interface PinLookupResponse {
+  found: boolean;
+  learner_name: string | null;
+}
+
+/** Cheap check for the on-screen keypad login: does this PIN match anyone,
+ * without the cost of starting a full session (graph run + TTS). */
+export async function postLearnerLookup(pin: string): Promise<PinLookupResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/learner/lookup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  });
+  if (!response.ok) {
+    await throwApiError(response, 'PIN lookup failed');
   }
   return response.json();
 }

@@ -1,18 +1,42 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { MicOff } from 'lucide-react';
-import { ApiError, getHealth, postSession, postTurn, type TurnResponse } from './api';
+import {
+  ApiError,
+  getHealth,
+  postLearnerLookup,
+  postSession,
+  postTurn,
+  type TurnResponse,
+} from './api';
 import { MicPermissionDeniedError, PushToTalkRecorder } from './audio/recorder';
 import { playBase64Mp3, playEarcon, unlockAudio } from './audio/player';
 import { SpeechWatcher } from './audio/vad';
 import { AuroraBackground } from './components/AuroraBackground';
 import { Landing } from './components/Landing';
+import { PinBadge } from './components/PinBadge';
+import { PinEntry, MAX_LOCAL_ATTEMPTS } from './components/PinEntry';
 import { Renderer } from './components/Renderer';
 import { SaathiAvatar } from './components/SaathiAvatar';
 import { TalkButton, type TalkState } from './components/TalkButton';
 import { UiDemo } from './UiDemo';
+import {
+  clearRememberedLogin,
+  getRememberedLogin,
+  setRememberedLogin,
+} from './lib/rememberedLogin';
 import { cn } from '@/lib/utils';
 import type { UICommand } from './types';
+
+/** A random 4-digit code for a new learner, generated client-side the
+ * moment she says she's new so it can be pinned on screen right away
+ * (login roadmap item 1), before the onboarding conversation even starts. */
+function generatePin(): string {
+  const bytes = new Uint8Array(2);
+  crypto.getRandomValues(bytes);
+  const n = ((bytes[0] << 8) | bytes[1]) % 10_000;
+  return n.toString().padStart(4, '0');
+}
 
 const STATUS_LABELS: Record<TalkState, string> = {
   ready: 'माइक दबाइए · Tap to speak',
@@ -44,7 +68,7 @@ const isUiDemo = searchParams.get('ui-demo') === '1';
 const IDLE_UI: UICommand = { type: 'idle' };
 
 function App() {
-  const [view, setView] = useState<'landing' | 'session'>('landing');
+  const [view, setView] = useState<'landing' | 'pin-entry' | 'session'>('landing');
   const [connecting, setConnecting] = useState(false);
   const [backendUp, setBackendUp] = useState<boolean | null>(null);
   const [talkState, setTalkState] = useState<TalkState>('ready');
@@ -53,6 +77,14 @@ function App() {
   const [currentUi, setCurrentUi] = useState<UICommand>(IDLE_UI);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sessionReady, setSessionReady] = useState(false);
+
+  // Login roadmap item 1: PIN keypad entry, a persistent corner PIN badge
+  // for a new learner, and "remember this phone" for a returning one.
+  const [pinChecking, setPinChecking] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinAttemptsLeft, setPinAttemptsLeft] = useState(MAX_LOCAL_ATTEMPTS);
+  const [activePin, setActivePin] = useState<string | null>(null);
+  const [usingRememberedLogin, setUsingRememberedLogin] = useState(false);
 
   const recorderRef = useRef<PushToTalkRecorder>(new PushToTalkRecorder());
   const watcherRef = useRef<SpeechWatcher | null>(null);
@@ -86,17 +118,44 @@ function App() {
     return () => clearTimeout(timeout);
   }, [errorMessage]);
 
-  // User-gesture-triggered (the hero button), so no StrictMode double-run to
-  // guard against, and the tap unlocks the AudioContext for the greeting.
-  // No language is sent: the session opens with Saathi asking for it by
-  // voice (choose_language stage), with tappable language cards on screen.
-  async function beginSession() {
+  // The moment her profile (and PIN) is saved -- whether or not she came in
+  // through the "I'm new" button -- pin it in the corner and remember this
+  // phone for next time, same as a keypad login does.
+  useEffect(() => {
+    if (currentUi.type !== 'show_profile_card' || !currentUi.profile.pin) return;
+    const { name, pin } = currentUi.profile;
+    setActivePin(pin);
+    setRememberedLogin({ name, pin });
+  }, [currentUi]);
+
+  // "Remember this phone" (login roadmap item 1): if she used Saathi here
+  // before and chose to be remembered, skip straight to resuming -- no code
+  // to re-enter. A visible "Not you?" escape hatch clears it if she's wrong.
+  useEffect(() => {
+    const remembered = getRememberedLogin();
+    if (!remembered) return;
+    setUsingRememberedLogin(true);
+    void unlockAudio();
+    void startSession({ learnerName: remembered.name, pin: remembered.pin });
+    // Mount-only: this is a one-shot check of what the phone remembers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Shared session start for every entry path: the voice-first hero
+   * button, remembered-phone auto-resume, PIN-keypad login, and the
+   * new-user flow (which pre-shows her code via pendingPin). */
+  async function startSession(opts: {
+    language?: 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN';
+    learnerName?: string;
+    pin?: string;
+    pendingPin?: string;
+  } = {}) {
     if (connecting) return;
     setConnecting(true);
     void unlockAudio();
     setView('session');
     try {
-      const result = await postSession();
+      const result = await postSession(opts.language, opts.learnerName, opts.pin, opts.pendingPin);
       sessionIdRef.current = result.session_id;
       setCurrentUi(result.ui);
       setSessionReady(true);
@@ -115,8 +174,58 @@ function App() {
         err instanceof Error ? err.message : 'Could not reach the mentor. Try reloading.',
       );
       setConnecting(false);
+      setUsingRememberedLogin(false);
       setView('landing');
     }
+  }
+
+  function beginSession() {
+    void startSession();
+  }
+
+  function goToPinEntry() {
+    setPinError(null);
+    setPinAttemptsLeft(MAX_LOCAL_ATTEMPTS);
+    setView('pin-entry');
+  }
+
+  async function submitPinEntry(pin: string) {
+    setPinChecking(true);
+    setPinError(null);
+    try {
+      const result = await postLearnerLookup(pin);
+      if (!result.found || !result.learner_name) {
+        setPinAttemptsLeft((n) => Math.max(0, n - 1));
+        setPinError('PIN नहीं मिला · PIN not found');
+        return;
+      }
+      setRememberedLogin({ name: result.learner_name, pin });
+      void unlockAudio();
+      await startSession({ learnerName: result.learner_name, pin });
+    } catch (err) {
+      console.error('[talk] PIN lookup failed:', err);
+      setPinError(friendlyErrorMessage(err));
+    } finally {
+      setPinChecking(false);
+    }
+  }
+
+  function startAsNewUser() {
+    const pin = generatePin();
+    setActivePin(pin);
+    void unlockAudio();
+    void startSession({ pendingPin: pin });
+  }
+
+  function backToLanding() {
+    setView('landing');
+    setPinError(null);
+  }
+
+  function forgetThisPhone() {
+    clearRememberedLogin();
+    setUsingRememberedLogin(false);
+    setView('landing');
   }
 
   /** Start hands-free listening: record + watch for her to finish speaking.
@@ -255,15 +364,24 @@ function App() {
     <div className="relative flex h-full flex-col overflow-hidden">
       <AuroraBackground />
 
-      {/* backend status dot */}
-      <span
-        className={cn(
-          'absolute right-4 top-4 z-20 size-3 rounded-full transition-colors',
-          backendUp ? 'bg-emerald-500' : 'bg-red-500',
-          backendUp && 'shadow-[0_0_8px_2px_rgb(16_185_129/0.5)]',
-        )}
-        aria-label={backendUp ? 'Backend connected' : 'Backend unreachable'}
-      />
+      {/* Backend status dot: a developer indicator, not something a learner
+          can act on -- an unreachable backend already surfaces as a warm
+          error message the moment she tries to do something (roadmap item
+          6: hide anything that doesn't help the learner). Debug-only. */}
+      {isDebug && (
+        <span
+          className={cn(
+            'absolute right-4 top-4 z-20 size-3 rounded-full transition-colors',
+            backendUp ? 'bg-emerald-500' : 'bg-red-500',
+            backendUp && 'shadow-[0_0_8px_2px_rgb(16_185_129/0.5)]',
+          )}
+          aria-label={backendUp ? 'Backend connected' : 'Backend unreachable'}
+        />
+      )}
+
+      {/* Login roadmap item 1: her code, pinned in one corner for the whole
+          session -- shown as soon as it exists, new-user or freshly saved. */}
+      {view === 'session' && activePin && <PinBadge pin={activePin} />}
 
       <AnimatePresence mode="wait">
         {view === 'landing' ? (
@@ -273,7 +391,23 @@ function App() {
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.35 }}
           >
-            <Landing connecting={connecting} onStart={beginSession} />
+            <Landing
+              connecting={connecting}
+              onStart={beginSession}
+              onPinEntry={goToPinEntry}
+              onNewUser={startAsNewUser}
+            />
+          </motion.div>
+        ) : view === 'pin-entry' ? (
+          <motion.div key="pin-entry" className="relative h-full overflow-y-auto">
+            <PinEntry
+              checking={pinChecking}
+              error={pinError}
+              attemptsLeft={pinAttemptsLeft}
+              onSubmit={submitPinEntry}
+              onBack={backToLanding}
+              onStartFresh={backToLanding}
+            />
           </motion.div>
         ) : (
           <motion.div
@@ -283,10 +417,19 @@ function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <header className="flex items-center justify-center pt-5">
+            <header className="flex flex-col items-center gap-1 pt-5">
               <span className="text-lg font-bold tracking-tight text-brand-600">
                 UdaanHER <span className="text-blush-600">Saathi</span>
               </span>
+              {usingRememberedLogin && connecting && (
+                <button
+                  type="button"
+                  onClick={forgetThisPhone}
+                  className="text-xs font-medium text-muted-foreground underline"
+                >
+                  आप नहीं हैं? · Not you?
+                </button>
+              )}
             </header>
 
             <main className="flex min-h-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-6">

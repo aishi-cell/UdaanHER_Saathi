@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 from pydantic import BaseModel
 
-from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
 from app.models import db as db_repo
 
@@ -96,7 +96,8 @@ async def run(state: AgentState) -> dict:
 
     if state["stage_step"] == 0:
         # transcript belongs to assess's last question, not this readback --
-        # see the matching note in discover.py step 0.
+        # see the matching note in discover.py step 0. FRESH_TOPIC, not ""
+        # -- see app.agent.llm_utils.FRESH_TOPIC for why.
         reply = await ask_conversational(
             "confirm_profile",
             language=state["language"],
@@ -105,7 +106,7 @@ async def run(state: AgentState) -> dict:
                 village=profile.get("village", ""),
                 interest=profile.get("interest", ""),
             ),
-            transcript="",
+            transcript=FRESH_TOPIC,
         )
         return {
             "stage": "confirm_profile",
@@ -157,8 +158,11 @@ async def run(state: AgentState) -> dict:
     pin: str | None = None
     if not state.get("consent_declined"):
         # Her PIN for return visits (T22): random 4 digits -- greet's
-        # returning path looks it up by name + these digits.
-        pin = f"{secrets.randbelow(10_000):04d}"
+        # returning path looks it up by name + these digits. If a PIN was
+        # already generated and shown to her before this conversation even
+        # started (login roadmap item 1: the corner badge for a new user),
+        # save that same code rather than minting a different one now.
+        pin = state.get("pending_pin") or f"{secrets.randbelow(10_000):04d}"
         learner = db_repo.create_learner(
             name=profile.get("name", ""),
             village=profile.get("village"),

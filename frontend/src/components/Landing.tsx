@@ -8,6 +8,8 @@ export type Language = 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN';
 interface Props {
   connecting: boolean;
   onStart: () => void;
+  onPinEntry: () => void;
+  onNewUser: () => void;
 }
 
 const FEATURES = [
@@ -25,7 +27,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 130, damping: 17 } },
 };
 
-export function Landing({ connecting, onStart }: Props) {
+export function Landing({ connecting, onStart, onPinEntry, onNewUser }: Props) {
   return (
     <motion.div
       key="hero"
@@ -78,6 +80,25 @@ export function Landing({ connecting, onStart }: Props) {
               <Mic className="size-6" /> Talk to Saathi
             </>
           )}
+        </Button>
+      </motion.div>
+
+      <motion.div variants={item} className="flex flex-wrap items-center justify-center gap-3">
+        <Button
+          variant="outline"
+          disabled={connecting}
+          onClick={onPinEntry}
+          className="rounded-full border-brand-300 px-5 text-base font-semibold text-brand-700"
+        >
+          मेरे पास PIN है · I have a PIN
+        </Button>
+        <Button
+          variant="ghost"
+          disabled={connecting}
+          onClick={onNewUser}
+          className="rounded-full px-5 text-base font-semibold text-brand-700"
+        >
+          नई हूं · I'm new here
         </Button>
       </motion.div>
 

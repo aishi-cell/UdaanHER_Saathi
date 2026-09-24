@@ -8,7 +8,7 @@ grades -- never by asking the LLM "should we reteach?".
 
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
@@ -31,19 +31,41 @@ REASK_INSTRUCTION = (
     "that, and ask the same thing again in simpler words: {question}"
 )
 GRADE_INSTRUCTION = (
-    "Grade her spoken answer to this question about {concept_label}.\n"
-    "Question: {question}\n"
+    "She was just asked this question about {concept_label}: {question}\n\n"
+    "First: is she actually answering it, or asking something else instead "
+    "-- what she's already learned so far, or what's coming up next (e.g. "
+    "'ab tak maine kya seekha?', 'ab aage kya hai?')? If the latter, set "
+    "progress_query true and ignore grade/one_line_reason.\n\n"
+    "Otherwise, grade her answer:\n"
     "Answers like these mean she has the idea (grade 'strong'):\n{sounds_right}\n"
     "Answers like these mean she is confused (grade 'shaky'):\n{sounds_confused}\n"
     "Her transcript may be informal, incomplete, code-mixed, or imperfectly "
     "transcribed -- judge the UNDERSTANDING underneath the words, the way a "
     "kind teacher listens, not the vocabulary or grammar."
 )
+# Learning roadmap (roadmap item 4): she can ask this mid-viva too, not only
+# during teach -- answered without spending a second LLM call to detect it
+# (folded into the same grading extraction above), and without losing her
+# place: the question just asked is held, not counted as skipped.
+PROGRESS_QUERY_INSTRUCTION = (
+    "She just asked what she's already learned, or what's coming up next -- "
+    "not answering the question you asked. Answer warmly and briefly, in "
+    "ONE short sentence, from this: covered so far today: {done}. Talking "
+    "about right now: {current}. Still to come: {next_up}. Then gently ask "
+    "the same question again: {question}"
+)
 
 
 class VivaGrade(BaseModel):
-    grade: Literal["strong", "shaky"]
-    one_line_reason: str
+    progress_query: bool = Field(
+        default=False,
+        description=(
+            "true ONLY if she is asking about her overall progress instead "
+            "of answering the question -- then grade/one_line_reason are ignored"
+        ),
+    )
+    grade: Literal["strong", "shaky"] = "shaky"
+    one_line_reason: str = ""
 
 
 def _question_for_concept(
@@ -60,6 +82,11 @@ def _next_ungraded(coverage: list[str], grades: dict[str, str]) -> str | None:
         if concept_id not in grades:
             return concept_id
     return None
+
+
+def _concept_label(package: store.SkillPackage, concept_id: str) -> str:
+    concept = package.concept(concept_id)
+    return store.pick_language(concept.label, "en-IN") if concept else concept_id
 
 
 def _find_question(package: store.SkillPackage, question_id: str) -> store.RubricQuestion | None:
@@ -185,6 +212,34 @@ async def run(state: AgentState) -> dict:
         transcript=state["transcript"],
         schema=VivaGrade,
     )
+
+    if graded.progress_query:
+        # Held in place: the question just asked is NOT counted as skipped
+        # or graded -- she gets asked it again right after the answer.
+        coverage = coverage_order(package, path_concept_ids(state, package))
+        done_ids = [c for c in coverage if c in viva["grades"] and c != question.concept_id]
+        next_ids = [c for c in coverage if c not in viva["grades"] and c != question.concept_id]
+        reply = await ask_conversational(
+            "viva",
+            language=state["language"],
+            instruction=PROGRESS_QUERY_INSTRUCTION.format(
+                done=", ".join(_concept_label(package, c) for c in done_ids)
+                or "nothing yet -- you're just getting started with this chat",
+                current=_concept_label(package, question.concept_id),
+                next_up=", ".join(_concept_label(package, c) for c in next_ids[:3])
+                or "nothing -- this is the last thing to talk about today",
+                question=question.question,
+            ),
+            transcript=state["transcript"],
+        )
+        return {
+            "stage": "viva",
+            "stage_step": 1,
+            "viva": viva,
+            "reply_text": reply,
+            "ui": {"type": "idle"},
+        }
+
     viva["grades"][question.concept_id] = graded.grade
 
     learner_id = persistable_learner_id(state)

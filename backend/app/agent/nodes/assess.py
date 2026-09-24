@@ -11,7 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
+from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
+from app.agent.nodes import confirm_profile
 from app.agent.state import AgentState
 from app.content import store
 
@@ -117,6 +118,11 @@ async def run(state: AgentState) -> dict:
         return {"stage": "assess", "stage_step": step, "reply_text": reply, "ui": {"type": "idle"}}
 
     if step < MAX_QUESTIONS:
+        # Step 0 can legitimately arrive with an empty transcript (a fresh
+        # entry, e.g. chained straight from discover's skill-choice turn --
+        # roadmap item 2) -- fall back to FRESH_TOPIC rather than letting ""
+        # render as "(no speech was heard clearly)". Steps 1+ always have a
+        # real answer by this point (an unclear one was re-asked above).
         reply = await ask_conversational(
             "assess",
             language=state["language"],
@@ -129,7 +135,7 @@ async def run(state: AgentState) -> dict:
                 max_questions=MAX_QUESTIONS,
                 conversation_so_far=_conversation_so_far(state.get("history") or []),
             ),
-            transcript=state["transcript"],
+            transcript=state["transcript"] or FRESH_TOPIC,
         )
         return {
             "stage": "assess",
@@ -172,13 +178,18 @@ async def run(state: AgentState) -> dict:
         instruction=WRAP_INSTRUCTION,
         transcript=state["transcript"],
     )
+    # Smoother first-time experience (roadmap item 2): fold the profile
+    # readback + confirmation question into this same turn -- otherwise she
+    # hears "ready to look at your profile" with nothing to actually answer,
+    # and has to say something before the real readback+question arrives.
+    readback = await confirm_profile.run(
+        {**state, "stage": "confirm_profile", "stage_step": 0, "profile": profile}
+    )
     return {
-        "stage": "confirm_profile",
-        "stage_step": 0,
+        **readback,
         "profile": profile,
         "concept_estimates": estimates,
         "learning_path": learning_path,
         "history": history[-12:],
-        "reply_text": reply,
-        "ui": {"type": "idle"},
+        "reply_text": f"{reply} {readback['reply_text']}",
     }

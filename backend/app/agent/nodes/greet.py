@@ -5,16 +5,23 @@ step 1  extract {name, returning}
           new       -> ask spoken consent to be remembered      (-> step 2)
           returning -> ask for her 4-digit PIN                  (-> step 3)
 step 2  extract consent yes/no, ack, hand off to discover
-step 3  extract spoken PIN -> lookup name+PIN
+step 3..3+MAX_PIN_ATTEMPTS-1
+        extract spoken (or tapped/keypad) PIN -> lookup name+PIN
           match -> welcome back + resume at her next gap (resume helpers)
-          miss  -> one gentle retry                             (-> step 4)
-step 4  second PIN attempt; a second miss starts her fresh (consent ask,
+          miss  -> another gentle retry, up to MAX_PIN_ATTEMPTS total
+        every PIN step shows a number keypad on screen (login roadmap item
+        1: available from the start, not only after voice fails), and her
+        remaining tries are visible in the UI.
+        after MAX_PIN_ATTEMPTS misses, starts her fresh (consent ask,
         -> step 2) -- never a dead end, never blame her
 """
+
+import re
 
 from pydantic import BaseModel, Field
 
 from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
+from app.agent.nodes import discover
 from app.agent.nodes.resume import (
     WELCOME_BACK_INSTRUCTION,
     PROGRESS_LINE_SOME_DONE,
@@ -114,12 +121,37 @@ class PinExtraction(BaseModel):
     pin: str
 
 
+# Login roadmap item 1: "allow more attempts" -- safe to raise now that a
+# keypad removes most misrecognition risk, was 2 total voice-only attempts.
+PIN_STEP_START = 3
+MAX_PIN_ATTEMPTS = 4
+
+_CLEAN_DIGITS = re.compile(r"^\s*\d{4}\s*$")
+
+
 def _idle(reply: str, *, stage_step: int, **extra) -> dict:
     return {
         "stage": "greet",
         "stage_step": stage_step,
         "reply_text": reply,
         "ui": {"type": "idle"},
+        **extra,
+    }
+
+
+def _pin_idle(reply: str, *, stage_step: int, attempt: int, **extra) -> dict:
+    """Like _idle, but keeps the number keypad on screen -- every PIN step
+    is enterable by tap as well as voice, from the very first attempt."""
+    return {
+        "stage": "greet",
+        "stage_step": stage_step,
+        "reply_text": reply,
+        "ui": {
+            "type": "request_pin",
+            "prompt": reply,
+            "attempt": attempt,
+            "max_attempts": MAX_PIN_ATTEMPTS,
+        },
         **extra,
     }
 
@@ -133,22 +165,29 @@ async def _ask(state: AgentState, instruction: str, *, transcript: str | None = 
     )
 
 
-async def _handle_pin_attempt(state: AgentState, *, attempts_left: int) -> dict:
+async def _handle_pin_attempt(state: AgentState, *, step: int, attempts_left: int) -> dict:
     name = (state.get("profile") or {}).get("name", "")
-    this_step = 4 - attempts_left  # step 3 has one retry left, step 4 none
+    attempt = step - PIN_STEP_START + 1
 
     if is_unclear(state["transcript"]):
-        return _idle(await _ask(state, REASK_PIN_INSTRUCTION), stage_step=this_step)
+        return _pin_idle(await _ask(state, REASK_PIN_INSTRUCTION), stage_step=step, attempt=attempt)
 
-    extraction = await extract_structured(
-        "greet",
-        language=state["language"],
-        instruction=PIN_EXTRACT_INSTRUCTION,
-        transcript=state["transcript"],
-        schema=PinExtraction,
-    )
-    # Normalize any Unicode digits (Devanagari/Gujarati numerals) to ASCII.
-    pin = "".join(str(int(ch)) for ch in extraction.pin if ch.isdigit())
+    # A tapped keypad (or a transcript that's already just 4 clean digits)
+    # needs no LLM round-trip to parse -- faster and cheaper (Phase 1
+    # "faster responses"), and unambiguous either way.
+    raw = state["transcript"].strip()
+    if _CLEAN_DIGITS.match(raw):
+        pin = raw.strip()
+    else:
+        extraction = await extract_structured(
+            "greet",
+            language=state["language"],
+            instruction=PIN_EXTRACT_INSTRUCTION,
+            transcript=state["transcript"],
+            schema=PinExtraction,
+        )
+        # Normalize any Unicode digits (Devanagari/Gujarati numerals) to ASCII.
+        pin = "".join(str(int(ch)) for ch in extraction.pin if ch.isdigit())
     # PIN-first lookup: her spoken name may arrive in a different script
     # than it was saved in, so it's a tiebreaker, not a filter.
     learner = db_repo.find_learner_by_pin(pin, name_hint=name) if len(pin) == 4 else None
@@ -183,10 +222,12 @@ async def _handle_pin_attempt(state: AgentState, *, attempts_left: int) -> dict:
         }
 
     if attempts_left > 0:
-        return _idle(
-            await _ask(state, RETRY_PIN_INSTRUCTION.format(name=name)), stage_step=4
+        return _pin_idle(
+            await _ask(state, RETRY_PIN_INSTRUCTION.format(name=name)),
+            stage_step=step + 1,
+            attempt=attempt + 1,
         )
-    # Second miss: start her fresh -- back onto the new-visitor consent path.
+    # Final miss: start her fresh -- back onto the new-visitor consent path.
     return _idle(await _ask(state, FRESH_START_INSTRUCTION), stage_step=2)
 
 
@@ -216,8 +257,11 @@ async def run(state: AgentState) -> dict:
         )
         profile = {"name": extraction.name}
         if extraction.returning:
-            return _idle(
-                await _ask(state, ASK_PIN_INSTRUCTION), stage_step=3, profile=profile
+            return _pin_idle(
+                await _ask(state, ASK_PIN_INSTRUCTION),
+                stage_step=PIN_STEP_START,
+                attempt=1,
+                profile=profile,
             )
         return _idle(
             await _ask(state, ASK_CONSENT_INSTRUCTION.format(name=extraction.name)),
@@ -237,13 +281,22 @@ async def run(state: AgentState) -> dict:
         )
         ack = ACK_INSTRUCTION_YES if extraction.consent_given else ACK_INSTRUCTION_NO
         reply = await _ask(state, ack)
+        # Smoother first-time experience (roadmap item 2): fold discover's
+        # opening question into this same turn rather than leaving her with
+        # a plain ack and nothing to answer -- an extra silent round-trip
+        # that asked nothing (T12-era pattern, same fix as choose_language
+        # already applies for the language-to-greet hand-off).
+        next_turn = await discover.run(
+            {**state, "stage": "discover", "stage_step": 0, "transcript": ""}
+        )
         return {
-            "stage": "discover",
-            "stage_step": 0,
+            **next_turn,
             "consent_declined": not extraction.consent_given,
-            "reply_text": reply,
-            "ui": {"type": "idle"},
+            "reply_text": f"{reply} {next_turn['reply_text']}",
         }
 
-    # steps 3 and 4: her spoken PIN (first attempt, then one retry)
-    return await _handle_pin_attempt(state, attempts_left=4 - step)
+    # steps PIN_STEP_START..PIN_STEP_START+MAX_PIN_ATTEMPTS-1: her PIN,
+    # spoken or tapped, with MAX_PIN_ATTEMPTS total tries.
+    attempt = step - PIN_STEP_START + 1
+    attempts_left = MAX_PIN_ATTEMPTS - attempt
+    return await _handle_pin_attempt(state, step=step, attempts_left=attempts_left)

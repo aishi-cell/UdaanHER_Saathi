@@ -15,6 +15,16 @@ T = TypeVar("T", bound=BaseModel)
 # answer gets a warm re-ask instead of a hallucinated/garbage extraction.
 MIN_USABLE_TRANSCRIPT_LENGTH = 2
 
+# A falsy `transcript` renders as "(no speech was heard clearly)" below --
+# correct for a genuine re-ask, wrong for a node opening a brand-new
+# question/statement with nothing to react to yet (a live run showed the
+# model apologising for "unclear audio" mid-sentence, before diving into
+# content it was never given). Nodes that aren't re-asking after unclear
+# input should pass this instead of "" -- see greet.py step 0 for the first
+# instance of this fix, and the discover/assess/confirm_profile/resume/
+# teach/practice call sites that reuse it.
+FRESH_TOPIC = "(nothing has been said yet on this -- do not apologise or mention unclear audio)"
+
 
 def is_unclear(transcript: str) -> bool:
     return len((transcript or "").strip()) < MIN_USABLE_TRANSCRIPT_LENGTH

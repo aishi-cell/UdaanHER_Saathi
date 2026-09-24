@@ -65,6 +65,12 @@ class AgentState(TypedDict):
     # by confirm_profile, which skips the DB save but lets the session
     # continue normally.
     consent_declined: bool
+    # Login roadmap item 1: a PIN generated up front (e.g. the moment she taps
+    # "I'm new" on the landing screen) so it can be displayed in a persistent
+    # corner badge from the start, not only after the full onboarding
+    # conversation. confirm_profile uses this instead of minting a fresh one
+    # when present, so the number she's been staring at is the one that saves.
+    pending_pin: str | None
 
 
 def initial_state(
@@ -75,6 +81,7 @@ def initial_state(
     stage: Stage = "greet",
     profile: ProfileDraft | None = None,
     skill_id: str | None = None,
+    pending_pin: str | None = None,
 ) -> AgentState:
     return AgentState(
         session_id=session_id,
@@ -95,4 +102,5 @@ def initial_state(
         ui={"type": "idle"},
         stage_step=0,
         consent_declined=False,
+        pending_pin=pending_pin,
     )

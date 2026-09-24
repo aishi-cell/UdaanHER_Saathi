@@ -67,6 +67,7 @@ async def test_assess_builds_gap_only_learning_path():
             ),
         ),
         patch("app.agent.nodes.assess.ask_conversational", new=AsyncMock(return_value="ok")),
+        patch("app.agent.nodes.confirm_profile.ask_conversational", new=AsyncMock(return_value="ok")),
     ):
         result = await assess.run(state)
 
@@ -94,6 +95,7 @@ async def test_assess_all_known_falls_back_to_must_land_refresh():
             ),
         ),
         patch("app.agent.nodes.assess.ask_conversational", new=AsyncMock(return_value="ok")),
+        patch("app.agent.nodes.confirm_profile.ask_conversational", new=AsyncMock(return_value="ok")),
     ):
         result = await assess.run(state)
 
@@ -189,6 +191,55 @@ async def test_teach_stop_goes_to_wrapup():
 
 
 @pytest.mark.asyncio
+async def test_teach_entry_previews_the_plan_before_the_first_step():
+    """Learning roadmap (roadmap item 4): "Hum pehle yeh seekhenge, phir
+    yeh..." -- she should hear the plan named, not just have lessons
+    appear one after another with no preview."""
+    state = make_state(
+        stage="teach", stage_step=0, learning_path=["c-grain", "c-tape-basics"]
+    )
+
+    with patch(
+        "app.agent.nodes.teach.ask_conversational", new=AsyncMock(return_value="ok")
+    ) as mock_ask:
+        await teach.run(state)
+
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    # Both concepts on her path are named up front, not only the first one.
+    assert "grain" in instruction.lower()
+    assert "tape" in instruction.lower() or "measure" in instruction.lower()
+
+
+@pytest.mark.asyncio
+async def test_teach_progress_query_holds_step_and_summarizes():
+    state = make_state(
+        stage="teach",
+        stage_step=1,
+        step_index=1,  # the second of c-grain's two steps
+        learning_path=["c-grain", "c-tape-basics"],
+        transcript="ab tak maine kya seekha?",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.teach.extract_structured",
+            new=AsyncMock(return_value=TeachIntent(intent="progress_query")),
+        ),
+        patch(
+            "app.agent.nodes.teach.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        result = await teach.run(state)
+
+    # Held in place -- not advanced, not a lesson answer.
+    assert result["stage"] == "teach"
+    assert result["step_index"] == 1
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "grain" in instruction.lower()  # what's done
+    assert "tape" in instruction.lower() or "measure" in instruction.lower()  # what's next
+
+
+@pytest.mark.asyncio
 async def test_teach_marks_lesson_in_progress_for_consented_learner():
     learner = db.create_learner(
         name="Sunita", village=None, language="hi-IN", pin="1234",
@@ -254,6 +305,40 @@ async def test_viva_all_strong_routes_to_earn_and_writes_mastery():
     progress = db.get_progress(learner.id)
     grain = next(c for c in progress["concepts"] if c["concept_id"] == "c-grain")
     assert grain["mastery"] == "strong"
+
+
+@pytest.mark.asyncio
+async def test_viva_progress_query_holds_question_and_summarizes():
+    """Learning roadmap (roadmap item 4): she can ask "ab tak maine kya
+    seekha?" mid-viva too, not only during teach -- answered without an
+    extra LLM call (folded into the grading extraction), and the question
+    she was just asked is held, not skipped or graded."""
+    package = _package()
+    grain_q = package.questions_for_concept("c-grain")[0]
+    state = make_state(
+        stage="viva",
+        stage_step=1,
+        learning_path=["c-grain", "c-tape-basics"],
+        viva={"question_ids_asked": [grain_q.question_id], "grades": {}},
+        transcript="ab tak maine kya seekha?",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.viva.extract_structured",
+            new=AsyncMock(return_value=VivaGrade(progress_query=True)),
+        ),
+        patch(
+            "app.agent.nodes.viva.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        result = await viva.run(state)
+
+    assert result["stage"] == "viva"
+    assert result["viva"]["grades"] == {}  # not graded
+    assert result["viva"]["question_ids_asked"] == [grain_q.question_id]  # not skipped
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "tape" in instruction.lower() or "measure" in instruction.lower()  # what's next
 
 
 @pytest.mark.asyncio

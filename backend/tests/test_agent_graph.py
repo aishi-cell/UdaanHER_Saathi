@@ -79,25 +79,26 @@ def _mock_onboarding_llm(stack: ExitStack) -> None:
     )
 
 
-# Exact turn-by-turn shape of a full onboarding walk. Each stage's step-0
-# turn only *asks* (it ignores whatever transcript arrives with it), so the
-# turn count per stage is one more than the number of real answers it needs:
-# greet needs 3 invocations (ask name + new/returning, extract + ask consent
-# for a new visitor, extract consent), discover needs 3 (ask village/work,
-# extract + show interest cards, receive interest), assess needs 4 (3
-# questions asked + 1 final extraction), and confirm_profile needs 2
-# (readback, then extract confirmation).
+# Exact turn-by-turn shape of a full onboarding walk. A stage transition
+# whose next stage's opening step doesn't need her spoken input (roadmap
+# item 2: "reduce unnecessary questions") is folded into the SAME turn as
+# the transition -- e.g. consenting to be remembered and being asked where
+# she's from happen in one reply, not two turns with a throwaway in
+# between. So: greet needs 2 invocations (ask name + new/returning, extract
+# + ask consent -- which itself already asks discover's opening question),
+# discover needs 2 (extract village/work + show interest cards, receive
+# interest -- which already asks assess's first question), assess needs 3
+# (Q2 asked, Q3 asked, final extraction -- which already asks
+# confirm_profile's readback), and confirm_profile needs 1 (extract
+# confirmation).
 ONBOARDING_TURNS_AFTER_INITIAL_GREET = [
     "Sunita, pehli baar",  # greet step1: extract name + new visitor -> ask consent
-    "haan, yaad rakho",  # greet step2: extract consent -> discover
-    "namaste",  # discover step0: ask village/work (content ignored)
+    "haan, yaad rakho",  # greet step2: extract consent -> discover asks village/work (same turn)
     "Rampur mein kheti karti hoon",  # discover step1: extract, show interest cards
-    "tailoring",  # discover step2: tap interest -> assess
-    "haan",  # assess step0 -> step1 (Q1 asked)
+    "tailoring",  # discover step2: tap interest -> assess asks Q1 (same turn)
     "haan",  # assess step1 -> step2 (Q2 asked)
     "haan",  # assess step2 -> step3 (Q3 asked)
-    "haan, thoda seekha hai",  # assess step3: extract level -> confirm_profile
-    "haan",  # confirm_profile step0: readback (content ignored)
+    "haan, thoda seekha hai",  # assess step3: extract level -> confirm_profile readback (same turn)
     "haan sahi hai",  # confirm_profile step1: extract confirmation -> save -> teach
 ]
 
@@ -130,18 +131,15 @@ async def test_stage_sequence_walks_the_full_onboarding_in_order():
     stages = [r["stage"] for r in results]
     assert stages == [
         "greet",  # new visitor: consent question asked
-        "discover",  # consent extracted
-        "discover",  # asked village/work
+        "discover",  # consent extracted, village/work asked (same turn)
         "discover",  # extracted village, showing interest cards
-        "assess",  # tapped interest
-        "assess",  # Q1 asked
+        "assess",  # tapped interest, Q1 asked (same turn)
         "assess",  # Q2 asked
         "assess",  # Q3 asked
-        "confirm_profile",  # level extracted
-        "confirm_profile",  # readback shown
+        "confirm_profile",  # level extracted, readback shown (same turn)
         "teach",  # confirmed and saved
     ]
-    assert results[3]["ui"]["type"] == "show_options"
+    assert results[2]["ui"]["type"] == "show_options"
     assert results[-1]["learner_id"] is not None
 
 
@@ -258,10 +256,7 @@ async def test_checkpoint_survives_reopening_the_sqlite_connection(tmp_path):
         async with AsyncSqliteSaver.from_conn_string(str(db_path)) as saver:
             graph = compile_graph(saver)
             result = await graph.ainvoke({"transcript": "haan, yaad rakho"}, config=config)
-            assert result["stage"] == "discover"  # consent extracted
-
-            result = await graph.ainvoke({"transcript": "namaste"}, config=config)
-            assert result["stage"] == "discover"  # asked village/work
+            assert result["stage"] == "discover"  # consent extracted, village/work asked (same turn)
 
             result = await graph.ainvoke({"transcript": "Rampur mein kheti"}, config=config)
             assert result["stage"] == "discover"

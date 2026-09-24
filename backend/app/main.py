@@ -17,7 +17,14 @@ from app.content import store as content_store
 from app.errors import ApiError, api_error_handler, unhandled_error_handler
 from app.middleware import RequestLogMiddleware
 from app.models import db as db_repo
-from app.models.api import LatencyMs, SessionRequest, SessionResponse, TurnResponse
+from app.models.api import (
+    LatencyMs,
+    PinLookupRequest,
+    PinLookupResponse,
+    SessionRequest,
+    SessionResponse,
+    TurnResponse,
+)
 from app.models.ui import ProgressPayload, UICommand
 from app.services.llm import describe_practice_photo
 from app.services.stt import SttError, transcribe
@@ -70,19 +77,27 @@ def health() -> dict:
 @app.post("/api/session", response_model=SessionResponse)
 async def post_session(request: Request, payload: SessionRequest) -> SessionResponse:
     learner = None
-    if payload.learner_name and payload.pin:
-        learner = db_repo.get_learner_by_name_pin(payload.learner_name, payload.pin)
+    if payload.pin:
+        # PIN-first lookup (same rule as greet's voice path, T22): the PIN is
+        # the actual secret, the name only breaks a tie between two learners
+        # who happen to share one. This also lets the on-screen keypad log
+        # her in with just the 4 digits, no name needed.
+        learner = db_repo.find_learner_by_pin(payload.pin, name_hint=payload.learner_name or "")
 
-    # No language given -> voice-first: Saathi opens by asking for it.
-    # The placeholder language covers the trilingual prompt's TTS and is
-    # overwritten by choose_language the moment she answers.
-    language = payload.language or choose_language.PROMPT_TTS_LANGUAGE
     if learner:
         stage = "resume"
+        # Her saved language wins over anything the client sent -- a
+        # remembered/typed login should never re-ask a question she already
+        # answered once.
+        language = learner.language
     elif payload.language:
         stage = "greet"
+        language = payload.language
     else:
         stage = "choose_language"
+        # Placeholder covers the trilingual prompt's TTS and is overwritten
+        # by choose_language the moment she answers.
+        language = choose_language.PROMPT_TTS_LANGUAGE
 
     session = db_repo.create_session(
         learner_id=learner.id if learner else None,
@@ -97,6 +112,7 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
         profile=profile_from_learner(learner) if learner else None,
         # Her saved interest is a content-store skill id; resume/teach read it.
         skill_id=(learner.interest_skill or None) if learner else None,
+        pending_pin=payload.pending_pin,
     )
 
     graph = request.app.state.agent_graph
@@ -117,6 +133,17 @@ async def post_session(request: Request, payload: SessionRequest) -> SessionResp
         ui=ui_adapter.validate_python(result_state["ui"]),
         stage=result_state["stage"],
     )
+
+
+@app.post("/api/learner/lookup", response_model=PinLookupResponse)
+def post_learner_lookup(payload: PinLookupRequest) -> PinLookupResponse:
+    """Cheap PIN check for the on-screen keypad: no graph run, no TTS --
+    just "does this PIN match anyone", so a wrong tap can give an instant,
+    friendly "try again" instead of the cost of a full session start."""
+    learner = db_repo.find_learner_by_pin(payload.pin, name_hint=payload.learner_name or "")
+    if learner is None:
+        return PinLookupResponse(found=False)
+    return PinLookupResponse(found=True, learner_name=learner.name)
 
 
 @app.get("/api/learner/{learner_id}/progress", response_model=ProgressPayload)
