@@ -197,6 +197,35 @@ async def test_greet_pin_match_resumes_at_her_gaps():
 
 
 @pytest.mark.asyncio
+async def test_greet_pin_match_mentions_her_next_career_milestone():
+    """The voice PIN path builds its own welcome-back reply (doesn't call
+    resume.run()), so it needs the same milestone mention independently."""
+    learner = _returning_learner()
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="greet",
+        stage_step=3,
+        profile={"name": "Meena"},
+        transcript="chaar do saat ek",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=PinExtraction(pin="4271")),
+        ),
+        patch(
+            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        await greet.run(state)
+
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "Started learning" in instruction  # nothing achieved yet -> first in catalog
+
+
+@pytest.mark.asyncio
 async def test_greet_pin_match_survives_cross_script_name():
     """Live-run bug: stored name 'Sunita' (Latin), extracted name 'सुनीता'
     (Devanagari). The PIN is the secret; the name must not lock her out."""
@@ -410,6 +439,30 @@ async def test_resume_node_builds_gap_path_and_welcomes_back():
 
 
 @pytest.mark.asyncio
+async def test_resume_mentions_her_next_career_milestone():
+    """Career roadmap (roadmap item 3): "explain her current progress and
+    the next milestone" -- the most natural moment is right when she
+    returns."""
+    learner = _returning_learner()
+    db.mark_milestone(learner.id, "tailoring", "started_skill")
+    state = make_state(
+        stage="resume",
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+    )
+
+    with patch(
+        "app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")
+    ) as mock_ask:
+        await resume.run(state)
+
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "Made the first thing" in instruction  # the next unachieved one
+    assert "Started learning" not in instruction  # already done, not "next"
+
+
+@pytest.mark.asyncio
 async def test_resume_all_strong_gives_must_land_refresh():
     learner = _returning_learner()
     for concept_id in [
@@ -544,6 +597,40 @@ async def test_discover_step2_voice_uses_extraction():
 
     mock_extract.assert_awaited_once()
     assert result["profile"]["interest"] == "tailoring"
+
+
+@pytest.mark.asyncio
+async def test_discover_step2_implausible_skill_reasks_instead_of_building():
+    """Bug found via a live full-session test: garbled/off-topic input
+    reaching this step (e.g. a stray "nahi") once triggered a real
+    background build that fabricated an entire fake curriculum out of
+    nothing -- caught only by the trusted-gate, never by input validation.
+    The model can flag this itself; use that instead of guessing a name."""
+    state = make_state(
+        stage="discover",
+        stage_step=2,
+        profile={"name": "Sunita", "village": "Rampur"},
+        transcript="nahi",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.discover.extract_structured",
+            new=AsyncMock(
+                return_value=SkillChoiceExtraction(
+                    matched_skill_id="", skill_name_english="", is_plausible_skill=False
+                )
+            ),
+        ),
+        patch("app.agent.nodes.discover.ask_conversational", new=AsyncMock(return_value="Phir se?")),
+        patch("app.content.builder.start_background_build") as mock_build,
+    ):
+        result = await discover.run(state)
+
+    mock_build.assert_not_called()
+    assert result["stage"] == "discover"
+    assert result["stage_step"] == 2
+    assert result["ui"]["type"] == "show_options"
 
 
 # --- assess ------------------------------------------------------------

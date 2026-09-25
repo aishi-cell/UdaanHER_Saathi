@@ -7,7 +7,7 @@ unseeded one kicks off a background Content Builder run (the slow lane) while
 she is warmly offered what is ready today.
 """
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
 from app.agent.nodes import assess
@@ -62,6 +62,16 @@ class VillageWorkExtraction(BaseModel):
 class SkillChoiceExtraction(BaseModel):
     matched_skill_id: str  # exact id from the available list, or "" if none fits
     skill_name_english: str  # short canonical English name for what she asked
+    is_plausible_skill: bool = Field(
+        default=True,
+        description=(
+            "False if her words aren't actually the name of a skill or craft "
+            "at all -- a filler word, yes/no, unrelated chatter, or garbled "
+            "STT noise. Never invent a skill name to fill this in when it's "
+            "clearly not one; that would kick off a real, costly background "
+            "job to build a fake curriculum from nothing."
+        ),
+    )
 
 
 def _cards(language: str) -> list[dict]:
@@ -170,7 +180,11 @@ async def run(state: AgentState) -> dict:
                 "canonical English name for what she asked (e.g. 'mehndi', "
                 "'pickle making'). Her speech-to-text transcript may be "
                 "imperfect, informal, code-mixed, or have a strong regional "
-                "accent -- make your best reasonable guess."
+                "accent -- make your best reasonable guess. But if what she "
+                "said genuinely isn't the name of a skill or craft at all -- "
+                "a stray yes/no, a filler word, unrelated chatter, or "
+                "garbled STT noise -- set is_plausible_skill to false rather "
+                "than inventing a plausible-sounding name for it."
             ),
             transcript=state["transcript"],
             schema=SkillChoiceExtraction,
@@ -180,6 +194,26 @@ async def run(state: AgentState) -> dict:
         matched = extraction.matched_skill_id.strip().lower()
         if matched in available:
             skill_id = matched
+        elif not extraction.is_plausible_skill:
+            # Not a real skill name at all -- a stray word, noise, or her
+            # answer landed here out of turn. Re-ask instead of spending a
+            # real background build (YouTube search + LLM curriculum
+            # generation) on fabricating a fake "skill" from nothing (a live
+            # test once produced a full invented curriculum for the input
+            # "nahi" -- caught only by the trusted-gate, never by this
+            # check, until now).
+            reply = await ask_conversational(
+                "discover",
+                language=language,
+                instruction=REASK_INTEREST_INSTRUCTION,
+                transcript="",
+            )
+            return {
+                "stage": "discover",
+                "stage_step": 2,
+                "reply_text": reply,
+                "ui": {"type": "show_options", "prompt": reply, "options": _cards(language)},
+            }
         else:
             asked_label = extraction.skill_name_english or state["transcript"]
 

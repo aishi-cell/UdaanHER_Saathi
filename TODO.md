@@ -69,6 +69,20 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       courses/skills are added to the content store (mostly true already since
       `discover.py` reads live from `content/store/`, but no build pipeline yet
       to keep growing that store — depends on Content Builder work below)
+- [x] Second bonus bug found + fixed via a full-session live stress test: a
+      broken test scenario (skill choice failed to match, desyncing the
+      conversation) fed garbled/off-topic input like "nahi" into discover's
+      skill-matching step, which — instead of recognizing that wasn't a
+      skill at all — fired a real background build that fabricated an
+      entire fake curriculum ("Basic Refusal Skills: How to Say 'No' with
+      Confidence", complete with concepts and rubrics) out of nothing,
+      violating the "grounded, not invented" principle in `app_plan_v2.md`.
+      Never reached a real learner (the `trusted=false` gate already blocks
+      it), but it's still a real, costly background job spent on noise, and
+      an easy way to litter the content store with junk needing manual
+      cleanup. Fixed with a new `is_plausible_skill` field on the same
+      extraction call (no extra LLM call) — `discover.py` now re-asks
+      instead of building when it's false
 
 ## 3. Add a Career Development Roadmap ("My Journey")
 Shipped a v1 with a deliberately scoped-down decision: rather than blocking
@@ -93,11 +107,30 @@ left unmarked until there's a way for her to report them.
 - [x] Reachable any time once she's identified, without spending a
       conversation turn — a REST endpoint (`GET /api/learner/{id}/journey`)
       + a small persistent button, not threaded through the turn-based graph
-- [ ] Voice query "Saathi, mere liye aage kya hai?" answered *in conversation*
-      — not built; she can only view it via the button right now, not ask
-      for it by voice. Doing this "at any point" the way teach/viva/reteach's
-      progress_query works would need the same interception in every stage,
-      a much bigger lift than those three
+- [x] Voice query "Saathi, mere liye aage kya hai?" answered *in conversation*
+      at the three most natural checkpoints, without a new intent-detection
+      mechanism: **resume**'s welcome-back (both the typed/remembered-login
+      path and the voice-PIN path independently, since the latter builds its
+      own reply), **teach**'s existing `progress_query` interception (now
+      also names the next career milestone, not just lesson progress), and
+      **wrapup**'s closing narration. Doing it at literally *every* point in
+      every stage (viva/reteach mid-question, practice, earn, etc.) would
+      need the same interception rewired into each one — deferred, these
+      three cover the moments she'd actually ask this. Live-verified against
+      the real LLM: a resumed learner correctly heard her next milestone
+      unprompted, and asking mid-lesson got a reply blending lesson progress
+      with the career milestone in one natural sentence
+- [x] Bug found + fixed via a full-session live stress test (teach through
+      viva/reteach with a deliberately vague, off-topic answer repeated on
+      purpose): the `progress_query` classifier added for roadmap item 4
+      (viva/reteach share `VivaGrade.progress_query`) was over-triggering on
+      weak/rambling answers that weren't actually asking about progress --
+      it would hold the same question and re-ask it, live-observed stuck for
+      5 turns straight in `viva`. Tightened `GRADE_INSTRUCTION` in `viva.py`/
+      `reteach.py` (and `teach.py`'s intent classifier, same risk) to require
+      an unambiguous progress question and default to grading otherwise.
+      Re-ran the identical stress scenario after the fix: 0 repeats across 6
+      viva turns with the exact same input that broke it before
 - [ ] A way for her to report `found_customer` / `first_paid_order` from a
       future session (a real sale happens after she's left the app) — needs
       a decision on the mechanism: a dedicated voice phrase Saathi listens
@@ -179,7 +212,9 @@ left unmarked until there's a way for her to report them.
       — covered by unit tests during teach/viva/reteach, and live-verified
       end-to-end against the real LLM mid-`teach` (see §4 above); practice
       doesn't have it (see §4 note on why)
-- [ ] Asking about the larger career journey by voice — not built (see §3)
+- [x] Asking about the larger career journey by voice — live-verified at the
+      resume welcome-back and mid-teach progress_query checkpoints (see §3);
+      not covered at every possible point in every stage
 - [x] Viewing the My Journey screen — live-verified end-to-end: a real
       learner created via the API, reached `teach` (marking `started_skill`),
       confirmed the button appears, opens the overlay, shows the right

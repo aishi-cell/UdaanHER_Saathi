@@ -12,6 +12,7 @@ curriculum concept not yet 'strong', in curriculum order -- so a woman who
 mastered half the skill last visit never re-sits the half she finished.
 """
 
+from app.agent import milestones
 from app.agent.llm_utils import FRESH_TOPIC, ask_conversational
 from app.agent.state import AgentState, ProfileDraft
 from app.agent.teaching_utils import load_package
@@ -21,14 +22,26 @@ from app.models import db
 WELCOME_BACK_INSTRUCTION = (
     "She is BACK -- you have met before. Her name is {name} and she is "
     "learning {interest}. Welcome her back warmly by name, clearly glad to "
-    "see her again. {progress_line} Say you two will pick up right where "
-    "she left off."
+    "see her again. {progress_line} {milestone_line}Say you two will pick "
+    "up right where she left off."
 )
 PROGRESS_LINE_SOME_DONE = (
     "Last time she worked through some of it already -- {remaining} small "
     "steps remain, so acknowledge how far she has come."
 )
 PROGRESS_LINE_FRESH = "This visit continues the path you planned together."
+# Career roadmap (roadmap item 3): "explain her current progress and the
+# next milestone" -- the most natural moment for this is right when she
+# returns, before diving back into the lesson content.
+MILESTONE_LINE_NEXT = (
+    "On her bigger journey with this skill, the next milestone ahead of her "
+    "is: {milestone}. Mention that warmly, in one short phrase, as "
+    "something to look forward to. "
+)
+MILESTONE_LINE_ALL_DONE = (
+    "On her bigger journey with this skill, she has already reached every "
+    "milestone there is -- celebrate that warmly in one short phrase. "
+)
 
 
 def profile_from_learner(learner) -> ProfileDraft:
@@ -70,6 +83,20 @@ def build_resume_updates(state: AgentState) -> dict:
     }
 
 
+def milestone_line_for(state: AgentState) -> str:
+    """Shared with greet.py's voice PIN-match path, which builds the same
+    welcome-back reply without going through this node's run()."""
+    learner_id = state.get("learner_id")
+    skill_id = state.get("skill_id") or (state.get("profile") or {}).get("interest")
+    if not learner_id or not skill_id:
+        return ""
+    achieved = {m.milestone_id for m in db.get_milestones(learner_id, skill_id)}
+    next_m = milestones.next_milestone(achieved)
+    if next_m is None:
+        return MILESTONE_LINE_ALL_DONE
+    return MILESTONE_LINE_NEXT.format(milestone=next_m.label_en)
+
+
 async def run(state: AgentState) -> dict:
     profile = state.get("profile") or {}
     updates = build_resume_updates(state)
@@ -89,6 +116,7 @@ async def run(state: AgentState) -> dict:
             name=profile.get("name", ""),
             interest=profile.get("interest", "her skill"),
             progress_line=progress_line,
+            milestone_line=milestone_line_for(state),
         ),
         transcript=FRESH_TOPIC,
     )

@@ -240,6 +240,38 @@ async def test_teach_progress_query_holds_step_and_summarizes():
 
 
 @pytest.mark.asyncio
+async def test_teach_progress_query_also_mentions_next_career_milestone():
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    db.mark_milestone(learner.id, "tailoring", "started_skill")
+    state = make_state(
+        stage="teach",
+        stage_step=1,
+        step_index=1,
+        learner_id=learner.id,
+        learning_path=["c-grain", "c-tape-basics"],
+        transcript="ab tak maine kya seekha?",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.teach.extract_structured",
+            new=AsyncMock(return_value=TeachIntent(intent="progress_query")),
+        ),
+        patch(
+            "app.agent.nodes.teach.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        await teach.run(state)
+
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "Made the first thing" in instruction  # next unachieved milestone
+
+
+@pytest.mark.asyncio
 async def test_teach_marks_lesson_in_progress_for_consented_learner():
     learner = db.create_learner(
         name="Sunita", village=None, language="hi-IN", pin="1234",
@@ -576,6 +608,38 @@ async def test_wrapup_completes_lesson_when_path_must_land_all_strong():
     assert lesson["status"] == "done"
     milestones = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
     assert "completed_skill" in milestones
+
+
+@pytest.mark.asyncio
+async def test_wrapup_narration_mentions_the_next_career_milestone():
+    learner = db.create_learner(
+        name="Sunita", village=None, language="hi-IN", pin="1234",
+        interest_skill="tailoring", starting_level="some", notes=None,
+        consent_given_at=datetime.now(timezone.utc),
+    )
+    for m in ["started_skill", "made_product", "learned_pricing"]:
+        db.mark_milestone(learner.id, "tailoring", m)
+    state = make_state(
+        stage="wrapup",
+        stage_step=0,
+        learner_id=learner.id,
+        learning_path=["c-grain", "c-tape-basics"],
+        viva={
+            "question_ids_asked": [],
+            "grades": {"c-grain": "strong", "c-tape-basics": "strong"},
+        },
+        transcript="",
+    )
+
+    with patch(
+        "app.agent.nodes.wrapup.ask_conversational", new=AsyncMock(return_value="ok")
+    ) as mock_ask:
+        await wrapup.run(state)
+
+    # completed_skill was just marked by this same call, so the next one
+    # ahead of her is the first off-platform milestone.
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "Found the first customer" in instruction
 
 
 @pytest.mark.asyncio

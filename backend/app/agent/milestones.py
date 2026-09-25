@@ -35,3 +35,14 @@ CATALOG: list[Milestone] = [
 ]
 
 MILESTONE_IDS = {m.id for m in CATALOG}
+
+
+def next_milestone(achieved_ids: set[str]) -> Milestone | None:
+    """The first not-yet-achieved milestone in catalog order, or None if
+    every one of them is already achieved -- used to answer "what's next in
+    my journey" at the few points in the graph that offer it (teach's
+    progress_query, resume's welcome-back, wrapup's closing narration)."""
+    for m in CATALOG:
+        if m.id not in achieved_ids:
+            return m
+    return None

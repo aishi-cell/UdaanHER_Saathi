@@ -11,6 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel
 
+from app.agent import milestones
 from app.agent.guards import teach_requires_profile
 from app.agent.llm_utils import FRESH_TOPIC, ask_conversational, extract_structured, is_unclear
 from app.agent.state import AgentState
@@ -36,8 +37,18 @@ PROGRESS_QUERY_INSTRUCTION = (
     "She just asked what she's already learned, or what's coming up next -- "
     "not a question about the lesson content itself. Answer warmly and "
     "briefly, in ONE short sentence, from this: already done today: {done}. "
-    "Right now: {current}. Coming up after this: {next_up}. Then gently ask "
-    "if she's ready to continue with {current}."
+    "Right now: {current}. Coming up after this: {next_up}. {milestone_line}"
+    "Then gently ask if she's ready to continue with {current}."
+)
+# Career roadmap (roadmap item 3): this is also a natural place to fold in
+# "the next milestone" on her bigger journey, not just today's lesson plan.
+MILESTONE_LINE_NEXT = (
+    "On her bigger journey with this skill, the next milestone ahead of her "
+    "is: {milestone}. Mention that too, briefly. "
+)
+MILESTONE_LINE_ALL_DONE = (
+    "On her bigger journey with this skill, she has already reached every "
+    "milestone there is -- mention that warmly too, briefly. "
 )
 FINISH_INSTRUCTION = (
     "She has just finished the last step of today's path on {interest}. "
@@ -227,12 +238,16 @@ async def run(state: AgentState) -> dict:
                 "She is mid-lesson. Decide from her reply whether she is asking "
                 "a question about what's being taught ('question'), ready to "
                 "move on -- including short agreement like haan/accha/ok "
-                "('continue'), wants to stop for today ('stop'), or is asking "
-                "about her overall progress rather than this step's content -- "
-                "e.g. 'ab tak maine kya seekha?', 'ab aage kya hai?', 'what have "
-                "I learned so far', 'what's next' ('progress_query'). Her "
-                "speech-to-text transcript may be imperfect, informal, or "
-                "code-mixed -- best reasonable guess."
+                "('continue'), wants to stop for today ('stop'), or is CLEARLY "
+                "asking about her overall progress rather than this step's "
+                "content -- e.g. 'ab tak maine kya seekha?', 'ab aage kya hai?', "
+                "'what have I learned so far', 'what's next' ('progress_query'). "
+                "Only pick 'progress_query' for that unambiguous case -- a "
+                "vague, rambling, or off-topic reply is not a progress "
+                "question; when in doubt between 'progress_query' and another "
+                "option, pick the other option. Her speech-to-text transcript "
+                "may be imperfect, informal, or code-mixed -- best reasonable "
+                "guess."
             ),
             transcript=state["transcript"],
             schema=TeachIntent,
@@ -246,6 +261,18 @@ async def run(state: AgentState) -> dict:
         position = concept_ids.index(current.concept_id) if current.concept_id in concept_ids else 0
         done = [_concept_label(package, c) for c in concept_ids[:position]]
         next_up = [_concept_label(package, c) for c in concept_ids[position + 1 : position + 3]]
+
+        milestone_line = ""
+        learner_id = persistable_learner_id(state)
+        if learner_id:
+            achieved = {m.milestone_id for m in db.get_milestones(learner_id, package.skill_id)}
+            next_m = milestones.next_milestone(achieved)
+            milestone_line = (
+                MILESTONE_LINE_NEXT.format(milestone=next_m.label_en)
+                if next_m
+                else MILESTONE_LINE_ALL_DONE
+            )
+
         reply = await ask_conversational(
             "teach",
             language=state["language"],
@@ -253,6 +280,7 @@ async def run(state: AgentState) -> dict:
                 done=", ".join(done) if done else "nothing yet -- you're just getting started today",
                 current=label,
                 next_up=", ".join(next_up) if next_up else "nothing -- this is the last thing for today",
+                milestone_line=milestone_line,
             ),
             transcript=state["transcript"],
         )

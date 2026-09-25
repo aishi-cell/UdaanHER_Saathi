@@ -27,6 +27,7 @@ from app.agent.nodes.resume import (
     PROGRESS_LINE_SOME_DONE,
     PROGRESS_LINE_FRESH,
     build_resume_updates,
+    milestone_line_for,
     profile_from_learner,
 )
 from app.agent.state import AgentState
@@ -193,9 +194,8 @@ async def _handle_pin_attempt(state: AgentState, *, step: int, attempts_left: in
     learner = db_repo.find_learner_by_pin(pin, name_hint=name) if len(pin) == 4 else None
 
     if learner is not None:
-        updates = build_resume_updates(
-            {**state, "learner_id": learner.id, "skill_id": learner.interest_skill or None}
-        )
+        merged_state = {**state, "learner_id": learner.id, "skill_id": learner.interest_skill or None}
+        updates = build_resume_updates(merged_state)
         db_repo.link_session_to_learner(state["session_id"], learner.id)
         remaining = len(updates["learning_path"])
         mastered_any = bool(db_repo.get_mastery_map(learner.id))
@@ -210,6 +210,7 @@ async def _handle_pin_attempt(state: AgentState, *, step: int, attempts_left: in
                 name=learner.name,
                 interest=learner.interest_skill or "her skill",
                 progress_line=progress_line,
+                milestone_line=milestone_line_for(merged_state),
             ),
         )
         return {
