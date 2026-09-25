@@ -186,9 +186,17 @@ left unmarked until there's a way for her to report them.
       skill/concept (old test fixtures, mainly). Live-verified against a
       real learner mid-`viva`: every concept and the skill title came back
       in real Hindi words
-- [ ] Simplify the progress screen further toward icons/symbols over
-      text/numbers — `ProgressView.tsx` already leans on icons + a percent
-      ring rather than raw numbers; not reworked further this pass
+- [x] Simplify the progress screen further toward icons/symbols over
+      text/numbers — `ProgressView.tsx`'s stat row led with bare numbers
+      ("1", "1", "1"); now each leads with a large icon (book/lightbulb/
+      medal) with the count as a secondary cue, matching how the % ring is
+      already treated. Concept badges now carry a mastery symbol (check /
+      dashed circle / plain circle) alongside their colour, so mastery
+      reads without parsing the word or telling green from amber apart.
+      Bonus fix noticed while here: the "Skill" stat was a hardcoded literal
+      `1` (always showed "1", meant nothing) — now shows her actual skill
+      name. Verified visually via the `?ui-demo=1` screenshot driver
+      (frontend-only, no backend needed)
 
 ## 7. Add More Indian Languages
 - [x] Hindi, Gujarati, Punjabi, English supported end-to-end (voice + content)

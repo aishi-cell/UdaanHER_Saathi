@@ -1,5 +1,15 @@
 import { motion } from 'motion/react';
-import { ArrowRight, CheckCircle2, Lock, Sparkles } from 'lucide-react';
+import {
+  ArrowRight,
+  Award,
+  BookOpen,
+  CheckCircle2,
+  Circle,
+  CircleDashed,
+  Lightbulb,
+  Lock,
+  Sparkles,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -14,6 +24,15 @@ const MASTERY_STYLE: Record<ProgressPayload['concepts'][number]['mastery'], stri
   shaky: 'bg-amber-100 text-amber-800 border-amber-300',
   unseen: 'bg-muted text-muted-foreground border-border',
 };
+
+// Roadmap item 6: "simple progress symbols" leading each concept, not just
+// a colour -- so the mastery reads without needing to parse the word or
+// tell green from amber apart.
+function MasteryIcon({ mastery }: { mastery: ProgressPayload['concepts'][number]['mastery'] }) {
+  if (mastery === 'strong') return <CheckCircle2 className="size-4 shrink-0" />;
+  if (mastery === 'shaky') return <CircleDashed className="size-4 shrink-0" />;
+  return <Circle className="size-4 shrink-0" />;
+}
 
 function LessonIcon({ status }: { status: ProgressPayload['lessons'][number]['status'] }) {
   if (status === 'done') return <CheckCircle2 className="size-6 shrink-0 text-emerald-600" />;
@@ -60,10 +79,12 @@ export function ProgressView({ payload }: Props) {
   const percent = payload.lessons.length ? Math.round((done / payload.lessons.length) * 100) : 0;
   const solid = payload.concepts.filter((concept) => concept.mastery === 'strong').length;
 
+  // Roadmap item 6: lead with a large icon, not a number -- the count is
+  // now the secondary cue (like the ring's %), not the headline.
   const stats = [
-    { label: 'Lessons', value: done },
-    { label: 'Ideas solid', value: solid },
-    { label: 'Skill', value: 1 },
+    { label: 'Lessons', value: done, icon: BookOpen },
+    { label: 'Ideas solid', value: solid, icon: Lightbulb },
+    { label: 'Skill', value: payload.skill || '—', icon: Award },
   ];
 
   return (
@@ -79,12 +100,20 @@ export function ProgressView({ payload }: Props) {
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
-              className="flex flex-col items-center gap-0.5 rounded-2xl bg-brand-50 py-3"
+              className="flex flex-col items-center gap-1 rounded-2xl bg-brand-50 px-1 py-3"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + i * 0.08 }}
             >
-              <span className="text-2xl font-black text-brand-800">{stat.value}</span>
+              <stat.icon className="size-7 text-brand-600" />
+              <span
+                className={cn(
+                  'font-black text-brand-800',
+                  typeof stat.value === 'number' ? 'text-2xl' : 'max-w-full truncate text-base',
+                )}
+              >
+                {stat.value}
+              </span>
               <span className="text-xs font-medium text-muted-foreground">{stat.label}</span>
             </motion.div>
           ))}
@@ -118,8 +147,12 @@ export function ProgressView({ payload }: Props) {
             >
               <Badge
                 variant="outline"
-                className={cn('px-3 py-1.5 text-sm font-medium', MASTERY_STYLE[concept.mastery])}
+                className={cn(
+                  'gap-1.5 px-3 py-1.5 text-sm font-medium',
+                  MASTERY_STYLE[concept.mastery],
+                )}
               >
+                <MasteryIcon mastery={concept.mastery} />
                 {concept.label}
               </Badge>
             </motion.span>
