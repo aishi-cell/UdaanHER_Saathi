@@ -176,6 +176,16 @@ left unmarked until there's a way for her to report them.
       `?debug=1`, same as the existing debug panel
 - [x] Tap targets: `OptionCards`, the language picker, and the new PIN keypad
       already use large (~64px+) touch targets — checked, no changes needed
+- [x] Third bug found + fixed (by re-reading `get_progress()` while working
+      on something else): the progress screen's lesson titles and concept
+      labels were the raw internal ids verbatim (e.g. "c-tape-basics"), not
+      real words — the docstring even said so ("stay placeholders until the
+      content loader is wired in", never finished). `db.py`'s `get_progress`
+      now resolves both from the content store in her own language, with a
+      graceful fallback to the raw id for anything that isn't a real
+      skill/concept (old test fixtures, mainly). Live-verified against a
+      real learner mid-`viva`: every concept and the skill title came back
+      in real Hindi words
 - [ ] Simplify the progress screen further toward icons/symbols over
       text/numbers — `ProgressView.tsx` already leans on icons + a percent
       ring rather than raw numbers; not reworked further this pass

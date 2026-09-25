@@ -225,3 +225,54 @@ def test_mark_milestone_is_idempotent_and_scoped_per_skill():
         ("tailoring", "started_skill"),
         ("mehndi", "started_skill"),
     }
+
+
+def test_get_progress_resolves_real_titles_and_labels_in_her_language():
+    """Bug found by inspection while reviewing this module: lesson titles
+    and concept labels were the raw internal ids verbatim (e.g.
+    "c-tape-basics"), never resolved from the content store -- exactly the
+    "progress screen full of ids instead of words" the roadmap complains
+    about. Production code always uses the real skill_id as the lesson_id
+    (wrapup.py), so this should resolve for real data."""
+    learner = db.create_learner(
+        name="Priya",
+        village=None,
+        language="hi-IN",
+        pin="5555",
+        interest_skill="tailoring",
+        starting_level="some",
+        notes=None,
+        consent_given_at=_consent_now(),
+    )
+    db.upsert_lesson_progress(learner.id, "tailoring", "in_progress")
+    db.upsert_concept_mastery(learner.id, "c-tape-basics", "strong")
+
+    progress = db.get_progress(learner.id)
+
+    assert progress["skill"] == "सिलाई"
+    lesson = next(entry for entry in progress["lessons"] if entry["lesson_id"] == "tailoring")
+    assert lesson["title"] == "सिलाई"
+    concept = next(
+        entry for entry in progress["concepts"] if entry["concept_id"] == "c-tape-basics"
+    )
+    assert concept["label"] == "इंच टेप का उपयोग"
+
+
+def test_get_progress_falls_back_to_raw_id_for_unknown_lesson_or_concept():
+    learner = db.create_learner(
+        name="Priya",
+        village=None,
+        language="hi-IN",
+        pin="6666",
+        interest_skill=None,
+        starting_level="some",
+        notes=None,
+        consent_given_at=_consent_now(),
+    )
+    db.upsert_lesson_progress(learner.id, "not-a-real-skill", "in_progress")
+    db.upsert_concept_mastery(learner.id, "not-a-real-concept", "strong")
+
+    progress = db.get_progress(learner.id)
+
+    assert progress["lessons"][0]["title"] == "not-a-real-skill"
+    assert progress["concepts"][0]["label"] == "not-a-real-concept"

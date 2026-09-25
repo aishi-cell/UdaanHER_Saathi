@@ -12,6 +12,7 @@ from sqlmodel import Session as DbSession
 from sqlmodel import SQLModel, create_engine, select
 
 from app.config import get_settings
+from app.content import store
 
 PIN_HASH_ITERATIONS = 100_000
 
@@ -392,9 +393,35 @@ def get_mastery_map(learner_id: str) -> dict[str, str]:
     return {row.concept_id: row.mastery for row in rows}
 
 
+def _all_concept_labels(language: str) -> dict[str, str]:
+    """concept_id -> her-language label, across every trusted skill package.
+    ConceptMastery doesn't carry a skill_id, so this searches all of them --
+    fine at MVP scale (a handful of skills, a few dozen concepts each)."""
+    labels: dict[str, str] = {}
+    for skill_id in store.list_skills():
+        package = store.load_skill(skill_id)
+        for concept in package.curriculum.concepts:
+            labels.setdefault(concept.concept_id, store.pick_language(concept.label, language))
+    return labels
+
+
+def _lesson_title(lesson_id: str, language: str) -> str:
+    """A lesson's id IS its skill_id in production (wrapup.py writes
+    package.skill_id) -- resolve to the real title when that skill exists,
+    else fall back to the raw id (legacy/test fixtures that predate this)."""
+    if store.has_skill(lesson_id):
+        return store.pick_language(store.load_skill(lesson_id).curriculum.title, language)
+    return lesson_id
+
+
 def get_progress(learner_id: str) -> dict:
-    """Returns the ProgressPayload shape from Spec S8. `title`/`label`/`skill`/
-    `next_step_text` stay placeholders until T18 wires the content loader in."""
+    """Returns the ProgressPayload shape from Spec S8, with lesson titles
+    and concept labels resolved from the content store in her own language
+    -- previously these were the raw internal ids (e.g. "c-body-measure"),
+    shown to her verbatim (roadmap: the progress screen should read in
+    plain words, not ids)."""
+    learner = get_learner(learner_id)
+    language = learner.language if learner else "en-IN"
     with get_db_session() as db:
         lessons = db.exec(
             select(LessonProgress).where(LessonProgress.learner_id == learner_id)
@@ -403,12 +430,19 @@ def get_progress(learner_id: str) -> dict:
             select(ConceptMastery).where(ConceptMastery.learner_id == learner_id)
         ).all()
 
+    concept_labels = _all_concept_labels(language)
+    skill_title = (
+        _lesson_title(learner.interest_skill, language)
+        if learner and learner.interest_skill
+        else ""
+    )
+
     return {
-        "skill": "",
+        "skill": skill_title,
         "lessons": [
             {
                 "lesson_id": lesson.lesson_id,
-                "title": lesson.lesson_id,
+                "title": _lesson_title(lesson.lesson_id, language),
                 "status": _LESSON_STATUS_TO_UI.get(lesson.status, lesson.status),
             }
             for lesson in lessons
@@ -416,7 +450,7 @@ def get_progress(learner_id: str) -> dict:
         "concepts": [
             {
                 "concept_id": concept.concept_id,
-                "label": concept.concept_id,
+                "label": concept_labels.get(concept.concept_id, concept.concept_id),
                 "mastery": concept.mastery,
             }
             for concept in concepts
