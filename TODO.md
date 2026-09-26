@@ -85,11 +85,10 @@ Legend: `[x]` done · `[~]` partially done / in progress · `[ ]` not started
       instead of building when it's false
 
 ## 3. Add a Career Development Roadmap ("My Journey")
-Shipped a v1 with a deliberately scoped-down decision: rather than blocking
-on a full milestone spec, I picked the 4 milestones that are actually
-observable from inside a session and auto-track those; the 2 that happen in
-her real life off-platform (a real customer, a real sale) are modelled but
-left unmarked until there's a way for her to report them.
+Fully shipped, in two passes: a v1 that auto-tracks the 4 milestones
+observable from inside a session, then a second pass adding a way for her
+to self-report the 2 that happen off-platform (a real customer, a real
+sale) — see the last item below for how that's scoped.
 - [x] Milestone model: `started_skill`, `made_product`, `learned_pricing`,
       `completed_skill` (auto-tracked) + `found_customer`, `first_paid_order`
       (modelled, not yet markable) — `app/agent/milestones.py`
@@ -131,10 +130,22 @@ left unmarked until there's a way for her to report them.
       an unambiguous progress question and default to grading otherwise.
       Re-ran the identical stress scenario after the fix: 0 repeats across 6
       viva turns with the exact same input that broke it before
-- [ ] A way for her to report `found_customer` / `first_paid_order` from a
-      future session (a real sale happens after she's left the app) — needs
-      a decision on the mechanism: a dedicated voice phrase Saathi listens
-      for, a question asked at return-visit greeting, or something else
+- [x] A way for her to report `found_customer` / `first_paid_order` from a
+      future session. Scoped conservatively to avoid changing the
+      experience for everyone: `resume.py` actively asks — warmly, easy to
+      skip, no pressure either way — only for the specific subset of
+      returning learners whose next pending milestone for a skill is one of
+      these two (i.e. she's already made a product and priced it last
+      time). Every other returning learner's welcome is unchanged, same
+      single turn as before. Also unified the voice-PIN login path
+      (`greet.py`) to chain into `resume.run()` instead of duplicating its
+      welcome-back logic inline, so both entry paths share one
+      implementation going forward.
+      Live-verified against the real LLM (not mocked), both directions: a
+      "yes, a customer found me" answer was celebrated warmly and correctly
+      persisted (confirmed via the journey endpoint); a "not yet" answer
+      got zero-pressure reassurance and moved on normally; an unclear reply
+      was gently re-asked rather than assumed either way
 
 ## 4. Add a Learning Roadmap for the Current Skill
 - [x] Backend already knows the ordered concept plan for a skill
@@ -246,9 +257,10 @@ left unmarked until there's a way for her to report them.
 - This file tracks the roadmap in `new_roadmap.md`. It does not replace
   `docs/app_plan_v2.md`, which is the canonical product/architecture doc — the
   roadmap above is layered on top of that plan, not a replacement for it.
-- The Career Roadmap (item 3) shipped a scoped-down v1 without waiting on a
-  full milestone spec — see the note in that section for what was deferred
-  and why. Language expansion (item 7) is now the largest remaining piece of
-  work and will need its own follow-up session (it needs a real decision on
-  which languages/order, plus translation + native-speaker review per
-  language, not just code).
+- The Career Roadmap (item 3) is now fully shipped, including the
+  self-reported off-platform milestones. Language expansion (item 7) is the
+  only substantial item left, and it's a genuinely different kind of work —
+  it needs your decision on which languages/order, plus real translation
+  and native-speaker review per language, not more code from here.
+  Latency benchmarking (item 5) also remains, blocked on real measurement
+  infrastructure rather than a coding task.

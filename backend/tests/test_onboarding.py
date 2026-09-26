@@ -8,6 +8,7 @@ from app.agent.nodes.assess import DiagnosticExtraction
 from app.agent.nodes.confirm_profile import ConfirmationExtraction
 from app.agent.nodes.discover import SkillChoiceExtraction, VillageWorkExtraction
 from app.agent.nodes.greet import ConsentExtraction, GreetExtraction, PinExtraction
+from app.agent.nodes.resume import MilestoneCheckExtraction
 from app.agent.state import initial_state
 from app.models import db
 
@@ -177,7 +178,7 @@ async def test_greet_pin_match_resumes_at_her_gaps():
             new=AsyncMock(return_value=PinExtraction(pin="4271")),
         ),
         patch(
-            "app.agent.nodes.greet.ask_conversational",
+            "app.agent.nodes.resume.ask_conversational",
             new=AsyncMock(return_value="Wapas swagat, Meena!"),
         ),
     ):
@@ -198,9 +199,10 @@ async def test_greet_pin_match_resumes_at_her_gaps():
 
 @pytest.mark.asyncio
 async def test_greet_pin_match_mentions_her_next_career_milestone():
-    """The voice PIN path builds its own welcome-back reply (doesn't call
-    resume.run()), so it needs the same milestone mention independently."""
-    learner = _returning_learner()
+    """The voice PIN path chains into resume.run() for its welcome-back
+    reply, same as the typed/remembered-login path -- one implementation,
+    so it gets the milestone mention for free."""
+    _returning_learner()
     session = db.create_session(learner_id=None, language="hi-IN")
     state = make_state(
         session_id=session.id,
@@ -216,7 +218,7 @@ async def test_greet_pin_match_mentions_her_next_career_milestone():
             new=AsyncMock(return_value=PinExtraction(pin="4271")),
         ),
         patch(
-            "app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="ok")
+            "app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")
         ) as mock_ask,
     ):
         await greet.run(state)
@@ -245,7 +247,7 @@ async def test_greet_pin_match_survives_cross_script_name():
             new=AsyncMock(return_value=PinExtraction(pin="४२७१")),  # Devanagari digits too
         ),
         patch(
-            "app.agent.nodes.greet.ask_conversational",
+            "app.agent.nodes.resume.ask_conversational",
             new=AsyncMock(return_value="Wapas swagat!"),
         ),
     ):
@@ -293,7 +295,7 @@ async def test_greet_pin_extraction_tolerates_noise_around_digits():
             new=AsyncMock(return_value=PinExtraction(pin="4-2-7-1")),
         ),
         patch(
-            "app.agent.nodes.greet.ask_conversational",
+            "app.agent.nodes.resume.ask_conversational",
             new=AsyncMock(return_value="Wapas swagat!"),
         ),
     ):
@@ -361,7 +363,7 @@ async def test_greet_pin_from_keypad_skips_llm_extraction():
     with (
         patch("app.agent.nodes.greet.extract_structured", new=AsyncMock()) as mock_extract,
         patch(
-            "app.agent.nodes.greet.ask_conversational",
+            "app.agent.nodes.resume.ask_conversational",
             new=AsyncMock(return_value="Wapas swagat!"),
         ),
     ):
@@ -460,6 +462,176 @@ async def test_resume_mentions_her_next_career_milestone():
     instruction = mock_ask.call_args.kwargs["instruction"]
     assert "Made the first thing" in instruction  # the next unachieved one
     assert "Started learning" not in instruction  # already done, not "next"
+
+
+def _learner_ready_for_milestone_check(pin: str = "4271") -> db.Learner:
+    """A returning learner who's completed every auto-tracked milestone for
+    tailoring -- her next one (found_customer) is self-reported, so resume
+    should actively ask about it instead of just mentioning it in passing."""
+    learner = _returning_learner(pin=pin)
+    for m in ["started_skill", "made_product", "learned_pricing", "completed_skill"]:
+        db.mark_milestone(learner.id, "tailoring", m)
+    return learner
+
+
+@pytest.mark.asyncio
+async def test_resume_asks_about_self_reported_milestone_instead_of_mentioning_it():
+    learner = _learner_ready_for_milestone_check()
+    state = make_state(
+        stage="resume",
+        stage_step=0,
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+    )
+
+    with patch(
+        "app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")
+    ) as mock_ask:
+        result = await resume.run(state)
+
+    # Held for her answer -- not handed off to teach yet.
+    assert result["stage"] == "resume"
+    assert result["stage_step"] == 1
+    instruction = mock_ask.call_args.kwargs["instruction"]
+    assert "first customer" in instruction
+
+
+@pytest.mark.asyncio
+async def test_resume_milestone_check_yes_marks_it_and_proceeds_to_teach():
+    learner = _learner_ready_for_milestone_check()
+    state = make_state(
+        stage="resume",
+        stage_step=1,
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+        transcript="haan, ek didi ne mujhse blouse silwaya",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.resume.extract_structured",
+            new=AsyncMock(return_value=MilestoneCheckExtraction(achieved="yes")),
+        ),
+        patch(
+            "app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        result = await resume.run(state)
+
+    assert result["stage"] == "teach"
+    milestone_ids = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "found_customer" in milestone_ids
+    assert "customer" in mock_ask.call_args.kwargs["instruction"].lower()
+
+
+@pytest.mark.asyncio
+async def test_resume_milestone_check_not_yet_does_not_mark_but_still_proceeds():
+    learner = _learner_ready_for_milestone_check()
+    state = make_state(
+        stage="resume",
+        stage_step=1,
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+        transcript="nahi abhi tak nahi mila",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.resume.extract_structured",
+            new=AsyncMock(return_value=MilestoneCheckExtraction(achieved="not_yet")),
+        ),
+        patch("app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")),
+    ):
+        result = await resume.run(state)
+
+    assert result["stage"] == "teach"  # no dead end, no pressure
+    milestone_ids = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "found_customer" not in milestone_ids
+
+
+@pytest.mark.asyncio
+async def test_resume_milestone_check_unclear_answer_reasks():
+    learner = _learner_ready_for_milestone_check()
+    state = make_state(
+        stage="resume",
+        stage_step=1,
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+        transcript=" ",
+    )
+
+    with (
+        patch("app.agent.nodes.resume.extract_structured", new=AsyncMock()) as mock_extract,
+        patch("app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")),
+    ):
+        result = await resume.run(state)
+
+    mock_extract.assert_not_awaited()  # too short to bother extracting
+    assert result["stage"] == "resume"
+    assert result["stage_step"] == 1
+
+
+@pytest.mark.asyncio
+async def test_resume_milestone_check_genuinely_ambiguous_extraction_reasks():
+    learner = _learner_ready_for_milestone_check()
+    state = make_state(
+        stage="resume",
+        stage_step=1,
+        learner_id=learner.id,
+        skill_id="tailoring",
+        profile={"name": "Meena", "interest": "tailoring"},
+        transcript="pata nahi kya bol rahi hoon",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.resume.extract_structured",
+            new=AsyncMock(return_value=MilestoneCheckExtraction(achieved="unclear")),
+        ),
+        patch("app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")),
+    ):
+        result = await resume.run(state)
+
+    assert result["stage"] == "resume"
+    assert result["stage_step"] == 1
+    milestone_ids = {m.milestone_id for m in db.get_milestones(learner.id, skill_id="tailoring")}
+    assert "found_customer" not in milestone_ids
+
+
+@pytest.mark.asyncio
+async def test_greet_pin_match_chains_into_resume_milestone_check():
+    """The voice PIN path shares resume.run() end to end now -- confirm the
+    active milestone check-in reaches her there too, not just via the
+    typed/remembered-login path."""
+    learner = _learner_ready_for_milestone_check()
+    session = db.create_session(learner_id=None, language="hi-IN")
+    state = make_state(
+        session_id=session.id,
+        stage="greet",
+        stage_step=3,
+        profile={"name": "Meena"},
+        transcript="chaar do saat ek",
+    )
+
+    with (
+        patch(
+            "app.agent.nodes.greet.extract_structured",
+            new=AsyncMock(return_value=PinExtraction(pin="4271")),
+        ),
+        patch(
+            "app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")
+        ) as mock_ask,
+    ):
+        result = await greet.run(state)
+
+    assert result["stage"] == "resume"
+    assert result["stage_step"] == 1
+    assert result["learner_id"] == learner.id
+    assert "first customer" in mock_ask.call_args.kwargs["instruction"]
 
 
 @pytest.mark.asyncio

@@ -21,15 +21,8 @@ import re
 from pydantic import BaseModel, Field
 
 from app.agent.llm_utils import ask_conversational, extract_structured, is_unclear
-from app.agent.nodes import discover
-from app.agent.nodes.resume import (
-    WELCOME_BACK_INSTRUCTION,
-    PROGRESS_LINE_SOME_DONE,
-    PROGRESS_LINE_FRESH,
-    build_resume_updates,
-    milestone_line_for,
-    profile_from_learner,
-)
+from app.agent.nodes import discover, resume
+from app.agent.nodes.resume import profile_from_learner
 from app.agent.state import AgentState
 from app.models import db as db_repo
 
@@ -194,32 +187,26 @@ async def _handle_pin_attempt(state: AgentState, *, step: int, attempts_left: in
     learner = db_repo.find_learner_by_pin(pin, name_hint=name) if len(pin) == 4 else None
 
     if learner is not None:
-        merged_state = {**state, "learner_id": learner.id, "skill_id": learner.interest_skill or None}
-        updates = build_resume_updates(merged_state)
+        # Chained into resume.run() (roadmap item 2 pattern, same as
+        # discover/assess/confirm_profile elsewhere) rather than duplicating
+        # its welcome-back logic here -- that logic now has real branching
+        # of its own (the career-milestone self-report check-in), and one
+        # copy is much safer than two kept in sync by hand.
+        merged_state = {
+            **state,
+            "learner_id": learner.id,
+            "skill_id": learner.interest_skill or None,
+            "profile": profile_from_learner(learner),
+            "stage_step": 0,  # resume's own step counter, not greet's
+        }
         db_repo.link_session_to_learner(state["session_id"], learner.id)
-        remaining = len(updates["learning_path"])
-        mastered_any = bool(db_repo.get_mastery_map(learner.id))
-        progress_line = (
-            PROGRESS_LINE_SOME_DONE.format(remaining=remaining)
-            if mastered_any and remaining
-            else PROGRESS_LINE_FRESH
-        )
-        reply = await _ask(
-            state,
-            WELCOME_BACK_INSTRUCTION.format(
-                name=learner.name,
-                interest=learner.interest_skill or "her skill",
-                progress_line=progress_line,
-                milestone_line=milestone_line_for(merged_state),
-            ),
-        )
+        result = await resume.run(merged_state)
         return {
-            **updates,
+            **result,
             "learner_id": learner.id,
             "skill_id": learner.interest_skill or None,
             "profile": profile_from_learner(learner),
             "consent_declined": False,
-            "reply_text": reply,
         }
 
     if attempts_left > 0:

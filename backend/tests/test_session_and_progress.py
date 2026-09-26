@@ -304,6 +304,7 @@ def test_turn_response_includes_learner_id_once_pin_resolves(client):
     with (
         patch("httpx.AsyncClient.post", new=AsyncMock(side_effect=_fake_tts_post)),
         patch("app.agent.nodes.greet.ask_conversational", new=AsyncMock(return_value="ok")),
+        patch("app.agent.nodes.resume.ask_conversational", new=AsyncMock(return_value="ok")),
         patch(
             "app.agent.nodes.greet.extract_structured",
             new=AsyncMock(return_value=GreetExtraction(name="Meena", returning=True)),
