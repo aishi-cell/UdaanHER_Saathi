@@ -54,6 +54,12 @@ PIN_SENTENCES = {
         "ਤੁਹਾਡਾ PIN ਹੈ: {pin_spoken}। ਇਹ ਯਾਦ ਰੱਖਣਾ -- ਅਗਲੀ ਵਾਰ ਬੱਸ ਆਪਣਾ ਨਾਮ ਅਤੇ "
         "ਇਹ PIN ਬੋਲਣਾ, ਅਸੀਂ ਉੱਥੋਂ ਹੀ ਸ਼ੁਰੂ ਕਰਾਂਗੇ।"
     ),
+    # Language expansion (roadmap item 7), AI-drafted -- pending native
+    # speaker review before this language is considered launched.
+    "bn-IN": (
+        "আপনার PIN হল: {pin_spoken}। এটা মনে রাখবেন -- পরের বার শুধু আপনার "
+        "নাম আর এই PIN বলবেন, আমরা সেখান থেকেই আবার শুরু করব।"
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

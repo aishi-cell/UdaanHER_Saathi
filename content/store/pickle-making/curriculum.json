@@ -3,7 +3,8 @@
   "title": {
     "en-IN": "Pickle Making",
     "hi-IN": "अचार बनाना",
-    "gu-IN": "અથાણું બનાવવું"
+    "gu-IN": "અથાણું બનાવવું",
+    "bn-IN": "আচার তৈরি"
   },
   "card_image": "assets/skill_pickle-making.svg",
   "concepts": [
@@ -12,7 +13,8 @@
       "label": {
         "en-IN": "The dryness rule",
         "hi-IN": "सूखेपन का नियम",
-        "gu-IN": "સૂકાપણાનો નિયમ"
+        "gu-IN": "સૂકાપણાનો નિયમ",
+        "bn-IN": "শুকনো রাখার নিয়ম"
       },
       "must_land": true
     },
@@ -21,7 +23,8 @@
       "label": {
         "en-IN": "Salt and oil keep it safe",
         "hi-IN": "नमक और तेल की मात्रा",
-        "gu-IN": "મીઠું અને તેલનું પ્રમાણ"
+        "gu-IN": "મીઠું અને તેલનું પ્રમાણ",
+        "bn-IN": "নুন ও তেল নিরাপদ রাখে"
       },
       "must_land": true
     },
@@ -30,7 +33,8 @@
       "label": {
         "en-IN": "Sun curing",
         "hi-IN": "धूप में पकाना",
-        "gu-IN": "તડકામાં પકવવું"
+        "gu-IN": "તડકામાં પકવવું",
+        "bn-IN": "রোদে রাখা"
       },
       "must_land": true
     },
@@ -39,7 +43,8 @@
       "label": {
         "en-IN": "Storing and spotting spoilage",
         "hi-IN": "रखना और खराबी पहचानना",
-        "gu-IN": "સંગ્રહ અને બગાડ ઓળખવો"
+        "gu-IN": "સંગ્રહ અને બગાડ ઓળખવો",
+        "bn-IN": "সংরক্ষণ ও নষ্ট হওয়া চেনা"
       },
       "must_land": true
     },
@@ -48,7 +53,8 @@
       "label": {
         "en-IN": "Packing it to sell",
         "hi-IN": "बेचने के लिए पैकिंग",
-        "gu-IN": "વેચવા માટે પેકિંગ"
+        "gu-IN": "વેચવા માટે પેકિંગ",
+        "bn-IN": "বিক্রির জন্য প্যাকিং"
       },
       "must_land": false
     }
@@ -61,7 +67,8 @@
       "caption": {
         "en-IN": "Water is the enemy",
         "hi-IN": "पानी दुश्मन है",
-        "gu-IN": "પાણી દુશ્મન છે"
+        "gu-IN": "પાણી દુશ્મન છે",
+        "bn-IN": "জল হলো শত্রু"
       },
       "image": null
     },
@@ -72,7 +79,8 @@
       "caption": {
         "en-IN": "Dry the pieces fully",
         "hi-IN": "टुकड़े पूरे सुखाएं",
-        "gu-IN": "કટકા પૂરા સૂકવો"
+        "gu-IN": "કટકા પૂરા સૂકવો",
+        "bn-IN": "টুকরোগুলো পুরোপুরি শুকান"
       },
       "image": null
     },
@@ -83,7 +91,8 @@
       "caption": {
         "en-IN": "Salt protects",
         "hi-IN": "नमक रक्षा करता है",
-        "gu-IN": "મીઠું રક્ષણ કરે છે"
+        "gu-IN": "મીઠું રક્ષણ કરે છે",
+        "bn-IN": "নুন রক্ষা করে"
       },
       "image": null
     },
@@ -94,7 +103,8 @@
       "caption": {
         "en-IN": "Oil must cover all",
         "hi-IN": "तेल सबको ढके",
-        "gu-IN": "તેલ બધું ઢાંકે"
+        "gu-IN": "તેલ બધું ઢાંકે",
+        "bn-IN": "তেল সব ঢেকে রাখবে"
       },
       "image": null
     },
@@ -105,7 +115,8 @@
       "caption": {
         "en-IN": "Days in the sun",
         "hi-IN": "धूप के दिन",
-        "gu-IN": "તડકાના દિવસો"
+        "gu-IN": "તડકાના દિવસો",
+        "bn-IN": "রোদে কয়েকদিন"
       },
       "image": null
     },
@@ -116,7 +127,8 @@
       "caption": {
         "en-IN": "Glass jar, weekly check",
         "hi-IN": "कांच का जार, साप्ताहिक जांच",
-        "gu-IN": "કાચની બરણી, અઠવાડિક તપાસ"
+        "gu-IN": "કાચની બરણી, અઠવાડિક તપાસ",
+        "bn-IN": "কাচের বয়াম, সাপ্তাহিক পরীক্ষা"
       },
       "image": null
     },
@@ -127,7 +139,8 @@
       "caption": {
         "en-IN": "Small jars sell first",
         "hi-IN": "छोटे जार पहले बिकते हैं",
-        "gu-IN": "નાની બરણી પહેલા વેચાય"
+        "gu-IN": "નાની બરણી પહેલા વેચાય",
+        "bn-IN": "ছোট বয়াম আগে বিক্রি হয়"
       },
       "image": null
     }

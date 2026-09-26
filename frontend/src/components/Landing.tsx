@@ -2,8 +2,9 @@ import { motion } from 'motion/react';
 import { Bird, BookOpen, Heart, IndianRupee, Loader2, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SaathiAvatar } from './SaathiAvatar';
+import type { SessionLanguage } from '../types';
 
-export type Language = 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN';
+export type Language = SessionLanguage;
 
 interface Props {
   connecting: boolean;

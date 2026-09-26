@@ -1,3 +1,9 @@
+// Language expansion (roadmap item 7): Bengali is the first of the
+// ordered list (Bengali, Kannada, Malayalam, Marathi, Odia, Tamil, Telugu)
+// to land -- content translations are AI drafts pending native-speaker
+// review before this is considered launched (see TODO.md item 7).
+export type SessionLanguage = 'gu-IN' | 'hi-IN' | 'pa-IN' | 'bn-IN' | 'en-IN';
+
 export interface OptionCardData {
   id: string;
   label: string;

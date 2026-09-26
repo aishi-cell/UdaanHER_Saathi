@@ -1193,7 +1193,13 @@ async def test_choose_language_step0_speaks_prompt_with_cards():
     assert result["stage"] == "choose_language"
     assert result["stage_step"] == 1
     assert result["ui"]["type"] == "show_options"
-    assert {o["id"] for o in result["ui"]["options"]} == {"hi-IN", "gu-IN", "pa-IN", "en-IN"}
+    assert {o["id"] for o in result["ui"]["options"]} == {
+        "hi-IN",
+        "gu-IN",
+        "pa-IN",
+        "bn-IN",
+        "en-IN",
+    }
 
 
 @pytest.mark.parametrize(
@@ -1204,7 +1210,10 @@ async def test_choose_language_step0_speaks_prompt_with_cards():
         ("English please", "en-IN"),
         ("इंग्लिश", "en-IN"),  # unhinted STT transliterates into Devanagari
         ("ਪੰਜਾਬੀ ਬੋਲਦੀ ਹਾਂ", "pa-IN"),
+        ("আমি বাংলা বলতে পারি", "bn-IN"),
+        ("bengali please", "bn-IN"),
         ("gu-IN", "gu-IN"),  # a tapped card arrives as the bare id
+        ("bn-IN", "bn-IN"),
     ],
 )
 @pytest.mark.asyncio

@@ -211,10 +211,51 @@ sale) — see the last item below for how that's scoped.
 
 ## 7. Add More Indian Languages
 - [x] Hindi, Gujarati, Punjabi, English supported end-to-end (voice + content)
-- [ ] Bengali, Kannada, Malayalam, Marathi, Odia, Tamil, Telugu — none started
-- [ ] Per-language rollout checklist (translate → test voice → test
-      pronunciation → mixed-language check → full review → launch) — process not
-      yet formalized anywhere
+- [x] Priority order confirmed: **Bengali → Kannada → Malayalam → Marathi →
+      Odia → Tamil → Telugu**
+- [~] **Bengali** — technical groundwork + AI-drafted content done and
+      live-verified end-to-end; **not yet launched, pending your native-
+      speaker review** (see below for exactly what that review covers)
+  - [x] Sarvam STT/TTS support confirmed via a live round-trip check (real
+        API call, not assumed): Bengali text → speech → transcribed back
+        verbatim, both directions work with zero service-layer changes
+  - [x] Code: `bn-IN` added to the session/language types (backend +
+        frontend), `choose_language.py`'s picker card + voice-match
+        patterns (bengali/bangla/বাংলা and common mis-transliterations),
+        and `confirm_profile.py`'s spoken-PIN sentence
+  - [x] Content: AI-translated every `bn-IN` field across all 4 seeded
+        skills (tailoring, mehndi, pickle-making, child-care) — 4 titles, 22
+        concept labels, 33 step captions. Confirmed complete via the
+        content-store loader (zero missing fields). Rubric questions and
+        teaching notes need **no** translation — they're English text fed
+        to the LLM as instructions, which already narrates them live in
+        whichever language she's speaking, exactly as Hindi/Gujarati/
+        Punjabi already do
+  - [x] Live-verified end-to-end against the real LLM/STT/TTS: language
+        card appears and is selectable, full onboarding conversation
+        (greet → discover → assess) flows naturally in Bengali, translated
+        skill-card labels render correctly, TTS audio generates successfully
+  - [x] Bonus fix (benefits every language, not just Bengali): the very
+        first reply after picking Bengali came back in **romanized**
+        Bengali ("Nomoskar, aami Saathi...") instead of Bengali script,
+        even though later turns were correct — the shared "reply only in
+        {language}" instruction in all 11 prompt templates didn't say
+        *native script*. Added that explicitly everywhere; re-verified
+        live: every turn now in proper বাংলা script, no romanization
+  - [ ] **What's left before this is actually launched**: a native Bengali
+        speaker reviewing the ~59 translated fields for correctness/
+        naturalness (I'm not a substitute for that), plus real spoken-
+        Bengali testing (pronunciation, accents, mixed-language speech) —
+        per your own roadmap's rollout process. Until then, treat the
+        `bn-IN` option as a working draft, not production-ready
+- [ ] Kannada, Malayalam, Marathi, Odia, Tamil, Telugu — not started; same
+      process as Bengali once you're ready (verify STT/TTS support, add the
+      code groundwork, draft-translate the same 4 skill packages, live-test,
+      then your review before launch)
+- [ ] Per-language rollout checklist — now informally established by how
+      Bengali was done (verify provider support → code groundwork → draft
+      content → live-test → native review → launch); not written up as a
+      formal doc anywhere yet
 
 ---
 
@@ -257,10 +298,11 @@ sale) — see the last item below for how that's scoped.
 - This file tracks the roadmap in `new_roadmap.md`. It does not replace
   `docs/app_plan_v2.md`, which is the canonical product/architecture doc — the
   roadmap above is layered on top of that plan, not a replacement for it.
-- The Career Roadmap (item 3) is now fully shipped, including the
-  self-reported off-platform milestones. Language expansion (item 7) is the
-  only substantial item left, and it's a genuinely different kind of work —
-  it needs your decision on which languages/order, plus real translation
-  and native-speaker review per language, not more code from here.
-  Latency benchmarking (item 5) also remains, blocked on real measurement
+- The Career Roadmap (item 3) is fully shipped, including the self-reported
+  off-platform milestones. Language expansion (item 7) is now underway:
+  priority order confirmed (Bengali → Kannada → Malayalam → Marathi → Odia
+  → Tamil → Telugu), and Bengali has technical groundwork + AI-drafted
+  content done and live-verified — but it isn't launched yet, waiting on
+  your native-speaker review. The other 6 languages haven't been started.
+  Latency benchmarking (item 5) remains, blocked on real measurement
   infrastructure rather than a coding task.

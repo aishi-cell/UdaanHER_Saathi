@@ -3,7 +3,8 @@
   "title": {
     "en-IN": "Mehndi",
     "hi-IN": "मेहंदी",
-    "gu-IN": "મહેંદી"
+    "gu-IN": "મહેંદી",
+    "bn-IN": "মেহেন্দি"
   },
   "card_image": "assets/skill_mehndi.svg",
   "concepts": [
@@ -12,7 +13,8 @@
       "label": {
         "en-IN": "Holding the cone",
         "hi-IN": "कोन पकड़ना",
-        "gu-IN": "કોન પકડવો"
+        "gu-IN": "કોન પકડવો",
+        "bn-IN": "কোন ধরা"
       },
       "must_land": true
     },
@@ -21,7 +23,8 @@
       "label": {
         "en-IN": "Dots, lines and leaves",
         "hi-IN": "बिंदी, रेखा और पत्ती",
-        "gu-IN": "ટપકાં, રેખા અને પાન"
+        "gu-IN": "ટપકાં, રેખા અને પાન",
+        "bn-IN": "ফোঁটা, রেখা ও পাতা"
       },
       "must_land": true
     },
@@ -30,7 +33,8 @@
       "label": {
         "en-IN": "The keri (paisley)",
         "hi-IN": "केरी बनाना",
-        "gu-IN": "કેરી બનાવવી"
+        "gu-IN": "કેરી બનાવવી",
+        "bn-IN": "কেরি (আম-নকশা)"
       },
       "must_land": false
     },
@@ -39,7 +43,8 @@
       "label": {
         "en-IN": "A simple palm design",
         "hi-IN": "हथेली का सरल डिज़ाइन",
-        "gu-IN": "હથેળીની સાદી ડિઝાઇન"
+        "gu-IN": "હથેળીની સાદી ડિઝાઇન",
+        "bn-IN": "হাতের তালুর সহজ নকশা"
       },
       "must_land": true
     },
@@ -48,7 +53,8 @@
       "label": {
         "en-IN": "Drying and dark colour",
         "hi-IN": "सुखाना और गहरा रंग",
-        "gu-IN": "સૂકવવું અને ઘાટો રંગ"
+        "gu-IN": "સૂકવવું અને ઘાટો રંગ",
+        "bn-IN": "শুকানো ও গাঢ় রং"
       },
       "must_land": true
     }
@@ -61,7 +67,8 @@
       "caption": {
         "en-IN": "Holding the cone",
         "hi-IN": "कोन पकड़ना",
-        "gu-IN": "કોન પકડવો"
+        "gu-IN": "કોન પકડવો",
+        "bn-IN": "কোন ধরা"
       },
       "image": null
     },
@@ -72,7 +79,8 @@
       "caption": {
         "en-IN": "Practice lines first",
         "hi-IN": "पहले रेखा का अभ्यास",
-        "gu-IN": "પહેલા રેખાનો મહાવરો"
+        "gu-IN": "પહેલા રેખાનો મહાવરો",
+        "bn-IN": "প্রথমে রেখার অনুশীলন"
       },
       "image": null
     },
@@ -83,7 +91,8 @@
       "caption": {
         "en-IN": "Dots, lines, leaves",
         "hi-IN": "बिंदी, रेखा, पत्ती",
-        "gu-IN": "ટપકાં, રેખા, પાન"
+        "gu-IN": "ટપકાં, રેખા, પાન",
+        "bn-IN": "ফোঁটা, রেখা, পাতা"
       },
       "image": null
     },
@@ -94,7 +103,8 @@
       "caption": {
         "en-IN": "The keri",
         "hi-IN": "केरी",
-        "gu-IN": "કેરી"
+        "gu-IN": "કેરી",
+        "bn-IN": "কেরি"
       },
       "image": null
     },
@@ -105,7 +115,8 @@
       "caption": {
         "en-IN": "Simple palm design",
         "hi-IN": "हथेली का डिज़ाइन",
-        "gu-IN": "હથેળીની ડિઝાઇન"
+        "gu-IN": "હથેળીની ડિઝાઇન",
+        "bn-IN": "সহজ হাতের নকশা"
       },
       "image": null
     },
@@ -116,7 +127,8 @@
       "caption": {
         "en-IN": "Dark colour secrets",
         "hi-IN": "गहरे रंग का राज़",
-        "gu-IN": "ઘાટા રંગનું રહસ્ય"
+        "gu-IN": "ઘાટા રંગનું રહસ્ય",
+        "bn-IN": "গাঢ় রঙের রহস্য"
       },
       "image": null
     },
@@ -127,7 +139,8 @@
       "caption": {
         "en-IN": "One design, ten times",
         "hi-IN": "एक डिज़ाइन, दस बार",
-        "gu-IN": "એક ડિઝાઇન, દસ વાર"
+        "gu-IN": "એક ડિઝાઇન, દસ વાર",
+        "bn-IN": "একটি নকশা, দশবার"
       },
       "image": null
     }

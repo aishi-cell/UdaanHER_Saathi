@@ -13,23 +13,31 @@ from app.agent.nodes import greet
 from app.agent.state import AgentState
 
 PROMPT_TEXT = (
-    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, या English? "
+    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, या English? "
     "Please say your language."
 )
 REASK_TEXT = (
-    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, या English? "
+    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, या English? "
     "You can also tap your language on the screen."
 )
 
-# The prompt mixes three scripts; Sarvam needs one target language for TTS.
+# The prompt mixes scripts; Sarvam needs one target language for TTS.
 PROMPT_TTS_LANGUAGE = "hi-IN"
 
+# Language expansion (roadmap item 7), priority order as given: Bengali,
+# Kannada, Malayalam, Marathi, Odia, Tamil, Telugu. Bengali is the first
+# one landed -- Sarvam STT/TTS support confirmed via a live round-trip
+# check (2026-09-26); content translations are AI drafts pending native-
+# speaker review before this is considered launched (see TODO.md item 7).
 LANGUAGE_OPTIONS = [
     {"id": "hi-IN", "label": "हिन्दी", "image": None},
     {"id": "gu-IN", "label": "ગુજરાતી", "image": None},
     {"id": "pa-IN", "label": "ਪੰਜਾਬੀ", "image": None},
+    {"id": "bn-IN", "label": "বাংলা", "image": None},
     {"id": "en-IN", "label": "English", "image": None},
 ]
+
+_KNOWN_LANGUAGE_IDS = {opt["id"] for opt in LANGUAGE_OPTIONS}
 
 # Her language name often arrives transliterated INTO another script by the
 # unhinted STT (live test: spoken "English" came back as "इंग्लिश" and never
@@ -38,6 +46,7 @@ _PATTERNS: list[tuple[str, str]] = [
     (r"hindi|हिन्दी|हिंदी|હિન્દી|ਹਿੰਦੀ|hindee", "hi-IN"),
     (r"gujarati|guj[ae]rati|ગુજરાતી|गुजराती|ਗੁਜਰਾਤੀ|gujju", "gu-IN"),
     (r"punjabi|panjabi|ਪੰਜਾਬੀ|पंजाबी|પંજાબી", "pa-IN"),
+    (r"bengali|bangla|বাংলা|बंगाली|બંગાળી|ਬੰਗਾਲੀ", "bn-IN"),
     (
         r"english|angrezi|angreji|inglish|inglis|अंग्रेज़ी|अंग्रेजी|इंग्लिश|इंगलिश|"
         r"અંગ્રેજી|ઇંગ્લિશ|ਅੰਗਰੇਜ਼ੀ|ਇੰਗਲਿਸ਼",
@@ -48,7 +57,7 @@ _PATTERNS: list[tuple[str, str]] = [
 
 def match_language(transcript: str) -> str | None:
     text = (transcript or "").strip()
-    if text in {"hi-IN", "gu-IN", "pa-IN", "en-IN"}:  # a tapped card
+    if text in _KNOWN_LANGUAGE_IDS:  # a tapped card
         return text
     lowered = text.lower()
     for pattern, code in _PATTERNS:

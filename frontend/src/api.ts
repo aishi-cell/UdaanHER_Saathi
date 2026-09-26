@@ -1,4 +1,4 @@
-import type { JourneyPayload, UICommand } from './types';
+import type { JourneyPayload, SessionLanguage, UICommand } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
 
@@ -53,7 +53,7 @@ export interface SessionResponse {
 }
 
 export async function postSession(
-  language?: 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN',
+  language?: SessionLanguage,
   learnerName?: string,
   pin?: string,
   pendingPin?: string,

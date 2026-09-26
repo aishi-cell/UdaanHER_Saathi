@@ -30,7 +30,7 @@ class SessionRequest(BaseModel):
     pin: str | None = None
     # Omitted -> the voice-first path: the session opens in choose_language
     # and Saathi asks for her language by voice (with tappable cards).
-    language: Literal["gu-IN", "hi-IN", "pa-IN", "en-IN"] | None = None
+    language: Literal["gu-IN", "hi-IN", "pa-IN", "bn-IN", "en-IN"] | None = None
     # Login roadmap item 1: a code generated client-side the moment she taps
     # "I'm new", so it can stay pinned on screen from before the conversation
     # even starts. confirm_profile saves this exact code instead of minting

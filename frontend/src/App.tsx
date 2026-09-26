@@ -28,7 +28,7 @@ import {
   setRememberedLogin,
 } from './lib/rememberedLogin';
 import { cn } from '@/lib/utils';
-import type { JourneyPayload, UICommand } from './types';
+import type { JourneyPayload, SessionLanguage, UICommand } from './types';
 
 /** A random 4-digit code for a new learner, generated client-side the
  * moment she says she's new so it can be pinned on screen right away
@@ -153,7 +153,7 @@ function App() {
    * button, remembered-phone auto-resume, PIN-keypad login, and the
    * new-user flow (which pre-shows her code via pendingPin). */
   async function startSession(opts: {
-    language?: 'gu-IN' | 'hi-IN' | 'pa-IN' | 'en-IN';
+    language?: SessionLanguage;
     learnerName?: string;
     pin?: string;
     pendingPin?: string;

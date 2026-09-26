@@ -3,7 +3,8 @@
   "title": {
     "en-IN": "Tailoring",
     "hi-IN": "सिलाई",
-    "gu-IN": "સિલાઈ"
+    "gu-IN": "સિલાઈ",
+    "bn-IN": "সেলাই"
   },
   "card_image": "assets/skill_tailoring.svg",
   "concepts": [
@@ -12,7 +13,8 @@
       "label": {
         "en-IN": "Using the measuring tape",
         "hi-IN": "इंच टेप का उपयोग",
-        "gu-IN": "ઇંચ ટેપનો ઉપયોગ"
+        "gu-IN": "ઇંચ ટેપનો ઉપયોગ",
+        "bn-IN": "ইঞ্চি টেপের ব্যবহার"
       },
       "must_land": false
     },
@@ -21,7 +23,8 @@
       "label": {
         "en-IN": "Where to measure",
         "hi-IN": "नाप कहाँ लेना है",
-        "gu-IN": "માપ ક્યાં લેવું"
+        "gu-IN": "માપ ક્યાં લેવું",
+        "bn-IN": "কোথায় মাপ নিতে হবে"
       },
       "must_land": true
     },
@@ -30,7 +33,8 @@
       "label": {
         "en-IN": "Snug, not tight",
         "hi-IN": "टेप कसें नहीं",
-        "gu-IN": "ટેપ ખેંચવી નહીં"
+        "gu-IN": "ટેપ ખેંચવી નહીં",
+        "bn-IN": "টেপ টানবেন না"
       },
       "must_land": true
     },
@@ -39,7 +43,8 @@
       "label": {
         "en-IN": "Fabric grain",
         "hi-IN": "कपड़े की दिशा",
-        "gu-IN": "કાપડની દિશા"
+        "gu-IN": "કાપડની દિશા",
+        "bn-IN": "কাপড়ের বুনন-দিক"
       },
       "must_land": true
     },
@@ -48,7 +53,8 @@
       "label": {
         "en-IN": "Seam allowance",
         "hi-IN": "सिलाई की गुंजाइश",
-        "gu-IN": "સિલાઈ માટે જગ્યા"
+        "gu-IN": "સિલાઈ માટે જગ્યા",
+        "bn-IN": "সেলাইয়ের জন্য জায়গা"
       },
       "must_land": true
     },
@@ -57,7 +63,8 @@
       "label": {
         "en-IN": "Straight seams",
         "hi-IN": "सीधी सिलाई",
-        "gu-IN": "સીધી સિલાઈ"
+        "gu-IN": "સીધી સિલાઈ",
+        "bn-IN": "সোজা সেলাই"
       },
       "must_land": false
     }
@@ -70,7 +77,8 @@
       "caption": {
         "en-IN": "The inch tape",
         "hi-IN": "इंच टेप",
-        "gu-IN": "ઇંચ ટેપ"
+        "gu-IN": "ઇંચ ટેપ",
+        "bn-IN": "ইঞ্চি টেপ"
       },
       "image": null
     },
@@ -81,7 +89,8 @@
       "caption": {
         "en-IN": "Measuring the bust",
         "hi-IN": "छाती का नाप",
-        "gu-IN": "છાતીનું માપ"
+        "gu-IN": "છાતીનું માપ",
+        "bn-IN": "বুকের মাপ"
       },
       "image": null
     },
@@ -92,7 +101,8 @@
       "caption": {
         "en-IN": "Waist and hip",
         "hi-IN": "कमर और नितंब",
-        "gu-IN": "કમર અને નિતંબ"
+        "gu-IN": "કમર અને નિતંબ",
+        "bn-IN": "কোমর ও নিতম্ব"
       },
       "image": null
     },
@@ -103,7 +113,8 @@
       "caption": {
         "en-IN": "Snug, not tight",
         "hi-IN": "टेप कसें नहीं",
-        "gu-IN": "ટેપ ખેંચવી નહીં"
+        "gu-IN": "ટેપ ખેંચવી નહીં",
+        "bn-IN": "টেপ টানবেন না"
       },
       "image": null
     },
@@ -114,7 +125,8 @@
       "caption": {
         "en-IN": "The fabric's direction",
         "hi-IN": "कपड़े की दिशा",
-        "gu-IN": "કાપડની દિશા"
+        "gu-IN": "કાપડની દિશા",
+        "bn-IN": "কাপড়ের দিক"
       },
       "image": null
     },
@@ -125,7 +137,8 @@
       "caption": {
         "en-IN": "Cut along the grain",
         "hi-IN": "दिशा में काटें",
-        "gu-IN": "દિશા પ્રમાણે કાપો"
+        "gu-IN": "દિશા પ્રમાણે કાપો",
+        "bn-IN": "দিক অনুযায়ী কাটুন"
       },
       "image": null
     },
@@ -136,7 +149,8 @@
       "caption": {
         "en-IN": "Leave a margin to sew",
         "hi-IN": "सिलाई की गुंजाइश छोड़ें",
-        "gu-IN": "સિલાઈ માટે જગ્યા રાખો"
+        "gu-IN": "સિલાઈ માટે જગ્યા રાખો",
+        "bn-IN": "সেলাইয়ের জন্য জায়গা রাখুন"
       },
       "image": null
     },
@@ -147,7 +161,8 @@
       "caption": {
         "en-IN": "At the machine, slowly",
         "hi-IN": "मशीन पर, धीरे से",
-        "gu-IN": "મશીન પર, ધીમે થી"
+        "gu-IN": "મશીન પર, ધીમે થી",
+        "bn-IN": "মেশিনে, ধীরে ধীরে"
       },
       "image": null
     },
@@ -158,7 +173,8 @@
       "caption": {
         "en-IN": "Guide, don't pull; lock the ends",
         "hi-IN": "खींचे नहीं; शुरू-अंत में बैक करें",
-        "gu-IN": "ખેંચો નહીં; શરૂ-અંતે બેક કરો"
+        "gu-IN": "ખેંચો નહીં; શરૂ-અંતે બેક કરો",
+        "bn-IN": "টানবেন না, শুধু ধরে রাখুন; শুরু-শেষে লক করুন"
       },
       "image": null
     }

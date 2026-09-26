@@ -3,7 +3,8 @@
   "title": {
     "en-IN": "Starting Paid Child Care From Home – Basics and Earning",
     "hi-IN": "घर से पैसे कमाने वाली बच्चों की देखभाल – शुरुआत और कमाई",
-    "gu-IN": "ઘરેથી કમાણી કરતી બાળક સંભાળ – શરૂઆત અને કમાણી"
+    "gu-IN": "ઘરેથી કમાણી કરતી બાળક સંભાળ – શરૂઆત અને કમાણી",
+    "bn-IN": "বাড়ি থেকে আয়যুক্ত শিশু পরিচর্যা – শুরু এবং আয়"
   },
   "card_image": "assets/skill_child-care.svg",
   "concepts": [
@@ -12,7 +13,8 @@
       "label": {
         "en-IN": "Why child care can be good work for you",
         "hi-IN": "बच्चों की देखभाल आपका अच्छा काम क्यों बन सकती है",
-        "gu-IN": "બાળ સંભાળ તમારું સારું કામ કેમ બની શકે"
+        "gu-IN": "બાળ સંભાળ તમારું સારું કામ કેમ બની શકે",
+        "bn-IN": "শিশু পরিচর্যা কেন আপনার ভালো কাজ হতে পারে"
       },
       "must_land": true
     },
@@ -21,7 +23,8 @@
       "label": {
         "en-IN": "Home-based daycare: small, safe, in your own house",
         "hi-IN": "होम बेस्ड डेकेयर: छोटा, सुरक्षित, अपने ही घर में",
-        "gu-IN": "ઘરઆધારિત ડે કેર: નાનું, સુરક્ષિત, પોતાના ઘરમાં"
+        "gu-IN": "ઘરઆધારિત ડે કેર: નાનું, સુરક્ષિત, પોતાના ઘરમાં",
+        "bn-IN": "বাড়িতে ডে-কেয়ার: ছোট, নিরাপদ, নিজের বাড়িতেই"
       },
       "must_land": true
     },
@@ -30,7 +33,8 @@
       "label": {
         "en-IN": "Modern child care: full development, not just feeding",
         "hi-IN": "आधुनिक चाइल्ड केयर: सिर्फ खिलाना नहीं, पूरा विकास",
-        "gu-IN": "આધુનિક ચાઇલ્ડ કેર: ફક્ત ખવડાવવું નહીં, પૂરું વિકાસ"
+        "gu-IN": "આધુનિક ચાઇલ્ડ કેર: ફક્ત ખવડાવવું નહીં, પૂરું વિકાસ",
+        "bn-IN": "আধুনিক শিশু পরিচর্যা: শুধু খাওয়ানো নয়, সম্পূর্ণ বিকাশ"
       },
       "must_land": true
     },
@@ -39,7 +43,8 @@
       "label": {
         "en-IN": "Making a safe and fun space for small children",
         "hi-IN": "छोटे बच्चों के लिए सुरक्षित और मज़ेदार जगह बनाना",
-        "gu-IN": "નાનાં બાળકો માટે સુરક્ષિત અને મજેદાર જગ્યા બનાવવી"
+        "gu-IN": "નાનાં બાળકો માટે સુરક્ષિત અને મજેદાર જગ્યા બનાવવી",
+        "bn-IN": "ছোট শিশুদের জন্য নিরাপদ ও আনন্দদায়ক জায়গা তৈরি করা"
       },
       "must_land": true
     },
@@ -48,7 +53,8 @@
       "label": {
         "en-IN": "Basic newborn care in first days",
         "hi-IN": "जन्म के बाद शुरुआती दिनों में नवजात शिशु की देखभाल",
-        "gu-IN": "જન્મ પછીના પ્રથમ દિવસોમાં નવજાતની સંભાળ"
+        "gu-IN": "જન્મ પછીના પ્રથમ દિવસોમાં નવજાતની સંભાળ",
+        "bn-IN": "জন্মের প্রথম দিনগুলোতে নবজাতকের প্রাথমিক যত্ন"
       },
       "must_land": false
     },
@@ -57,7 +63,8 @@
       "label": {
         "en-IN": "How to take fees and find parents for home daycare",
         "hi-IN": "होम डेकेयर के लिए फीस कैसे लें और माता‑पिता कैसे ढूँढें",
-        "gu-IN": "ઘરઆધારિત ડે કેર માટે ફી કેવી રીતે લેવી અને વાલીઓને કેવી રીતે શોધવા"
+        "gu-IN": "ઘરઆધારિત ડે કેર માટે ફી કેવી રીતે લેવી અને વાલીઓને કેવી રીતે શોધવા",
+        "bn-IN": "হোম ডে-কেয়ারের জন্য ফি কীভাবে নেবেন ও অভিভাবক কীভাবে খুঁজবেন"
       },
       "must_land": true
     }
@@ -70,18 +77,20 @@
       "caption": {
         "en-IN": "Seeing child care as real paid work",
         "hi-IN": "चाइल्ड केयर को कमाई वाला असली काम मानना",
-        "gu-IN": "બાળ સંભાળને કમાણીવાળું સાચું કામ માનવું"
+        "gu-IN": "બાળ સંભાળને કમાણીવાળું સાચું કામ માનવું",
+        "bn-IN": "শিশু পরিচর্যাকে আসল আয়ের কাজ হিসেবে দেখা"
       },
       "image": null
     },
     {
       "step_index": 1,
       "concept_id": "c-home-based-daycare-basics",
-      "teaching_notes": "Explain what “home‑based daycare” means in very simple terms.\n\nKey points:\n- It is looking after 2–5 children (not a huge crowd) in your own house during fixed hours.\n- Mention from first video: home‑based daycare is more intimate, like family, parents like that.\n- Because it is in her own house, costs are low: she already has a room, mat, fan.\n- She must still follow local rules: if in city sometimes government asks for registration/licence – mention at a high level: later modules will explain; for now, understand the idea.\n- She chooses age group: babies, toddlers, or 3‑5 year kids. Each age has different needs.\n\nWarn against:\n- Mixing too many age groups in one tiny room at start; harder to manage safely.\n- Running it very informally with no fixed timings or rules; that confuses parents.\n\nEmphasise:\n- Start small: maybe 2–3 known children for 3–4 hours daily.\n- Clean, simple, loving home can be stronger than fancy building.\n- She should inform family members and get their support; safety and calm atmosphere are important.",
+      "teaching_notes": "Explain what “home‑based daycare” means in very simple terms.\n\nKey points:\n- It is looking after 2–5 children (not a huge crowd) in your own house during fixed hours.\n- Mention from first video: home‑based daycare is more intimate, like family, parents like that.\n- Because it is in her own house, costs are low: she already has a room, mat, fan.\n- She must still follow local rules: if in city sometimes government asks for registration/licence – mention at a high level: later modules will explain; for now, understand the idea.\n- She chooses age group: babies, toddlers, or 3‑5 year kids. Each age has different needs.\n\nWarn against:\n- Mixing too many age groups in one tiny room at start; harder to manage safely.\n- Running it very informally with no fixed timings or rules; that confuses parents.\n\nEmphasise:\n- Start small: maybe 2‑3 known children for 3‑4 hours daily.\n- Clean, simple, loving home can be stronger than fancy building.\n- She should inform family members and get their support; safety and calm atmosphere are important.",
       "caption": {
         "en-IN": "What is a small home daycare",
         "hi-IN": "छोटा होम डेकेयर क्या होता है",
-        "gu-IN": "નાનકડું હોમ ડે કેર શું હોય છે"
+        "gu-IN": "નાનકડું હોમ ડે કેર શું હોય છે",
+        "bn-IN": "ছোট হোম ডে-কেয়ার কী"
       },
       "image": null
     },
@@ -92,7 +101,8 @@
       "caption": {
         "en-IN": "Modern child care means full child growth",
         "hi-IN": "आधुनिक चाइल्ड केयर मतलब बच्चे का पूरा विकास",
-        "gu-IN": "આધુનિક ચાઇલ્ડ કેર એટલે બાળકનો સર્વાંગી વિકાસ"
+        "gu-IN": "આધુનિક ચાઇલ્ડ કેર એટલે બાળકનો સર્વાંગી વિકાસ",
+        "bn-IN": "আধুনিক শিশু পরিচর্যা মানে শিশুর সম্পূর্ণ বিকাশ"
       },
       "image": null
     },
@@ -103,7 +113,8 @@
       "caption": {
         "en-IN": "Creating a safe and happy play area",
         "hi-IN": "सुरक्षित और खुश खेलने की जगह बनाना",
-        "gu-IN": "સુરક્ષિત અને ખુશાલ રમવાનો ખૂણો બનાવવો"
+        "gu-IN": "સુરક્ષિત અને ખુશાલ રમવાનો ખૂણો બનાવવો",
+        "bn-IN": "নিরাপদ ও আনন্দময় খেলার জায়গা তৈরি করা"
       },
       "image": null
     },
@@ -114,29 +125,32 @@
       "caption": {
         "en-IN": "Caring for very small babies safely",
         "hi-IN": "बहुत छोटे बच्चों की सुरक्षित देखभाल",
-        "gu-IN": "ખૂબ નાનાં બાળકોની સુરક્ષિત સંભાળ"
+        "gu-IN": "ખૂબ નાનાં બાળકોની સુરક્ષિત સંભાળ",
+        "bn-IN": "খুব ছোট শিশুদের নিরাপদ যত্ন"
       },
       "image": null
     },
     {
       "step_index": 5,
       "concept_id": "c-modern-childcare-concept",
-      "teaching_notes": "Deepen the modern ideas with concrete daily actions she can imagine doing in her daycare.\n\nFocus on 3–4 aspects:\n1) Play‑based learning:\n- Explain with examples: counting steps while climbing; naming colours while folding clothes; sorting pulses; simple puzzles from household items.\n2) Individual attention:\n- Each child different: one talks a lot, one is quiet; one loves drawing, one loves running. She should notice this and give suitable small tasks.\n3) Positive discipline:\n- From transcript: promote self‑regulation, empathy, mutual respect.\n- In simple words: explain rules calmly, repeat, praise good behaviour, ignore some small mischief, never hit or insult.\n4) Parent involvement:\n- Talk daily 2–3 minutes with parents: what child ate, played, any new word or problem.\n\nWarn against:\n- Forcing all children to do same thing at same speed; scolding slow ones.\n- Using fear (“police bulvaungi”) or shame.\n\nEmphasise:\n- This style builds strong bond with children and parents and becomes her ‘speciality’ in the village.\nUse everyday examples, not theory words.",
+      "teaching_notes": "Deepen the modern ideas with concrete daily actions she can imagine doing in her daycare.\n\nFocus on 3–4 aspects:\n1) Play‑based learning:\n- Explain with examples: counting steps while climbing; naming colours while folding clothes; sorting pulses; simple puzzles from household items.\n2) Individual attention:\n- Each child different: one talks a lot, one is quiet; one loves drawing, one loves running. She should notice this and give suitable small tasks.\n3) Positive discipline:\n- From transcript: promote self‑regulation, empathy, mutual respect.\n- In simple words: explain rules calmly, repeat, praise good behaviour, ignore some small mischief, never hit or insult.\n4) Parent involvement:\n- Talk daily 2‑3 minutes with parents: what child ate, played, any new word or problem.\n\nWarn against:\n- Forcing all children to do same thing at same speed; scolding slow ones.\n- Using fear (“police bulvaungi”) or shame.\n\nEmphasise:\n- This style builds strong bond with children and parents and becomes her ‘speciality’ in the village.\nUse everyday examples, not theory words.",
       "caption": {
         "en-IN": "Using play and gentle discipline every day",
         "hi-IN": "रोज़ाना खेल और प्यार भरी अनुशासन से सिखाना",
-        "gu-IN": "રોજ રમતાં રમતાં અને સ્નેહથી શિસ્ત શીખવવી"
+        "gu-IN": "રોજ રમતાં રમતાં અને સ્નેહથી શિસ્ત શીખવવી",
+        "bn-IN": "প্রতিদিন খেলা ও স্নেহপূর্ণ শৃঙ্খলার মাধ্যমে শেখানো"
       },
       "image": null
     },
     {
       "step_index": 6,
       "concept_id": "c-home-based-daycare-basics",
-      "teaching_notes": "Now move to simple planning so it feels like a real small business plan, as in the daycare business video.\n\nKey points:\n- Decide timings: e.g., 9am–1pm or 10am–4pm, so parents know clearly.\n- Decide maximum number of children according to space: simple thumb rule you can say: if only one small room, start with 2–3 kids; if two rooms and safe verandah, maybe 4–6.\n- Decide age group: for beginners, 1.5–5 years may be easier than very tiny babies.\n- Think of simple daily schedule: arrival, free play, snack, learning/play activity, rest/quiet time, going home.\n- Make a list of basic things needed: mats, clean drinking water, soap, few toys, small first‑aid box, notebook to note fee and child details.\n\nWarn against:\n- Starting without any plan: parents drop children at any time, pick at any time – this creates stress.\n- Promising things she cannot do (for example, ‘I will teach English fully’ when she herself is not confident).\n\nEmphasise:\n- Writing or at least mentally fixing these points makes her sound professional when she talks to parents.\n- She can adjust later as she learns; plan is not fixed forever.",
+      "teaching_notes": "Now move to simple planning so it feels like a real small business plan, as in the daycare business video.\n\nKey points:\n- Decide timings: e.g., 9am‑1pm or 10am‑4pm, so parents know clearly.\n- Decide maximum number of children according to space: simple thumb rule you can say: if only one small room, start with 2‑3 kids; if two rooms and safe verandah, maybe 4‑6.\n- Decide age group: for beginners, 1.5‑5 years may be easier than very tiny babies.\n- Think of simple daily schedule: arrival, free play, snack, learning/play activity, rest/quiet time, going home.\n- Make a list of basic things needed: mats, clean drinking water, soap, few toys, small first‑aid box, notebook to note fee and child details.\n\nWarn against:\n- Starting without any plan: parents drop children at any time, pick at any time – this creates stress.\n- Promising things she cannot do (for example, ‘I will teach English fully’ when she herself is not confident).\n\nEmphasise:\n- Writing or at least mentally fixing these points makes her sound professional when she talks to parents.\n- She can adjust later as she learns; plan is not fixed forever.",
       "caption": {
         "en-IN": "Planning timing, age group and daily routine",
         "hi-IN": "समय, उम्र और रोज़ का रूटीन तय करना",
-        "gu-IN": "સમય, ઉંમર અને રોજની રૂટિન નક્કી કરવી"
+        "gu-IN": "સમય, ઉંમર અને રોજની રૂટિન નક્કી કરવી",
+        "bn-IN": "সময়, বয়স ও দৈনিক রুটিন ঠিক করা"
       },
       "image": null
     },
@@ -147,18 +161,20 @@
       "caption": {
         "en-IN": "Cleanliness, food and rest in your daycare",
         "hi-IN": "डेकेयर में सफ़ाई, खाना और आराम",
-        "gu-IN": "ડે કેરમાં સફાઈ, ખોરાક અને આરામ"
+        "gu-IN": "ડે કેરમાં સફાઈ, ખોરાક અને આરામ",
+        "bn-IN": "ডে-কেয়ারে পরিচ্ছন্নতা, খাবার ও বিশ্রাম"
       },
       "image": null
     },
     {
       "step_index": 8,
       "concept_id": "c-earning-from-daycare",
-      "teaching_notes": "Now directly talk about money and customers, very practically.\n\nKey points on what she can offer for pay:\n- Basic home daycare (3–6 hours care) for 2–6 children.\n- Optional: slightly higher fee if she includes early learning activities (rhymes, counting, drawing) as modern child care.\n\nPricing guidance (for mentor only, speak as ranges, adjust to local city/village):\n- In small town/village: maybe ₹500–₹1,000 per child per month for 2–3 hours daily; ₹1,000–₹2,000 per child per month for half‑day (4–6 hours).\n- Explain that fees depend on: area income level, hours, whether food is included, how many days a week.\n\nHow to find first parents:\n- Start with neighbours, relatives, women going for field work, factory, or house‑work.\n- Tell them clearly: timings, fees, what you will do (safe place, play, basic teaching), what you will NOT do (no night stay, no sick child with fever).\n- She can make a simple word‑of‑mouth ‘announcement’: tell women at anganwadi, self‑help group meeting, temple/mosque gatherings, local shop.\n- Offer small starting offer: e.g., first month slightly lower fee or one week trial.\n\nWarn against:\n- Giving free service for long ‘as favour’; it becomes habit and hard to convert to paid.\n- Promising too low fee; then she gets tired and feels it’s not worth it.\n- Taking money without noting it; maintain simple record (with help of family if she cannot write).\n\nEmphasise:\n- It is okay to talk openly about fee; her time and care have value.\n- Slowly she can increase fees as quality and demand rise.\nKeep tone confident and respectful; no shame in charging.",
+      "teaching_notes": "Now directly talk about money and customers, very practically.\n\nKey points on what she can offer for pay:\n- Basic home daycare (3‑6 hours care) for 2‑6 children.\n- Optional: slightly higher fee if she includes early learning activities (rhymes, counting, drawing) as modern child care.\n\nPricing guidance (for mentor only, speak as ranges, adjust to local city/village):\n- In small town/village: maybe ₹500‑₹1,000 per child per month for 2‑3 hours daily; ₹1,000‑₹2,000 per child per month for half‑day (4‑6 hours).\n- Explain that fees depend on: area income level, hours, whether food is included, how many days a week.\n\nHow to find first parents:\n- Start with neighbours, relatives, women going for field work, factory, or house‑work.\n- Tell them clearly: timings, fees, what you will do (safe place, play, basic teaching), what you will NOT do (no night stay, no sick child with fever).\n- She can make a simple word‑of‑mouth ‘announcement’: tell women at anganwadi, self‑help group meeting, temple/mosque gatherings, local shop.\n- Offer small starting offer: e.g., first month slightly lower fee or one week trial.\n\nWarn against:\n- Giving free service for long ‘as favour’; it becomes habit and hard to convert to paid.\n- Promising too low fee; then she gets tired and feels it’s not worth it.\n- Taking money without noting it; maintain simple record (with help of family if she cannot write).\n\nEmphasise:\n- It is okay to talk openly about fee; her time and care have value.\n- Slowly she can increase fees as quality and demand rise.\nKeep tone confident and respectful; no shame in charging.",
       "caption": {
         "en-IN": "Starting to charge fees and get parents",
         "hi-IN": "फीस लेना और माता‑पिता जोड़ना शुरू करना",
-        "gu-IN": "ફી લેવી અને વાલીઓને જોડવા શરૂઆત કરવી"
+        "gu-IN": "ફી લેવી અને વાલીઓને જોડવા શરૂઆત કરવી",
+        "bn-IN": "ফি নেওয়া ও অভিভাবক যুক্ত করা শুরু করা"
       },
       "image": null
     },
@@ -169,7 +185,8 @@
       "caption": {
         "en-IN": "Keeping parents’ trust so income grows",
         "hi-IN": "माता‑पिता का भरोसा रखकर कमाई बढ़ाना",
-        "gu-IN": "વાલીનો વિશ્વાસ રાખીને કમાણી વધારવી"
+        "gu-IN": "વાલીનો વિશ્વાસ રાખીને કમાણી વધારવી",
+        "bn-IN": "অভিভাবকদের বিশ্বাস রেখে আয় বাড়ানো"
       },
       "image": null
     }
