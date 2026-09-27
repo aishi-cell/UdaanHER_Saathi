@@ -68,6 +68,10 @@ PIN_SENTENCES = {
         "നിങ്ങളുടെ PIN ഇതാണ്: {pin_spoken}। ഇത് ഓർത്തിരിക്കുക -- അടുത്ത തവണ "
         "വെറും നിങ്ങളുടെ പേരും ഈ PIN‑ഉം പറയുക, നമ്മൾ അവിടെ നിന്ന് തുടങ്ങും."
     ),
+    "mr-IN": (
+        "तुमचा PIN आहे: {pin_spoken}. हे लक्षात ठेवा -- पुढच्या वेळी फक्त तुमचं "
+        "नाव आणि हा PIN सांगा, आपण तिथूनच पुढे सुरू करू."
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

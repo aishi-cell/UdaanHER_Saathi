@@ -9,6 +9,7 @@ export type SessionLanguage =
   | 'bn-IN'
   | 'kn-IN'
   | 'ml-IN'
+  | 'mr-IN'
   | 'en-IN';
 
 export interface OptionCardData {
