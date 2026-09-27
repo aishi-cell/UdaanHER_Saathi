@@ -64,6 +64,10 @@ PIN_SENTENCES = {
         "ನಿಮ್ಮ PIN ಇದು: {pin_spoken}। ಇದನ್ನು ನೆನಪಿಡಿ -- ಮುಂದಿನ ಬಾರಿ ಬರೀ ನಿಮ್ಮ "
         "ಹೆಸರು ಮತ್ತು ಈ PIN ಹೇಳಿ, ನಾವು ಅಲ್ಲಿಂದಲೇ ಶುರು ಮಾಡುತ್ತೇವೆ."
     ),
+    "ml-IN": (
+        "നിങ്ങളുടെ PIN ഇതാണ്: {pin_spoken}। ഇത് ഓർത്തിരിക്കുക -- അടുത്ത തവണ "
+        "വെറും നിങ്ങളുടെ പേരും ഈ PIN‑ഉം പറയുക, നമ്മൾ അവിടെ നിന്ന് തുടങ്ങും."
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

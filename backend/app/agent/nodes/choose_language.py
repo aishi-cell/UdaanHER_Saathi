@@ -13,11 +13,11 @@ from app.agent.nodes import greet
 from app.agent.state import AgentState
 
 PROMPT_TEXT = (
-    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, या "
-    "English? Please say your language."
+    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, "
+    "മലയാളം, या English? Please say your language."
 )
 REASK_TEXT = (
-    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, या English? "
+    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, മലയാളം, या English? "
     "You can also tap your language on the screen."
 )
 
@@ -35,6 +35,7 @@ LANGUAGE_OPTIONS = [
     {"id": "pa-IN", "label": "ਪੰਜਾਬੀ", "image": None},
     {"id": "bn-IN", "label": "বাংলা", "image": None},
     {"id": "kn-IN", "label": "ಕನ್ನಡ", "image": None},
+    {"id": "ml-IN", "label": "മലയാളം", "image": None},
     {"id": "en-IN", "label": "English", "image": None},
 ]
 
@@ -49,6 +50,7 @@ _PATTERNS: list[tuple[str, str]] = [
     (r"punjabi|panjabi|ਪੰਜਾਬੀ|पंजाबी|પંજાબી", "pa-IN"),
     (r"bengali|bangla|বাংলা|बंगाली|બંગાળી|ਬੰਗਾਲੀ", "bn-IN"),
     (r"kannada|ಕನ್ನಡ|कन्नड़|કન્નડ|ਕੰਨੜ|কন্নড়", "kn-IN"),
+    (r"malayalam|मलयालम|મલયાલમ|ਮਲਿਆਲਮ|মালায়ালম|മലയാളം", "ml-IN"),
     (
         r"english|angrezi|angreji|inglish|inglis|अंग्रेज़ी|अंग्रेजी|इंग्लिश|इंगलिश|"
         r"અંગ્રેજી|ઇંગ્લિશ|ਅੰਗਰੇਜ਼ੀ|ਇੰਗਲਿਸ਼",

@@ -1199,6 +1199,7 @@ async def test_choose_language_step0_speaks_prompt_with_cards():
         "pa-IN",
         "bn-IN",
         "kn-IN",
+        "ml-IN",
         "en-IN",
     }
 
@@ -1215,9 +1216,12 @@ async def test_choose_language_step0_speaks_prompt_with_cards():
         ("bengali please", "bn-IN"),
         ("ನಾನು ಕನ್ನಡ ಮಾತನಾಡುತ್ತೇನೆ", "kn-IN"),
         ("kannada please", "kn-IN"),
+        ("എനിക്ക് മലയാളം അറിയാം", "ml-IN"),
+        ("malayalam please", "ml-IN"),
         ("gu-IN", "gu-IN"),  # a tapped card arrives as the bare id
         ("bn-IN", "bn-IN"),
         ("kn-IN", "kn-IN"),
+        ("ml-IN", "ml-IN"),
     ],
 )
 @pytest.mark.asyncio
