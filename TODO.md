@@ -248,10 +248,33 @@ sale) — see the last item below for how that's scoped.
         Bengali testing (pronunciation, accents, mixed-language speech) —
         per your own roadmap's rollout process. Until then, treat the
         `bn-IN` option as a working draft, not production-ready
-- [ ] Kannada, Malayalam, Marathi, Odia, Tamil, Telugu — not started; same
-      process as Bengali once you're ready (verify STT/TTS support, add the
-      code groundwork, draft-translate the same 4 skill packages, live-test,
-      then your review before launch)
+- [~] **Kannada** — same process as Bengali, also done and live-verified;
+      also **not yet launched, pending native-speaker review**
+  - [x] Sarvam STT/TTS support confirmed via a live round-trip check
+  - [x] Code: `kn-IN` added everywhere `bn-IN` was (session/language types,
+        `choose_language.py` picker card + voice-match patterns for
+        kannada/ಕನ್ನಡ and cross-script mishearings, `confirm_profile.py`'s
+        spoken-PIN sentence)
+  - [x] Content: AI-translated every `kn-IN` field across all 4 seeded
+        skills (4 titles, 22 concept labels, 33 step captions) — confirmed
+        complete via the content-store loader, zero missing fields
+  - [x] Live-verified end-to-end against the real LLM/STT/TTS: language
+        card, full onboarding conversation, and translated skill cards all
+        working naturally in Kannada script throughout (the Bengali
+        native-script prompt fix already paid off here — no romanization
+        seen at all, not even on the first turn)
+  - [ ] Minor, isolated garbled fragment spotted once in one live reply
+        (a few stray Latin characters mid-sentence) — did not reproduce
+        elsewhere in the same run, exactly the kind of thing native-speaker
+        review should catch; not chased further as a "bug" since it wasn't
+        systemic
+  - [ ] **What's left before this is actually launched**: same as Bengali —
+        native-speaker review of the translated content plus real spoken-
+        Kannada testing before this is production-ready
+- [ ] Malayalam, Marathi, Odia, Tamil, Telugu — not started; same process
+      once you're ready (verify STT/TTS support, add the code groundwork,
+      draft-translate the same 4 skill packages, live-test, then your
+      review before launch)
 - [ ] Per-language rollout checklist — now informally established by how
       Bengali was done (verify provider support → code groundwork → draft
       content → live-test → native review → launch); not written up as a
@@ -299,10 +322,10 @@ sale) — see the last item below for how that's scoped.
   `docs/app_plan_v2.md`, which is the canonical product/architecture doc — the
   roadmap above is layered on top of that plan, not a replacement for it.
 - The Career Roadmap (item 3) is fully shipped, including the self-reported
-  off-platform milestones. Language expansion (item 7) is now underway:
-  priority order confirmed (Bengali → Kannada → Malayalam → Marathi → Odia
-  → Tamil → Telugu), and Bengali has technical groundwork + AI-drafted
-  content done and live-verified — but it isn't launched yet, waiting on
-  your native-speaker review. The other 6 languages haven't been started.
-  Latency benchmarking (item 5) remains, blocked on real measurement
-  infrastructure rather than a coding task.
+  off-platform milestones. Language expansion (item 7) is underway: priority
+  order confirmed (Bengali → Kannada → Malayalam → Marathi → Odia → Tamil →
+  Telugu), and both Bengali and Kannada have technical groundwork +
+  AI-drafted content done and live-verified — neither is launched yet,
+  waiting on your native-speaker review of each. Malayalam, Marathi, Odia,
+  Tamil, Telugu haven't been started. Latency benchmarking (item 5) remains,
+  blocked on real measurement infrastructure rather than a coding task.

@@ -60,6 +60,10 @@ PIN_SENTENCES = {
         "আপনার PIN হল: {pin_spoken}। এটা মনে রাখবেন -- পরের বার শুধু আপনার "
         "নাম আর এই PIN বলবেন, আমরা সেখান থেকেই আবার শুরু করব।"
     ),
+    "kn-IN": (
+        "ನಿಮ್ಮ PIN ಇದು: {pin_spoken}। ಇದನ್ನು ನೆನಪಿಡಿ -- ಮುಂದಿನ ಬಾರಿ ಬರೀ ನಿಮ್ಮ "
+        "ಹೆಸರು ಮತ್ತು ಈ PIN ಹೇಳಿ, ನಾವು ಅಲ್ಲಿಂದಲೇ ಶುರು ಮಾಡುತ್ತೇವೆ."
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

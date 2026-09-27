@@ -13,11 +13,11 @@ from app.agent.nodes import greet
 from app.agent.state import AgentState
 
 PROMPT_TEXT = (
-    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, या English? "
-    "Please say your language."
+    "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, या "
+    "English? Please say your language."
 )
 REASK_TEXT = (
-    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, या English? "
+    "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, या English? "
     "You can also tap your language on the screen."
 )
 
@@ -25,15 +25,16 @@ REASK_TEXT = (
 PROMPT_TTS_LANGUAGE = "hi-IN"
 
 # Language expansion (roadmap item 7), priority order as given: Bengali,
-# Kannada, Malayalam, Marathi, Odia, Tamil, Telugu. Bengali is the first
-# one landed -- Sarvam STT/TTS support confirmed via a live round-trip
-# check (2026-09-26); content translations are AI drafts pending native-
-# speaker review before this is considered launched (see TODO.md item 7).
+# Kannada, Malayalam, Marathi, Odia, Tamil, Telugu. Each one's Sarvam
+# STT/TTS support is confirmed via a live round-trip check before it's
+# added here; content translations are AI drafts pending native-speaker
+# review before a language is considered launched (see TODO.md item 7).
 LANGUAGE_OPTIONS = [
     {"id": "hi-IN", "label": "हिन्दी", "image": None},
     {"id": "gu-IN", "label": "ગુજરાતી", "image": None},
     {"id": "pa-IN", "label": "ਪੰਜਾਬੀ", "image": None},
     {"id": "bn-IN", "label": "বাংলা", "image": None},
+    {"id": "kn-IN", "label": "ಕನ್ನಡ", "image": None},
     {"id": "en-IN", "label": "English", "image": None},
 ]
 
@@ -47,6 +48,7 @@ _PATTERNS: list[tuple[str, str]] = [
     (r"gujarati|guj[ae]rati|ગુજરાતી|गुजराती|ਗੁਜਰਾਤੀ|gujju", "gu-IN"),
     (r"punjabi|panjabi|ਪੰਜਾਬੀ|पंजाबी|પંજાબી", "pa-IN"),
     (r"bengali|bangla|বাংলা|बंगाली|બંગાળી|ਬੰਗਾਲੀ", "bn-IN"),
+    (r"kannada|ಕನ್ನಡ|कन्नड़|કન્નડ|ਕੰਨੜ|কন্নড়", "kn-IN"),
     (
         r"english|angrezi|angreji|inglish|inglis|अंग्रेज़ी|अंग्रेजी|इंग्लिश|इंगलिश|"
         r"અંગ્રેજી|ઇંગ્લિશ|ਅੰਗਰੇਜ਼ੀ|ਇੰਗਲਿਸ਼",
