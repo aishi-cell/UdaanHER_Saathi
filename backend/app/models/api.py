@@ -31,7 +31,10 @@ class SessionRequest(BaseModel):
     # Omitted -> the voice-first path: the session opens in choose_language
     # and Saathi asks for her language by voice (with tappable cards).
     language: (
-        Literal["gu-IN", "hi-IN", "pa-IN", "bn-IN", "kn-IN", "ml-IN", "mr-IN", "en-IN"] | None
+        Literal[
+            "gu-IN", "hi-IN", "pa-IN", "bn-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "en-IN"
+        ]
+        | None
     ) = None
     # Login roadmap item 1: a code generated client-side the moment she taps
     # "I'm new", so it can stay pinned on screen from before the conversation

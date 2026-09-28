@@ -328,9 +328,36 @@ sale) — see the last item below for how that's scoped.
   - [ ] **What's left before this is actually launched**: same as the
         others — native-speaker review of the translated content plus real
         spoken-Marathi testing before this is production-ready
-- [ ] Odia, Tamil, Telugu — not started; same process once you're ready
-      (verify STT/TTS support, add the code groundwork, draft-translate the
-      same 4 skill packages, live-test, then your review before launch)
+- [~] **Odia** — same process as the others, also done and live-verified;
+      also **not yet launched, pending native-speaker review**
+  - [x] Sarvam STT/TTS support confirmed via a live round-trip check (real
+        API call: Odia text → speech → transcribed back verbatim). Note:
+        Sarvam's BCP-47-like code for Odia is `od-IN`, not the ISO `or-IN`
+        — confirmed by a live 400 error listing Sarvam's accepted codes
+        before picking the right one
+  - [x] Code: `od-IN` added everywhere `mr-IN` was (session/language types
+        in `backend/app/models/api.py` and `frontend/src/types.ts`,
+        `choose_language.py` picker card + voice-match patterns for
+        odia/oriya/ଓଡ଼ିଆ and cross-script mishearings, `confirm_profile.py`'s
+        spoken-PIN sentence), plus matching `test_onboarding.py` coverage
+        (options set, voice-match parametrize cases) — full suite passing
+        at 174 tests, ruff clean (one pre-existing unrelated lint warning in
+        `models/db.py`), frontend `tsc -b` clean
+  - [x] Content: AI-translated every `od-IN` field across all 4 seeded
+        skills (4 titles, 22 concept labels, 33 step captions) — confirmed
+        complete via a zero-missing-fields check plus `store.validate_all()`
+  - [x] Live-verified end-to-end against the real LLM/STT/TTS: language
+        card appears and is selectable, full onboarding conversation
+        (greet → discover) flows naturally in native Odia script
+        throughout, translated skill-card labels render correctly for all
+        4 skills, and the learner's name was correctly retained across
+        turns this run (no repeat of the Malayalam/Marathi name-swap quirk)
+  - [ ] **What's left before this is actually launched**: same as the
+        others — native-speaker review of the translated content plus real
+        spoken-Odia testing before this is production-ready
+- [ ] Tamil, Telugu — not started; same process once you're ready (verify
+      STT/TTS support, add the code groundwork, draft-translate the same 4
+      skill packages, live-test, then your review before launch)
 - [ ] Per-language rollout checklist — now informally established by how
       Bengali was done (verify provider support → code groundwork → draft
       content → live-test → native review → launch); not written up as a
@@ -380,8 +407,8 @@ sale) — see the last item below for how that's scoped.
 - The Career Roadmap (item 3) is fully shipped, including the self-reported
   off-platform milestones. Language expansion (item 7) is underway: priority
   order confirmed (Bengali → Kannada → Malayalam → Marathi → Odia → Tamil →
-  Telugu), and Bengali, Kannada, Malayalam, and Marathi all have technical
-  groundwork + AI-drafted content done and live-verified — none of the four
-  is launched yet, waiting on your native-speaker review of each. Odia,
+  Telugu), and Bengali, Kannada, Malayalam, Marathi, and Odia all have
+  technical groundwork + AI-drafted content done and live-verified — none of
+  the five is launched yet, waiting on your native-speaker review of each.
   Tamil, Telugu haven't been started. Latency benchmarking (item 5) remains,
   blocked on real measurement infrastructure rather than a coding task.
