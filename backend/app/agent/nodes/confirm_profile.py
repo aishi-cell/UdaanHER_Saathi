@@ -81,6 +81,10 @@ PIN_SENTENCES = {
         "முறை உங்கள் பெயரையும் இந்த PIN-ஐயும் மட்டும் சொல்லுங்கள், அங்கிருந்தே "
         "தொடர்வோம்."
     ),
+    "te-IN": (
+        "మీ PIN: {pin_spoken}. దీన్ని గుర్తుంచుకోండి -- తర్వాతిసారి మీ పేరు "
+        "మరియు ఈ PIN మాత్రమే చెప్పండి, మనం అక్కడి నుండే కొనసాగిస్తాం."
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

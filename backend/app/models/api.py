@@ -41,6 +41,7 @@ class SessionRequest(BaseModel):
             "mr-IN",
             "od-IN",
             "ta-IN",
+            "te-IN",
             "en-IN",
         ]
         | None

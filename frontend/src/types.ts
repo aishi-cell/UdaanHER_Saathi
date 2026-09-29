@@ -12,6 +12,7 @@ export type SessionLanguage =
   | 'mr-IN'
   | 'od-IN'
   | 'ta-IN'
+  | 'te-IN'
   | 'en-IN';
 
 export interface OptionCardData {
