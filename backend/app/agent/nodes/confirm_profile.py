@@ -76,6 +76,11 @@ PIN_SENTENCES = {
         "ଆପଣଙ୍କ PIN ହେଉଛି: {pin_spoken}। ଏହା ମନେରଖନ୍ତୁ -- ପରବର୍ତ୍ତୀ ଥର କେବଳ "
         "ଆପଣଙ୍କ ନାମ ଏବଂ ଏହି PIN କୁହନ୍ତୁ, ଆମେ ସେଠାରୁ ହିଁ ଆରମ୍ଭ କରିବା।"
     ),
+    "ta-IN": (
+        "உங்கள் PIN: {pin_spoken}. இதை நினைவில் வைத்துக் கொள்ளுங்கள் -- அடுத்த "
+        "முறை உங்கள் பெயரையும் இந்த PIN-ஐயும் மட்டும் சொல்லுங்கள், அங்கிருந்தே "
+        "தொடர்வோம்."
+    ),
     "en-IN": (
         "Your PIN is: {pin_spoken}. Please remember it -- next time, just say "
         "your name and this PIN, and we will continue right where you left off."

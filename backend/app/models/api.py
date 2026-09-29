@@ -32,7 +32,16 @@ class SessionRequest(BaseModel):
     # and Saathi asks for her language by voice (with tappable cards).
     language: (
         Literal[
-            "gu-IN", "hi-IN", "pa-IN", "bn-IN", "kn-IN", "ml-IN", "mr-IN", "od-IN", "en-IN"
+            "gu-IN",
+            "hi-IN",
+            "pa-IN",
+            "bn-IN",
+            "kn-IN",
+            "ml-IN",
+            "mr-IN",
+            "od-IN",
+            "ta-IN",
+            "en-IN",
         ]
         | None
     ) = None

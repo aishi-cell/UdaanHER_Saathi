@@ -14,11 +14,11 @@ from app.agent.state import AgentState
 
 PROMPT_TEXT = (
     "नमस्ते! आप कौन सी भाषा बोलेंगी? हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, "
-    "മലയാളം, मराठी, ଓଡ଼ିଆ, या English? Please say your language."
+    "മലയാളം, मराठी, ଓଡ଼ିଆ, தமிழ், या English? Please say your language."
 )
 REASK_TEXT = (
     "फिर से बताइए -- हिन्दी, ગુજરાતી, ਪੰਜਾਬੀ, বাংলা, ಕನ್ನಡ, മലയാളം, मराठी, "
-    "ଓଡ଼ିଆ, या English? You can also tap your language on the screen."
+    "ଓଡ଼ିଆ, தமிழ், या English? You can also tap your language on the screen."
 )
 
 # The prompt mixes scripts; Sarvam needs one target language for TTS.
@@ -38,6 +38,7 @@ LANGUAGE_OPTIONS = [
     {"id": "ml-IN", "label": "മലയാളം", "image": None},
     {"id": "mr-IN", "label": "मराठी", "image": None},
     {"id": "od-IN", "label": "ଓଡ଼ିଆ", "image": None},
+    {"id": "ta-IN", "label": "தமிழ்", "image": None},
     {"id": "en-IN", "label": "English", "image": None},
 ]
 
@@ -55,6 +56,7 @@ _PATTERNS: list[tuple[str, str]] = [
     (r"malayalam|मलयालम|મલયાલમ|ਮਲਿਆਲਮ|মালায়ালম|മലയാളം", "ml-IN"),
     (r"marathi|मराठी|મરાઠી|ਮਰਾਠੀ|মারাঠি|ಮರಾಠಿ|മറാത്തി", "mr-IN"),
     (r"odia|oriya|ଓଡ଼ିଆ|ओड़िया|ओडिया|ઓડિયા|ਓੜੀਆ|ওড়িয়া|ಒಡಿಯಾ|ഒറിയ", "od-IN"),
+    (r"tamil|தமிழ்|तमिल|तमिऴ|તમિલ|ਤਮਿਲ|তামিল|ತಮಿಳು|തമിഴ്|ତାମିଲ", "ta-IN"),
     (
         r"english|angrezi|angreji|inglish|inglis|अंग्रेज़ी|अंग्रेजी|इंग्लिश|इंगलिश|"
         r"અંગ્રેજી|ઇંગ્લિશ|ਅੰਗਰੇਜ਼ੀ|ਇੰਗਲਿਸ਼",
